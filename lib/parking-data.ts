@@ -2,6 +2,7 @@ export interface CarPark {
   id: string;
   name: string;
   location: string;
+  address?: string;
   rows: string[];
   spacesPerRow: Record<string, number>;
   spaceNumbers?: Record<string, number[]>;
@@ -31,6 +32,7 @@ export interface BorrowRecord {
   date: string;
   originalOwner: string;
   borrowedBy: string;
+  allocatedBy?: string | null;
   borrowedAt: string;
 }
 

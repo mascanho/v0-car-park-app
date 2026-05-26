@@ -21,6 +21,7 @@ export async function GET() {
     date: b.booking_date,
     originalOwner: b.original_owner,
     borrowedBy: b.borrowed_by,
+    allocatedBy: b.allocated_by ?? null,
     borrowedAt: b.borrowed_at,
   }));
 

@@ -1,25 +1,28 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import useSWR from "swr";
 import { createClient } from "@/lib/supabase/client";
 import { Calendar } from "./calendar";
 import { ParkingLot } from "./parking-lot";
 import { BorrowHistory } from "./borrow-history";
 import { NotesPanel } from "./notes-panel";
+import { MapPanel } from "./map-panel";
 import {
   generateParkingSpaces,
   formatDate,
   isPastDate,
 } from "@/lib/parking-data";
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
-import { Car, CalendarDays, MapPin, Loader2, LogOut } from "lucide-react";
+import { Car, CalendarDays, MapPin, Loader2, LogOut, Shield, Database } from "lucide-react";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function ParkingApp() {
   const [currentUser, setCurrentUser] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
@@ -29,9 +32,12 @@ export function ParkingApp() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        const email = user.email || user.user_metadata?.email || "";
+        console.log('Logged in email:', email);
         setCurrentUser(
           user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
         );
+        setUserEmail(email);
         setAvatarUrl(user.user_metadata?.avatar_url || "");
       }
     });
@@ -304,6 +310,13 @@ export function ParkingApp() {
                 <span className="hidden sm:inline text-sm font-medium text-foreground">
                   {currentUser}
                 </span>
+                {userEmail.toLowerCase().trim() === 'm.guerreiro@slimstock.com' && (
+                  <AdminDropdown
+                    open={adminMenuOpen}
+                    onToggle={() => setAdminMenuOpen((v) => !v)}
+                    onClose={() => setAdminMenuOpen(false)}
+                  />
+                )}
                 <button
                   onClick={handleSignOut}
                   className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
@@ -425,11 +438,15 @@ export function ParkingApp() {
           </div>
 
           {/* Notes column */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 space-y-4">
             <NotesPanel
               carParkId={selectedCarPark.id}
               selectedDate={selectedDate}
               currentUser={currentUser}
+            />
+            <MapPanel
+              address={selectedCarPark.address || selectedCarPark.location}
+              name={selectedCarPark.name}
             />
           </div>
         </div>
@@ -443,6 +460,52 @@ export function ParkingApp() {
           </p>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function AdminDropdown({ open, onToggle, onClose }: { open: boolean; onToggle: () => void; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        onCloseRef.current();
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={onToggle}
+        className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+        title="Admin"
+      >
+        <Shield className="w-4 h-4" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-lg shadow-lg py-1 z-50">
+          <button
+            onClick={() => { window.open('https://supabase.com/dashboard/project/pmjdrswfxxuaqayojccz', '_blank'); onClose(); }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
+          >
+            <Database className="w-4 h-4 text-muted-foreground" />
+            Supabase Dashboard
+          </button>
+          <button
+            onClick={() => { window.open('/api/bookings?format=json', '_blank'); onClose(); }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
+          >
+            <Shield className="w-4 h-4 text-muted-foreground" />
+            Raw Bookings
+          </button>
+        </div>
+      )}
     </div>
   );
 }

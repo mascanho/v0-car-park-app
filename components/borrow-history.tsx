@@ -49,7 +49,27 @@ export function BorrowHistory({ carParkId, carParkName, selectedDate }: BorrowHi
               <>
                 <CirclePlus className="w-3 h-3 text-accent shrink-0" />
                 <span className="font-mono text-xs font-semibold text-muted-foreground min-w-[40px]">#{e.spaceId}</span>
-                <span className="text-accent text-xs">{e.borrowedBy} booked</span>
+                {e.allocatedBy ? (
+                  <span className="text-xs">
+                    <span className="text-accent font-medium">{e.allocatedBy}</span>
+                    <span className="text-muted-foreground"> allocated to </span>
+                    <span className="text-accent font-medium">{e.borrowedBy}</span>
+                  </span>
+                ) : (
+                  <span className="text-accent text-xs">{e.borrowedBy} booked</span>
+                )}
+              </>
+            ) : e.allocatedBy ? (
+              <>
+                <ArrowRightFromLine className="w-3 h-3 text-muted-foreground/50 shrink-0" />
+                <span className="font-mono text-xs font-semibold text-muted-foreground min-w-[40px]">#{e.spaceId}</span>
+                <span className="text-xs">
+                  <span className="font-medium text-foreground">{e.allocatedBy}</span>
+                  <span className="text-muted-foreground"> re-allocated </span>
+                  <span className="text-muted-foreground">{e.originalOwner}</span>
+                  <ArrowRightFromLine className="w-3 h-3 text-muted-foreground/30 shrink-0 inline" />
+                  <span className="font-medium text-foreground">{e.borrowedBy}</span>
+                </span>
               </>
             ) : (
               <>

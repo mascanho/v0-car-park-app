@@ -63,6 +63,8 @@ export async function POST(request: Request) {
   }
   
   const resolvedUserName = userName || user.user_metadata?.full_name || user.email;
+  const authUserName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+  const isAllocation = resolvedUserName !== authUserName;
 
   // If the user had a different booking on this date, release it
   await supabase
@@ -102,6 +104,7 @@ export async function POST(request: Request) {
     booking_date: date,
     original_owner: isBorrow ? previousOwner : '[NEW]',
     borrowed_by: resolvedUserName,
+    allocated_by: isAllocation ? authUserName : null,
   });
 
   // Insert the new booking
