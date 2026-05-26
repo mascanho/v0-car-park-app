@@ -15,6 +15,7 @@ export interface ParkingSpace {
 }
 
 export interface Booking {
+  id?: string;
   spaceId: string;
   date: string;
   userName: string;

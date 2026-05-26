@@ -1,59 +1,74 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import useSWR, { mutate } from 'swr';
 import { Calendar } from './calendar';
 import { ParkingLot } from './parking-lot';
 import { BookingPanel } from './booking-panel';
-import { generateParkingSpaces, formatDate, isPastDate, CAR_PARKS } from '@/lib/parking-data';
+import { generateParkingSpaces, formatDate, isPastDate } from '@/lib/parking-data';
 import type { ParkingSpace, Booking, CarPark } from '@/lib/parking-data';
-import { Car, CalendarDays, MapPin } from 'lucide-react';
+import { Car, CalendarDays, MapPin, Loader2 } from 'lucide-react';
 
-// Simulated bookings (in production, this would come from a database)
-const initialBookings: Booking[] = [
-  { spaceId: 'A3', date: formatDate(new Date()), userName: 'John Doe', carParkId: 'north' },
-  { spaceId: 'B5', date: formatDate(new Date()), userName: 'Jane Smith', carParkId: 'north' },
-  { spaceId: 'C2', date: formatDate(new Date()), userName: 'Bob Wilson', carParkId: 'north' },
-  { spaceId: 'D8', date: formatDate(new Date()), userName: 'Alice Brown', carParkId: 'north' },
-  { spaceId: 'A4', date: formatDate(new Date(new Date().setDate(new Date().getDate() + 1))), userName: 'John Doe', carParkId: 'north' },
-  { spaceId: 'B1', date: formatDate(new Date(new Date().setDate(new Date().getDate() + 1))), userName: 'Sarah Lee', carParkId: 'north' },
-  { spaceId: 'A2', date: formatDate(new Date()), userName: 'Mike Johnson', carParkId: 'south' },
-  { spaceId: 'B3', date: formatDate(new Date()), userName: 'Emma Davis', carParkId: 'south' },
-];
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function ParkingApp() {
   const [currentUser] = useState('Current User');
-  const [selectedCarPark, setSelectedCarPark] = useState<CarPark>(CAR_PARKS[0]);
+  const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [isLoading, setIsLoading] = useState(false);
   
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   
-  const parkingSpaces = useMemo(() => generateParkingSpaces(selectedCarPark), [selectedCarPark]);
+  // Fetch car parks from database
+  const { data: carParks = [], isLoading: carParksLoading } = useSWR<CarPark[]>(
+    '/api/car-parks',
+    fetcher
+  );
+  
+  // Set initial car park when data loads
+  useMemo(() => {
+    if (carParks.length > 0 && !selectedCarPark) {
+      setSelectedCarPark(carParks[0]);
+    }
+  }, [carParks, selectedCarPark]);
+  
+  // Fetch all bookings from database
+  const { data: allBookings = [], isLoading: bookingsLoading } = useSWR<Booking[]>(
+    '/api/bookings',
+    fetcher,
+    { refreshInterval: 5000 } // Refresh every 5 seconds
+  );
+  
+  const parkingSpaces = useMemo(() => {
+    if (!selectedCarPark) return [];
+    return generateParkingSpaces(selectedCarPark);
+  }, [selectedCarPark]);
   
   // Get bookings for selected date and car park
   const dateBookings = useMemo(() => {
+    if (!selectedCarPark) return [];
     const dateStr = formatDate(selectedDate);
-    return bookings.filter((b) => b.date === dateStr && b.carParkId === selectedCarPark.id);
-  }, [bookings, selectedDate, selectedCarPark.id]);
+    return allBookings.filter((b) => b.date === dateStr && b.carParkId === selectedCarPark.id);
+  }, [allBookings, selectedDate, selectedCarPark]);
   
   // Get current user's booking for selected date and car park
   const existingBooking = useMemo(() => {
+    if (!selectedCarPark) return null;
     const dateStr = formatDate(selectedDate);
-    return bookings.find((b) => b.date === dateStr && b.userName === currentUser && b.carParkId === selectedCarPark.id) || null;
-  }, [bookings, selectedDate, currentUser, selectedCarPark.id]);
+    return allBookings.find((b) => b.date === dateStr && b.userName === currentUser && b.carParkId === selectedCarPark.id) || null;
+  }, [allBookings, selectedDate, currentUser, selectedCarPark]);
   
   // Calculate booking counts per day for the calendar
   const bookingCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    bookings.forEach((b) => {
+    allBookings.forEach((b) => {
       counts[b.date] = (counts[b.date] || 0) + 1;
     });
     return counts;
-  }, [bookings]);
+  }, [allBookings]);
   
   const handleMonthChange = useCallback((month: number, year: number) => {
     setCurrentMonth(month);
@@ -75,43 +90,77 @@ export function ParkingApp() {
   }, []);
   
   const handleBook = useCallback(async () => {
-    if (!selectedSpace || existingBooking || isPastDate(selectedDate)) return;
+    if (!selectedSpace || !selectedCarPark || existingBooking || isPastDate(selectedDate)) return;
     
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
-    const newBooking: Booking = {
-      spaceId: selectedSpace.id,
-      date: formatDate(selectedDate),
-      userName: currentUser,
-      carParkId: selectedCarPark.id,
-    };
-    
-    setBookings((prev) => [...prev, newBooking]);
-    setSelectedSpace(null);
-    setIsLoading(false);
-  }, [selectedSpace, existingBooking, selectedDate, currentUser]);
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          spaceId: selectedSpace.id,
+          carParkId: selectedCarPark.id,
+          date: formatDate(selectedDate),
+          userName: currentUser,
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to book space');
+      }
+      
+      // Refresh bookings data
+      mutate('/api/bookings');
+      setSelectedSpace(null);
+    } catch (error) {
+      console.error('Booking failed:', error);
+      alert(error instanceof Error ? error.message : 'Failed to book space');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedSpace, selectedCarPark, existingBooking, selectedDate, currentUser]);
   
   const handleCancelBooking = useCallback(async () => {
-    if (!existingBooking) return;
+    if (!existingBooking || !existingBooking.id) return;
     
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
-    setBookings((prev) => 
-      prev.filter((b) => !(b.date === existingBooking.date && b.userName === existingBooking.userName && b.carParkId === existingBooking.carParkId))
-    );
-    setIsLoading(false);
+    try {
+      const response = await fetch(`/api/bookings?id=${existingBooking.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to cancel booking');
+      }
+      
+      // Refresh bookings data
+      mutate('/api/bookings');
+    } catch (error) {
+      console.error('Cancel failed:', error);
+      alert('Failed to cancel booking');
+    } finally {
+      setIsLoading(false);
+    }
   }, [existingBooking]);
 
   // Stats
   const totalSpaces = parkingSpaces.length;
   const bookedToday = dateBookings.length;
   const availableToday = totalSpaces - bookedToday;
+
+  if (carParksLoading || !selectedCarPark) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span>Loading car parks...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -157,7 +206,7 @@ export function ParkingApp() {
               <span>Select Car Park:</span>
             </div>
             <div className="flex gap-3">
-              {CAR_PARKS.map((carPark) => (
+              {carParks.map((carPark) => (
                 <button
                   key={carPark.id}
                   onClick={() => handleSelectCarPark(carPark)}
@@ -195,6 +244,9 @@ export function ParkingApp() {
               <span className="text-muted-foreground">Booked:</span>
               <span className="font-semibold text-destructive">{bookedToday}</span>
             </div>
+            {bookingsLoading && (
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            )}
           </div>
         </div>
       </div>
