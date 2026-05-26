@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import useSWR, { mutate } from 'swr';
+import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
 import { Calendar } from './calendar';
 import { ParkingLot } from './parking-lot';
 import { BookingPanel } from './booking-panel';
+import { BorrowHistory } from './borrow-history';
 import { generateParkingSpaces, formatDate, isPastDate } from '@/lib/parking-data';
 import type { ParkingSpace, Booking, CarPark } from '@/lib/parking-data';
 import { Car, CalendarDays, MapPin, Loader2, LogOut } from 'lucide-react';
@@ -53,7 +54,7 @@ export function ParkingApp() {
   }, [carParks, selectedCarPark]);
   
   // Fetch all bookings from database
-  const { data: allBookings = [], isLoading: bookingsLoading } = useSWR<Booking[]>(
+  const { data: allBookings = [], isLoading: bookingsLoading, mutate: refreshBookings } = useSWR<Booking[]>(
     '/api/bookings',
     fetcher,
     { refreshInterval: 5000 } // Refresh every 5 seconds
@@ -77,6 +78,13 @@ export function ParkingApp() {
     const dateStr = formatDate(selectedDate);
     return allBookings.find((b) => b.date === dateStr && b.userName === currentUser && b.carParkId === selectedCarPark.id) || null;
   }, [allBookings, selectedDate, currentUser, selectedCarPark]);
+
+  // If selected space is booked by someone else, it's borrowable
+  const selectedSpaceBookedBy = useMemo(() => {
+    if (!selectedSpace) return null;
+    const booking = dateBookings.find((b) => b.spaceId === selectedSpace.id);
+    return booking && booking.userName !== currentUser ? booking.userName : null;
+  }, [selectedSpace, dateBookings, currentUser]);
   
   // Calculate booking counts per day for the calendar
   const bookingCounts = useMemo(() => {
@@ -106,38 +114,55 @@ export function ParkingApp() {
     setSelectedSpace(space);
   }, []);
   
-  const handleBook = useCallback(async () => {
-    if (!selectedSpace || !selectedCarPark || existingBooking || isPastDate(selectedDate) || !currentUser) return;
+  const handleBook = async () => {
+    if (!selectedSpace) {
+      alert('Please select a parking space.');
+      return;
+    }
+    if (!selectedCarPark) {
+      alert('Please select a car park.');
+      return;
+    }
+    if (isPastDate(selectedDate)) {
+      alert('Cannot book a space for a past date.');
+      return;
+    }
+    if (!currentUser) {
+      alert('You must be logged in to book a space.');
+      return;
+    }
     
     setIsLoading(true);
     
     try {
+      const body = JSON.stringify({
+        spaceId: selectedSpace.id,
+        carParkId: selectedCarPark.id,
+        date: formatDate(selectedDate),
+        userName: currentUser,
+        replaceExisting: true,
+      });
+      
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          spaceId: selectedSpace.id,
-          carParkId: selectedCarPark.id,
-          date: formatDate(selectedDate),
-          userName: currentUser,
-        }),
+        body,
       });
       
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to book space');
+        throw new Error(responseData.error || `HTTP ${response.status}: Failed to book space`);
       }
       
-      // Refresh bookings data
-      mutate('/api/bookings');
-      setSelectedSpace(null);
+      await refreshBookings();
     } catch (error) {
       console.error('Booking failed:', error);
       alert(error instanceof Error ? error.message : 'Failed to book space');
     } finally {
       setIsLoading(false);
     }
-  }, [selectedSpace, selectedCarPark, existingBooking, selectedDate, currentUser]);
+  };
   
   const handleCancelBooking = useCallback(async () => {
     if (!existingBooking || !existingBooking.id) return;
@@ -153,15 +178,14 @@ export function ParkingApp() {
         throw new Error('Failed to cancel booking');
       }
       
-      // Refresh bookings data
-      mutate('/api/bookings');
+      await refreshBookings();
     } catch (error) {
       console.error('Cancel failed:', error);
       alert('Failed to cancel booking');
     } finally {
       setIsLoading(false);
     }
-  }, [existingBooking]);
+  }, [existingBooking, refreshBookings]);
 
   // Stats
   const totalSpaces = parkingSpaces.length;
@@ -303,20 +327,25 @@ export function ParkingApp() {
               onBook={handleBook}
               onCancel={handleCancelBooking}
               existingBooking={existingBooking}
+              selectedSpaceBookedBy={selectedSpaceBookedBy}
               isLoading={isLoading}
             />
           </div>
 
-          {/* Parking lot */}
-          <div className="lg:col-span-9">
+          {/* Parking lot + borrow history */}
+          <div className="lg:col-span-9 space-y-4">
             <ParkingLot
               spaces={parkingSpaces}
               bookings={dateBookings}
               selectedSpace={selectedSpace}
               onSelectSpace={handleSelectSpace}
               currentUser={currentUser}
-              disabled={isPastDate(selectedDate) || !!existingBooking || !currentUser}
+              disabled={isPastDate(selectedDate) || !currentUser}
               carPark={selectedCarPark}
+            />
+            <BorrowHistory
+              carParkId={selectedCarPark.id}
+              carParkName={selectedCarPark.name}
             />
           </div>
         </div>
