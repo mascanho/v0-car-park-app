@@ -4,6 +4,7 @@ export interface CarPark {
   location: string;
   rows: string[];
   spacesPerRow: Record<string, number>;
+  spaceNumbers?: Record<string, number[]>;
 }
 
 export interface ParkingSpace {
@@ -19,24 +20,53 @@ export interface Booking {
   spaceId: string;
   date: string;
   userName: string;
+  initials?: string;
   carParkId: string;
+  originalUser?: string | null;
+}
+
+export interface BorrowRecord {
+  id?: number;
+  spaceId: string;
+  carParkId: string;
+  date: string;
+  originalOwner: string;
+  borrowedBy: string;
+  borrowedAt: string;
+}
+
+export interface Note {
+  id?: number;
+  userName: string;
+  carParkId: string;
+  noteDate: string;
+  message: string;
+  createdAt?: string;
 }
 
 // Car park configurations
 export const CAR_PARKS: CarPark[] = [
   {
-    id: 'north',
-    name: 'North Car Park',
-    location: 'Building A - North Entrance',
-    rows: ['A', 'B', 'C', 'D', 'E', 'F'],
-    spacesPerRow: { A: 8, B: 10, C: 10, D: 10, E: 10, F: 8 },
+    id: 'grosvenor',
+    name: 'Grosvenor House',
+    location: 'Grosvenor House Car Parking',
+    rows: ['A', 'B'],
+    spacesPerRow: { A: 30, B: 22 },
+    spaceNumbers: {
+      A: [6, 7, 8, 14, 15, 16, 26, 29],
+      B: [39, 40, 41, 52],
+    },
   },
   {
-    id: 'south',
-    name: 'South Car Park',
-    location: 'Building B - South Entrance',
-    rows: ['A', 'B', 'C', 'D'],
-    spacesPerRow: { A: 6, B: 8, C: 8, D: 6 },
+    id: 'smallwood',
+    name: 'Smallwood',
+    location: 'Smallwood Car Parking',
+    rows: ['A', 'B'],
+    spacesPerRow: { A: 20, B: 20 },
+    spaceNumbers: {
+      A: [31, 32, 33, 34, 35, 36, 37, 38, 39, 40],
+      B: [56, 58, 59],
+    },
   },
 ];
 
@@ -46,19 +76,21 @@ export function generateParkingSpaces(carPark: CarPark): ParkingSpace[] {
   
   carPark.rows.forEach((row) => {
     const spacesPerRow = carPark.spacesPerRow[row] || 8;
-    for (let i = 1; i <= spacesPerRow; i++) {
+    const numbers = carPark.spaceNumbers?.[row] ?? Array.from({ length: spacesPerRow }, (_, i) => i + 1);
+    
+    numbers.forEach((num) => {
       let type: ParkingSpace['type'] = 'standard';
-      if (row === carPark.rows[0] && i <= 2) type = 'handicap';
-      if (row === carPark.rows[carPark.rows.length - 1] && i >= spacesPerRow - 1) type = 'electric';
+      if (row === carPark.rows[0] && numbers.indexOf(num) <= 1) type = 'handicap';
+      if (row === carPark.rows[carPark.rows.length - 1] && numbers.indexOf(num) >= numbers.length - 2) type = 'electric';
       
       spaces.push({
-        id: `${row}${i}`,
+        id: `${num}`,
         row,
-        number: i,
+        number: num,
         type,
         carParkId: carPark.id,
       });
-    }
+    });
   });
   
   return spaces;
@@ -94,3 +126,13 @@ export const MONTH_NAMES = [
 
 // Day names
 export const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export function extractInitials(name: string): string {
+  return name
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase())
+    .join('')
+    .slice(0, 2)
+    || name.charAt(0).toUpperCase();
+}

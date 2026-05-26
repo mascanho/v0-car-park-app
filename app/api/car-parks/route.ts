@@ -13,13 +13,13 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
   
-  // Transform the data to match our CarPark interface
   const carParks = data.map((cp) => ({
     id: cp.id,
     name: cp.name,
     location: cp.location,
     rows: cp.rows,
     spacesPerRow: cp.spaces_per_row,
+    spaceNumbers: cp.space_numbers ?? undefined,
   }));
   
   return NextResponse.json(carParks);

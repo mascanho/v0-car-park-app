@@ -1,8 +1,10 @@
 'use client';
 
+import { useMemo, useCallback } from 'react';
 import { ParkingSpaceCard } from './parking-space';
+import { BookingPanel } from './booking-panel';
 import type { ParkingSpace, Booking, CarPark } from '@/lib/parking-data';
-import { Car, Zap, Accessibility } from 'lucide-react';
+import { formatDate } from '@/lib/parking-data';
 
 interface ParkingLotProps {
   spaces: ParkingSpace[];
@@ -12,26 +14,50 @@ interface ParkingLotProps {
   currentUser: string;
   disabled?: boolean;
   carPark: CarPark;
+  date: Date | undefined;
+  onBook: () => void;
+  onCancel: () => void;
+  existingBooking: Booking | null;
+  selectedSpaceBookedBy?: string | null;
+  isLoading?: boolean;
 }
 
 export function ParkingLot({
+  carPark,
   spaces,
   bookings,
   selectedSpace,
   onSelectSpace,
   currentUser,
   disabled,
-  carPark,
+  date,
+  onBook,
+  onCancel,
+  existingBooking,
+  selectedSpaceBookedBy,
+  isLoading,
 }: ParkingLotProps) {
-  const rows = [...new Set(spaces.map((s) => s.row))];
-  
-  const isSpaceBooked = (spaceId: string) => {
-    return bookings.some((b) => b.spaceId === spaceId);
-  };
-  
-  const isCurrentUserBooking = (spaceId: string) => {
-    return bookings.some((b) => b.spaceId === spaceId && b.userName === currentUser);
-  };
+  const formattedDate = date ? formatDate(date) : undefined;
+
+  const rows = useMemo(() => {
+    const uniqueRows = new Set(spaces.map((s) => s.row));
+    return Array.from(uniqueRows).sort();
+  }, [spaces]);
+
+  const getBookingForSpace = useCallback((spaceId: string) => {
+    return bookings.find(
+      (b) => formattedDate && b.spaceId === spaceId && b.carParkId === carPark.id && b.date === formattedDate,
+    );
+  }, [bookings, carPark.id, formattedDate]);
+
+  const isSpaceBooked = useCallback((spaceId: string) => {
+    return !!getBookingForSpace(spaceId);
+  }, [getBookingForSpace]);
+
+  const isCurrentUserBooking = useCallback((spaceId: string) => {
+    const booking = getBookingForSpace(spaceId);
+    return booking?.userName === currentUser;
+  }, [getBookingForSpace, currentUser]);
 
   return (
     <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
@@ -61,28 +87,21 @@ export function ParkingLot({
         </div>
       </div>
 
-      {/* Space types */}
-      <div className="flex flex-wrap gap-4 mb-6 pb-4 border-b border-border">
-        <div className="flex items-center gap-2 text-sm">
-          <Car className="w-4 h-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Standard</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Accessibility className="w-4 h-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Accessible</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Zap className="w-4 h-4 text-muted-foreground" />
-          <span className="text-muted-foreground">EV Charging</span>
-        </div>
-      </div>
-
       {/* Parking lot layout */}
       <div className="relative">
-        {/* Entry/Exit indicator */}
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
-          Entry / Exit
-        </div>
+        {carPark.id === 'grosvenor' ? (
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
+            Entry / Exit
+          </div>
+        ) : (
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-muted/50 rounded-full px-4 py-2">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="w-8 h-0.5 bg-muted-foreground/30" />
+              <span>Driving Lane</span>
+              <div className="w-8 h-0.5 bg-muted-foreground/30" />
+            </div>
+          </div>
+        )}
 
         {/* Parking grid */}
         <div className="pt-6 space-y-3">
@@ -99,6 +118,9 @@ export function ParkingLot({
                       isBooked={isSpaceBooked(space.id)}
                       isSelected={selectedSpace?.id === space.id}
                       isCurrentUserBooking={isCurrentUserBooking(space.id)}
+                      bookedBy={getBookingForSpace(space.id)?.userName}
+                      initials={getBookingForSpace(space.id)?.initials}
+                      originalUser={getBookingForSpace(space.id)?.originalUser}
                       onSelect={onSelectSpace}
                       disabled={disabled}
                     />
@@ -109,16 +131,38 @@ export function ParkingLot({
           })}
         </div>
 
-        {/* Driving lanes indicator */}
-        <div className="mt-4 flex justify-center">
-          <div className="bg-muted/50 rounded-lg px-4 py-2">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="w-8 h-0.5 bg-muted-foreground/30" />
-              <span>Driving Lane</span>
-              <div className="w-8 h-0.5 bg-muted-foreground/30" />
+        {/* Driving lanes indicator / Entry */}
+        {carPark.id === 'grosvenor' ? (
+          <div className="mt-4 flex justify-center">
+            <div className="bg-muted/50 rounded-lg px-4 py-2">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="w-8 h-0.5 bg-muted-foreground/30" />
+                <span>Driving Lane</span>
+                <div className="w-8 h-0.5 bg-muted-foreground/30" />
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="mt-4 flex justify-center">
+            <div className="bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
+              Entry / Exit
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Booking details */}
+      <div className="mt-6 pt-6 border-t border-border">
+        <BookingPanel
+          selectedDate={date || new Date()}
+          selectedSpace={selectedSpace}
+          currentUser={currentUser}
+          onBook={onBook}
+          onCancel={onCancel}
+          existingBooking={existingBooking}
+          selectedSpaceBookedBy={selectedSpaceBookedBy}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );
