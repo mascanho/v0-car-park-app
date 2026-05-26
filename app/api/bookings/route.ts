@@ -1,50 +1,45 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const date = searchParams.get('date');
-  const carParkId = searchParams.get('carParkId');
-  
+export async function GET() {
   const supabase = await createClient();
   
-  let query = supabase.from('bookings').select('*');
-  
-  if (date) {
-    query = query.eq('booking_date', date);
-  }
-  
-  if (carParkId) {
-    query = query.eq('car_park_id', carParkId);
-  }
-  
-  const { data, error } = await query.order('created_at', { ascending: false });
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*');
   
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
   
-  // Transform to match our Booking interface
   const bookings = data.map((b) => ({
     id: b.id,
     spaceId: b.space_id,
     carParkId: b.car_park_id,
     date: b.booking_date,
     userName: b.user_name,
+    createdAt: b.created_at,
   }));
   
   return NextResponse.json(bookings);
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { spaceId, carParkId, date, userName } = body;
+  const supabase = await createClient();
   
-  if (!spaceId || !carParkId || !date || !userName) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   
-  const supabase = await createClient();
+  const { spaceId, carParkId, date, userName } = await request.json();
+  
+  if (!spaceId || !carParkId || !date) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  }
   
   const { data, error } = await supabase
     .from('bookings')
@@ -52,15 +47,12 @@ export async function POST(request: Request) {
       space_id: spaceId,
       car_park_id: carParkId,
       booking_date: date,
-      user_name: userName,
+      user_name: userName || user.user_metadata?.full_name || user.email,
     })
     .select()
     .single();
   
   if (error) {
-    if (error.code === '23505') {
-      return NextResponse.json({ error: 'Space already booked for this date' }, { status: 409 });
-    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
   
@@ -70,18 +62,27 @@ export async function POST(request: Request) {
     carParkId: data.car_park_id,
     date: data.booking_date,
     userName: data.user_name,
+    createdAt: data.created_at,
   });
 }
 
 export async function DELETE(request: Request) {
+  const supabase = await createClient();
+  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
   
   if (!id) {
-    return NextResponse.json({ error: 'Booking ID required' }, { status: 400 });
+    return NextResponse.json({ error: 'Missing booking id' }, { status: 400 });
   }
-  
-  const supabase = await createClient();
   
   const { error } = await supabase
     .from('bookings')

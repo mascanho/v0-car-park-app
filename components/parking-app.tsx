@@ -1,22 +1,39 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import useSWR, { mutate } from 'swr';
+import { createClient } from '@/lib/supabase/client';
 import { Calendar } from './calendar';
 import { ParkingLot } from './parking-lot';
 import { BookingPanel } from './booking-panel';
 import { generateParkingSpaces, formatDate, isPastDate } from '@/lib/parking-data';
 import type { ParkingSpace, Booking, CarPark } from '@/lib/parking-data';
-import { Car, CalendarDays, MapPin, Loader2 } from 'lucide-react';
+import { Car, CalendarDays, MapPin, Loader2, LogOut } from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function ParkingApp() {
   const [currentUser, setCurrentUser] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const supabase = createClient();
+  
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setCurrentUser(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User');
+        setAvatarUrl(user.user_metadata?.avatar_url || '');
+      }
+    })
+  }, [supabase]);
+  
+  const handleSignOut = useCallback(async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/auth'
+  }, [supabase]);
   
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -182,27 +199,30 @@ export function ParkingApp() {
                 <CalendarDays className="w-4 h-4" />
                 <span>{currentYear}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={currentUser}
-                  onChange={(e) => setCurrentUser(e.target.value)}
-                  placeholder="Your name"
-                  className="w-28 sm:w-36 px-2 py-1 text-sm bg-background border border-border rounded-md 
-                    focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
-                />
-                {currentUser && (
-                  <>
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium text-primary">
-                        {currentUser.charAt(0)}
-                      </span>
-                    </div>
-                    <span className="hidden sm:inline text-sm font-medium text-foreground">
-                      {currentUser}
+              <div className="flex items-center gap-3">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={currentUser}
+                    className="w-8 h-8 rounded-full"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-primary">
+                      {currentUser.charAt(0)}
                     </span>
-                  </>
+                  </div>
                 )}
+                <span className="hidden sm:inline text-sm font-medium text-foreground">
+                  {currentUser}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                  title="Sign out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
