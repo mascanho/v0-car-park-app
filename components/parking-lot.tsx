@@ -116,6 +116,7 @@ export function ParkingLot({
                       isSelected={selectedSpace?.id === space.id}
                       isCurrentUserBooking={isCurrentUserBooking(space.id)}
                       bookedBy={getBookingForSpace(space.id)?.userName}
+                      initials={getBookingForSpace(space.id)?.initials}
                       originalUser={getBookingForSpace(space.id)?.originalUser}
                       onSelect={onSelectSpace}
                       disabled={disabled}

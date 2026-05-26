@@ -343,6 +343,7 @@ export function ParkingApp() {
               currentUser={currentUser}
               disabled={isPastDate(selectedDate) || !currentUser}
               carPark={selectedCarPark}
+              date={selectedDate}
             />
             <BorrowHistory
               carParkId={selectedCarPark.id}

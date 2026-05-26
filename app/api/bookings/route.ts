@@ -18,6 +18,8 @@ export async function GET() {
     carParkId: b.car_park_id,
     date: b.booking_date,
     userName: b.user_name,
+    initials: b.initials,
+    originalUser: b.original_user,
     createdAt: b.created_at,
   }));
   
@@ -35,35 +37,62 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   
-  const { spaceId, carParkId, date, userName } = await request.json();
+  const { spaceId, carParkId, date, userName, replaceExisting } = await request.json();
   
   if (!spaceId || !carParkId || !date) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
   
-  const { data, error } = await supabase
+  const resolvedUserName = userName || user.user_metadata?.full_name || user.email;
+
+  // If the user had a different booking on this date, release it
+  await supabase
+    .from('bookings')
+    .delete()
+    .eq('car_park_id', carParkId)
+    .eq('booking_date', date)
+    .eq('user_name', resolvedUserName)
+    .neq('space_id', spaceId);
+
+  // Delete any existing booking for this exact space/date (so we can re-insert)
+  const { error: deleteErr } = await supabase
+    .from('bookings')
+    .delete()
+    .eq('space_id', spaceId)
+    .eq('car_park_id', carParkId)
+    .eq('booking_date', date);
+
+  if (deleteErr) return NextResponse.json({ error: `Delete failed: ${deleteErr.message}` }, { status: 500 });
+
+  // Insert the new booking
+  const { data: inserted, error: insertErr } = await supabase
     .from('bookings')
     .insert({
       space_id: spaceId,
       car_park_id: carParkId,
       booking_date: date,
-      user_name: userName || user.user_metadata?.full_name || user.email,
+      user_name: resolvedUserName,
     })
-    .select()
-    .single();
-  
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  
-  return NextResponse.json({
-    id: data.id,
-    spaceId: data.space_id,
-    carParkId: data.car_park_id,
-    date: data.booking_date,
-    userName: data.user_name,
-    createdAt: data.created_at,
-  });
+    .select();
+
+  if (insertErr) return NextResponse.json({ error: `Insert failed: ${insertErr.message}` }, { status: 500 });
+  if (!inserted || inserted.length === 0) return NextResponse.json({ error: 'No rows after insert' }, { status: 500 });
+
+  // Return all bookings for the client
+  const { data: allData } = await supabase.from('bookings').select('*');
+
+  const allBookings = (allData || []).map((b) => ({
+    id: b.id,
+    spaceId: b.space_id,
+    carParkId: b.car_park_id,
+    date: b.booking_date,
+    userName: b.user_name,
+    initials: b.initials,
+    originalUser: b.original_user,
+    createdAt: b.created_at,
+  }));
+
+  return NextResponse.json({ success: true, booking: inserted[0], allBookings });
 }
 
 export async function DELETE(request: Request) {

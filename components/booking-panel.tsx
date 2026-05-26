@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon, MapPin, Clock, User } from 'lucide-react';
 import type { ParkingSpace, Booking } from '@/lib/parking-data';
 import { formatDate, isPastDate } from '@/lib/parking-data';
@@ -12,6 +13,7 @@ interface BookingPanelProps {
   onBook: () => void;
   onCancel: () => void;
   existingBooking: Booking | null;
+  selectedSpaceBookedBy?: string | null;
   isLoading?: boolean;
 }
 
@@ -22,6 +24,7 @@ export function BookingPanel({
   onBook,
   onCancel,
   existingBooking,
+  selectedSpaceBookedBy,
   isLoading,
 }: BookingPanelProps) {
   const isPast = isPastDate(selectedDate);
@@ -32,6 +35,16 @@ export function BookingPanel({
     month: 'long',
     day: 'numeric',
   });
+
+  const isBorrowing = !!selectedSpaceBookedBy;
+  const isSwitching = !!existingBooking && selectedSpace && selectedSpace.id !== existingBooking.spaceId;
+
+  const getButtonLabel = () => {
+    if (isLoading) return 'Booking...';
+    if (isSwitching) return isBorrowing ? 'Borrow & Switch' : 'Move to this Space';
+    if (isBorrowing) return 'Borrow this Space';
+    return 'Confirm Booking';
+  };
 
   return (
     <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
@@ -53,8 +66,8 @@ export function BookingPanel({
         </div>
       </div>
 
-      {/* Existing booking */}
-      {existingBooking && (
+      {/* Existing booking (only when not switching) */}
+      {existingBooking && (!selectedSpace || selectedSpace.id === existingBooking.spaceId) && (
         <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-4">
           <div className="flex items-center gap-2 mb-2">
             <MapPin className="w-4 h-4 text-accent" />
@@ -77,12 +90,26 @@ export function BookingPanel({
         </div>
       )}
 
+      {/* Switching from existing booking to another space */}
+      {isSwitching && (
+        <div className="bg-muted/30 border border-border rounded-lg p-4 mb-4">
+          <p className="text-xs text-muted-foreground mb-1">
+            Switching from space <span className="font-semibold">{existingBooking.spaceId}</span>
+          </p>
+        </div>
+      )}
+
       {/* Selected space */}
-      {selectedSpace && !existingBooking && (
-        <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 mb-4">
+      {selectedSpace && (
+        <div className={cn(
+          'rounded-lg p-4 mb-4',
+          isBorrowing ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-primary/10 border border-primary/30'
+        )}>
           <div className="flex items-center gap-2 mb-2">
-            <MapPin className="w-4 h-4 text-primary" />
-            <span className="font-medium text-foreground">Selected space</span>
+            <MapPin className={cn('w-4 h-4', isBorrowing ? 'text-amber-500' : 'text-primary')} />
+            <span className={cn('font-medium', isBorrowing ? 'text-amber-600' : 'text-foreground')}>
+              {isBorrowing ? 'Borrow this space' : 'Selected space'}
+            </span>
           </div>
           <p className="text-sm text-foreground">
             Space <span className="font-semibold">{selectedSpace.id}</span>
@@ -91,6 +118,11 @@ export function BookingPanel({
                 selectedSpace.type === 'electric' ? 'EV Charging' : 'Standard'})
             </span>
           </p>
+          {isBorrowing && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Currently allocated to <span className="font-medium">{selectedSpaceBookedBy}</span>
+            </p>
+          )}
         </div>
       )}
 
@@ -112,14 +144,19 @@ export function BookingPanel({
         </div>
       )}
 
-      {/* Book button */}
-      {selectedSpace && !existingBooking && !isPast && (
+      {/* Book / Borrow / Switch button */}
+      {selectedSpace && !isPast && (existingBooking ? isSwitching : true) && (
         <Button
           onClick={onBook}
           disabled={isLoading}
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+          className={cn(
+            'w-full',
+            isBorrowing
+              ? 'bg-amber-500 text-white hover:bg-amber-600'
+              : 'bg-primary text-primary-foreground hover:bg-primary/90'
+          )}
         >
-          {isLoading ? 'Booking...' : 'Confirm Booking'}
+          {getButtonLabel()}
         </Button>
       )}
 
