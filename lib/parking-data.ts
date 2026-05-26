@@ -35,17 +35,26 @@ export interface BorrowRecord {
   borrowedAt: string;
 }
 
+export interface Note {
+  id?: number;
+  userName: string;
+  carParkId: string;
+  noteDate: string;
+  message: string;
+  createdAt?: string;
+}
+
 // Car park configurations
 export const CAR_PARKS: CarPark[] = [
   {
     id: 'grosvenor',
     name: 'Grosvenor House',
     location: 'Grosvenor House Car Parking',
-    rows: ['Ground', 'First'],
-    spacesPerRow: { Ground: 30, First: 22 },
+    rows: ['A', 'B'],
+    spacesPerRow: { A: 30, B: 22 },
     spaceNumbers: {
-      Ground: [6, 7, 8, 14, 15, 16, 26, 29],
-      First: [39, 40, 41, 52],
+      A: [6, 7, 8, 14, 15, 16, 26, 29],
+      B: [39, 40, 41, 52],
     },
   },
   {

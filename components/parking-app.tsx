@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Calendar } from "./calendar";
 import { ParkingLot } from "./parking-lot";
 import { BorrowHistory } from "./borrow-history";
+import { NotesPanel } from "./notes-panel";
 import {
   generateParkingSpaces,
   formatDate,
@@ -365,7 +366,7 @@ export function ParkingApp() {
           </div>
 
           {/* Parking lot */}
-          <div className="lg:col-span-9 space-y-4">
+          <div className="lg:col-span-6 space-y-4">
             <ParkingLot
               spaces={parkingSpaces}
               bookings={dateBookings}
@@ -380,6 +381,15 @@ export function ParkingApp() {
               existingBooking={existingBooking}
               selectedSpaceBookedBy={selectedSpaceBookedBy}
               isLoading={isLoading}
+            />
+          </div>
+
+          {/* Notes column */}
+          <div className="lg:col-span-3">
+            <NotesPanel
+              carParkId={selectedCarPark.id}
+              selectedDate={selectedDate}
+              currentUser={currentUser}
             />
           </div>
         </div>

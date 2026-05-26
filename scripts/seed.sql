@@ -16,9 +16,9 @@ VALUES (
   'grosvenor',
   'Grosvenor House',
   'Grosvenor House Car Parking',
-  ARRAY['Ground', 'First'],
-  '{"Ground": 30, "First": 22}'::jsonb,
-  '{"Ground": [6, 7, 8, 14, 15, 16, 26, 29], "First": [39, 40, 41, 52]}'::jsonb
+  ARRAY['A', 'B'],
+  '{"A": 30, "B": 22}'::jsonb,
+  '{"A": [6, 7, 8, 14, 15, 16, 26, 29], "B": [39, 40, 41, 52]}'::jsonb
 );
 
 -- Insert Smallwood (with gate code in location)
@@ -206,3 +206,15 @@ FROM (
 ) AS s(space_id, car_park_id, user_name, initials)
 CROSS JOIN generate_series(CURRENT_DATE + interval '9 months' + interval '1 day', CURRENT_DATE + interval '1 year', '1 day'::interval) AS d
 ON CONFLICT DO NOTHING;
+
+-- Notes table for user messages on specific days
+CREATE TABLE IF NOT EXISTS notes (
+  id SERIAL PRIMARY KEY,
+  user_name TEXT NOT NULL,
+  car_park_id TEXT NOT NULL,
+  note_date DATE NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notes_date_carpark ON notes (note_date, car_park_id);

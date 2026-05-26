@@ -103,3 +103,29 @@ SELECT space_id, car_park_id, booking_date, original_user, user_name
 FROM bookings
 WHERE original_user IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM borrow_history LIMIT 1);
+
+-- Notes table
+CREATE TABLE IF NOT EXISTS notes (
+  id SERIAL PRIMARY KEY,
+  user_name TEXT NOT NULL,
+  car_park_id TEXT NOT NULL,
+  note_date DATE NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notes_date_carpark ON notes (note_date, car_park_id);
+
+ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Authenticated users can read notes" ON notes;
+CREATE POLICY "Authenticated users can read notes"
+  ON notes FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can insert notes" ON notes;
+CREATE POLICY "Authenticated users can insert notes"
+  ON notes FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Authenticated users can delete their own notes" ON notes;
+CREATE POLICY "Authenticated users can delete their own notes"
+  ON notes FOR DELETE USING (true);

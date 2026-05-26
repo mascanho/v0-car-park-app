@@ -89,10 +89,19 @@ export function ParkingLot({
 
       {/* Parking lot layout */}
       <div className="relative">
-        {/* Entry/Exit indicator */}
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
-          Entry / Exit
-        </div>
+        {carPark.id === 'grosvenor' ? (
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
+            Entry / Exit
+          </div>
+        ) : (
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-muted/50 rounded-full px-4 py-2">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="w-8 h-0.5 bg-muted-foreground/30" />
+              <span>Driving Lane</span>
+              <div className="w-8 h-0.5 bg-muted-foreground/30" />
+            </div>
+          </div>
+        )}
 
         {/* Parking grid */}
         <div className="pt-6 space-y-3">
@@ -122,16 +131,24 @@ export function ParkingLot({
           })}
         </div>
 
-        {/* Driving lanes indicator */}
-        <div className="mt-4 flex justify-center">
-          <div className="bg-muted/50 rounded-lg px-4 py-2">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="w-8 h-0.5 bg-muted-foreground/30" />
-              <span>Driving Lane</span>
-              <div className="w-8 h-0.5 bg-muted-foreground/30" />
+        {/* Driving lanes indicator / Entry */}
+        {carPark.id === 'grosvenor' ? (
+          <div className="mt-4 flex justify-center">
+            <div className="bg-muted/50 rounded-lg px-4 py-2">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="w-8 h-0.5 bg-muted-foreground/30" />
+                <span>Driving Lane</span>
+                <div className="w-8 h-0.5 bg-muted-foreground/30" />
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="mt-4 flex justify-center">
+            <div className="bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
+              Entry / Exit
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Booking details */}
