@@ -1,0 +1,117 @@
+'use client';
+
+import { ParkingSpaceCard } from './parking-space';
+import type { ParkingSpace, Booking } from '@/lib/parking-data';
+import { Car, Zap, Accessibility } from 'lucide-react';
+
+interface ParkingLotProps {
+  spaces: ParkingSpace[];
+  bookings: Booking[];
+  selectedSpace: ParkingSpace | null;
+  onSelectSpace: (space: ParkingSpace) => void;
+  currentUser: string;
+  disabled?: boolean;
+}
+
+export function ParkingLot({
+  spaces,
+  bookings,
+  selectedSpace,
+  onSelectSpace,
+  currentUser,
+  disabled,
+}: ParkingLotProps) {
+  const rows = [...new Set(spaces.map((s) => s.row))];
+  
+  const isSpaceBooked = (spaceId: string) => {
+    return bookings.some((b) => b.spaceId === spaceId);
+  };
+  
+  const isCurrentUserBooking = (spaceId: string) => {
+    return bookings.some((b) => b.spaceId === spaceId && b.userName === currentUser);
+  };
+
+  return (
+    <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+      {/* Legend */}
+      <div className="flex flex-wrap gap-4 mb-6 pb-4 border-b border-border">
+        <div className="flex items-center gap-2 text-sm">
+          <div className="w-4 h-4 rounded bg-card border-2 border-border" />
+          <span className="text-muted-foreground">Available</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/50" />
+          <span className="text-muted-foreground">Occupied</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <div className="w-4 h-4 rounded bg-accent/20 border-2 border-accent" />
+          <span className="text-muted-foreground">Your Booking</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <div className="w-4 h-4 rounded bg-primary/20 border-2 border-primary ring-2 ring-primary ring-offset-1" />
+          <span className="text-muted-foreground">Selected</span>
+        </div>
+      </div>
+
+      {/* Space types */}
+      <div className="flex flex-wrap gap-4 mb-6 pb-4 border-b border-border">
+        <div className="flex items-center gap-2 text-sm">
+          <Car className="w-4 h-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Standard</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Accessibility className="w-4 h-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Accessible</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Zap className="w-4 h-4 text-muted-foreground" />
+          <span className="text-muted-foreground">EV Charging</span>
+        </div>
+      </div>
+
+      {/* Parking lot layout */}
+      <div className="relative">
+        {/* Entry/Exit indicator */}
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
+          Entry / Exit
+        </div>
+
+        {/* Parking grid */}
+        <div className="pt-6 space-y-3">
+          {rows.map((row) => {
+            const rowSpaces = spaces.filter((s) => s.row === row);
+            return (
+              <div key={row} className="flex items-center gap-2">
+                <span className="w-6 text-sm font-semibold text-muted-foreground">{row}</span>
+                <div className="flex flex-wrap gap-2">
+                  {rowSpaces.map((space) => (
+                    <ParkingSpaceCard
+                      key={space.id}
+                      space={space}
+                      isBooked={isSpaceBooked(space.id)}
+                      isSelected={selectedSpace?.id === space.id}
+                      isCurrentUserBooking={isCurrentUserBooking(space.id)}
+                      onSelect={onSelectSpace}
+                      disabled={disabled}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Driving lanes indicator */}
+        <div className="mt-4 flex justify-center">
+          <div className="bg-muted/50 rounded-lg px-4 py-2">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="w-8 h-0.5 bg-muted-foreground/30" />
+              <span>Driving Lane</span>
+              <div className="w-8 h-0.5 bg-muted-foreground/30" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
