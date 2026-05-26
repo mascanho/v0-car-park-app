@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import type { ParkingSpace } from '@/lib/parking-data';
-import { Car, Zap, Accessibility } from 'lucide-react';
+import { Car } from 'lucide-react';
 
 interface ParkingSpaceProps {
   space: ParkingSpace;
@@ -30,17 +30,6 @@ export function ParkingSpaceCard({
   const handleClick = () => {
     if (!disabled && !isCurrentUserBooking) {
       onSelect(space);
-    }
-  };
-
-  const getIcon = () => {
-    switch (space.type) {
-      case 'handicap':
-        return <Accessibility className="w-4 h-4" />;
-      case 'electric':
-        return <Zap className="w-4 h-4" />;
-      default:
-        return <Car className="w-4 h-4" />;
     }
   };
 
@@ -85,7 +74,10 @@ export function ParkingSpaceCard({
         isBooked && !isCurrentUserBooking && 'text-destructive/70',
         isCurrentUserBooking && 'text-accent'
       )}>
-        {isBooked && initials ? initials : getIcon()}
+        {isBooked && initials
+          ? <span className="text-[10px] font-bold">{initials}</span>
+          : <Car className="w-4 h-4" />
+        }
       </span>
       {isCurrentUserBooking && (
         <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full border-2 border-card" />

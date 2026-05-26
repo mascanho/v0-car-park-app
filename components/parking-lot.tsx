@@ -4,7 +4,7 @@ import { useMemo, useCallback } from 'react';
 import { Car, Zap, Accessibility } from 'lucide-react';
 import { ParkingSpaceCard } from './parking-space';
 import type { ParkingSpace, Booking, CarPark } from '@/lib/parking-data';
-import { formatDate } from '@/lib/parking-data'; // Import formatDate
+import { formatDate } from '@/lib/parking-data'; // Import formatDate, extractInitials
 
 interface ParkingLotProps {
   spaces: ParkingSpace[];
@@ -27,7 +27,7 @@ export function ParkingLot({
   disabled,
   date,
 }: ParkingLotProps) {
-  const formattedDate = date ? formatDate(date) : undefined; // Format the date here, handle undefined
+  const formattedDate = date ? formatDate(date) : undefined;
 
   const rows = useMemo(() => {
     const uniqueRows = new Set(spaces.map((s) => s.row));

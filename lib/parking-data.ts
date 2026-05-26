@@ -117,3 +117,13 @@ export const MONTH_NAMES = [
 
 // Day names
 export const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export function extractInitials(name: string): string {
+  return name
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase())
+    .join('')
+    .slice(0, 2)
+    || name.charAt(0).toUpperCase();
+}

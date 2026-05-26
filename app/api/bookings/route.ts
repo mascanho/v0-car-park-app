@@ -4,15 +4,24 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   const supabase = await createClient();
   
-  const { data, error } = await supabase
-    .from('bookings')
-    .select('*');
-  
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  let allData: any[] = [];
+  let start = 0;
+  const pageSize = 1000;
+  while (true) {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .range(start, start + pageSize - 1);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    if (!data || data.length === 0) break;
+    allData = allData.concat(data);
+    start += pageSize;
+    if (data.length < pageSize) break;
   }
   
-  const bookings = data.map((b) => ({
+  const bookings = allData.map((b) => ({
     id: b.id,
     spaceId: b.space_id,
     carParkId: b.car_park_id,
@@ -79,9 +88,18 @@ export async function POST(request: Request) {
   if (!inserted || inserted.length === 0) return NextResponse.json({ error: 'No rows after insert' }, { status: 500 });
 
   // Return all bookings for the client
-  const { data: allData } = await supabase.from('bookings').select('*');
+  let allData2: any[] = [];
+  let s = 0;
+  const ps = 1000;
+  while (true) {
+    const { data: page } = await supabase.from('bookings').select('*').range(s, s + ps - 1);
+    if (!page || page.length === 0) break;
+    allData2 = allData2.concat(page);
+    s += ps;
+    if (page.length < ps) break;
+  }
 
-  const allBookings = (allData || []).map((b) => ({
+  const allBookings = allData2.map((b) => ({
     id: b.id,
     spaceId: b.space_id,
     carParkId: b.car_park_id,
