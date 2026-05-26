@@ -1,3 +1,4 @@
+// Supabase server client using @supabase/supabase-js
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 /**
