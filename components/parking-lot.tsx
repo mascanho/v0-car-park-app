@@ -14,7 +14,7 @@ interface ParkingLotProps {
   currentUser: string;
   disabled?: boolean;
   carPark: CarPark;
-  date: Date; // This prop is now a Date object, which will be formatted internally
+  date: Date | undefined; // This prop is now a Date object, which will be formatted internally
 }
 
 export function ParkingLot({
@@ -27,7 +27,7 @@ export function ParkingLot({
   disabled,
   date,
 }: ParkingLotProps) {
-  const formattedDate = formatDate(date); // Format the date here
+  const formattedDate = date ? formatDate(date) : undefined; // Format the date here, handle undefined
 
   const rows = useMemo(() => {
     const uniqueRows = new Set(spaces.map((s) => s.row));
@@ -36,7 +36,7 @@ export function ParkingLot({
 
   const getBookingForSpace = useCallback((spaceId: string) => {
     return bookings.find(
-      (b) => b.spaceId === spaceId && b.carParkId === carPark.id && b.date === formattedDate,
+      (b) => formattedDate && b.spaceId === spaceId && b.carParkId === carPark.id && b.date === formattedDate,
     );
   }, [bookings, carPark.id, formattedDate]);
 
