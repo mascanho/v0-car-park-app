@@ -155,7 +155,8 @@ export function ParkingApp() {
         throw new Error(responseData.error || `HTTP ${response.status}: Failed to book space`);
       }
       
-      await refreshBookings();
+      // Update the SWR cache directly with the new list of all bookings
+      await refreshBookings(responseData.allBookings, { revalidate: false });
     } catch (error) {
       console.error('Booking failed:', error);
       alert(error instanceof Error ? error.message : 'Failed to book space');
