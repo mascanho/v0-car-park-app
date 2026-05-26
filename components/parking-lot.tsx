@@ -20,6 +20,7 @@ interface ParkingLotProps {
   existingBooking: Booking | null;
   selectedSpaceBookedBy?: string | null;
   isLoading?: boolean;
+  onFreeSpace?: (spaceId: string) => void;
 }
 
 export function ParkingLot({
@@ -36,6 +37,7 @@ export function ParkingLot({
   existingBooking,
   selectedSpaceBookedBy,
   isLoading,
+  onFreeSpace,
 }: ParkingLotProps) {
   const formattedDate = date ? formatDate(date) : undefined;
 
@@ -123,6 +125,7 @@ export function ParkingLot({
                       originalUser={getBookingForSpace(space.id)?.originalUser}
                       onSelect={onSelectSpace}
                       disabled={disabled}
+                      onFreeSpace={onFreeSpace}
                     />
                   ))}
                 </div>

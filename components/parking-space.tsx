@@ -14,6 +14,7 @@ interface ParkingSpaceProps {
   originalUser?: string | null;
   onSelect: (space: ParkingSpace) => void;
   disabled?: boolean;
+  onFreeSpace?: (spaceId: string) => void;
 }
 
 export function ParkingSpaceCard({
@@ -26,10 +27,18 @@ export function ParkingSpaceCard({
   originalUser,
   onSelect,
   disabled,
+  onFreeSpace,
 }: ParkingSpaceProps) {
   const handleClick = () => {
     if (!disabled && !isCurrentUserBooking) {
       onSelect(space);
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isBooked && onFreeSpace) {
+      onFreeSpace(space.id);
     }
   };
 
@@ -44,6 +53,7 @@ export function ParkingSpaceCard({
   return (
     <button
       onClick={handleClick}
+      onContextMenu={handleContextMenu}
       disabled={disabled || isCurrentUserBooking}
       title={tooltip}
       className={cn(

@@ -63,7 +63,19 @@ export async function POST(request: Request) {
     .eq('user_name', resolvedUserName)
     .neq('space_id', spaceId);
 
-  // Delete any existing booking for this exact space/date (so we can re-insert)
+  // Fetch existing booking for this space/date to check for borrow
+  const { data: existing } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('space_id', spaceId)
+    .eq('car_park_id', carParkId)
+    .eq('booking_date', date)
+    .maybeSingle();
+
+  const previousOwner = existing?.user_name;
+  const isBorrow = previousOwner && previousOwner !== resolvedUserName;
+
+  // Delete any existing booking for this exact space/date
   const { error: deleteErr } = await supabase
     .from('bookings')
     .delete()
@@ -73,6 +85,17 @@ export async function POST(request: Request) {
 
   if (deleteErr) return NextResponse.json({ error: `Delete failed: ${deleteErr.message}` }, { status: 500 });
 
+  // Log borrow event if the space changed hands
+  if (isBorrow) {
+    await supabase.from('borrow_history').insert({
+      space_id: spaceId,
+      car_park_id: carParkId,
+      booking_date: date,
+      original_owner: previousOwner,
+      borrowed_by: resolvedUserName,
+    });
+  }
+
   // Insert the new booking
   const { data: inserted, error: insertErr } = await supabase
     .from('bookings')
@@ -81,6 +104,7 @@ export async function POST(request: Request) {
       car_park_id: carParkId,
       booking_date: date,
       user_name: resolvedUserName,
+      original_user: isBorrow ? previousOwner : existing?.original_user,
     })
     .select();
 
