@@ -12,7 +12,7 @@ import { Car, CalendarDays, MapPin, Loader2 } from 'lucide-react';
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function ParkingApp() {
-  const [currentUser] = useState('Current User');
+  const [currentUser, setCurrentUser] = useState('');
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
@@ -90,7 +90,7 @@ export function ParkingApp() {
   }, []);
   
   const handleBook = useCallback(async () => {
-    if (!selectedSpace || !selectedCarPark || existingBooking || isPastDate(selectedDate)) return;
+    if (!selectedSpace || !selectedCarPark || existingBooking || isPastDate(selectedDate) || !currentUser) return;
     
     setIsLoading(true);
     
@@ -183,14 +183,26 @@ export function ParkingApp() {
                 <span>{currentYear}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-primary">
-                    {currentUser.charAt(0)}
-                  </span>
-                </div>
-                <span className="hidden sm:inline text-sm font-medium text-foreground">
-                  {currentUser}
-                </span>
+                <input
+                  type="text"
+                  value={currentUser}
+                  onChange={(e) => setCurrentUser(e.target.value)}
+                  placeholder="Your name"
+                  className="w-28 sm:w-36 px-2 py-1 text-sm bg-background border border-border rounded-md 
+                    focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
+                />
+                {currentUser && (
+                  <>
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-medium text-primary">
+                        {currentUser.charAt(0)}
+                      </span>
+                    </div>
+                    <span className="hidden sm:inline text-sm font-medium text-foreground">
+                      {currentUser}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -283,7 +295,7 @@ export function ParkingApp() {
               selectedSpace={selectedSpace}
               onSelectSpace={handleSelectSpace}
               currentUser={currentUser}
-              disabled={isPastDate(selectedDate) || !!existingBooking}
+              disabled={isPastDate(selectedDate) || !!existingBooking || !currentUser}
               carPark={selectedCarPark}
             />
           </div>
