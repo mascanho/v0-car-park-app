@@ -74,9 +74,13 @@ export function ParkingSpaceCard({
         isBooked && !isCurrentUserBooking && 'text-destructive/70',
         isCurrentUserBooking && 'text-accent'
       )}>
-        {isBooked && initials
-          ? <span className="text-[10px] font-bold">{initials}</span>
-          : <Car className="w-4 h-4" />
+        {isCurrentUserBooking
+          ? <span className="text-[10px] font-bold">YOU</span>
+          : isBooked && initials
+            ? <span className="text-[10px] font-bold">{initials}</span>
+            : isBooked
+              ? <Car className="w-4 h-4" />
+              : <span className="text-[10px] font-bold">Free</span>
         }
       </span>
       {isCurrentUserBooking && (

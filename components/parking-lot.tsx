@@ -1,10 +1,10 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { Car, Zap, Accessibility } from 'lucide-react';
 import { ParkingSpaceCard } from './parking-space';
+import { BookingPanel } from './booking-panel';
 import type { ParkingSpace, Booking, CarPark } from '@/lib/parking-data';
-import { formatDate } from '@/lib/parking-data'; // Import formatDate, extractInitials
+import { formatDate } from '@/lib/parking-data';
 
 interface ParkingLotProps {
   spaces: ParkingSpace[];
@@ -14,18 +14,28 @@ interface ParkingLotProps {
   currentUser: string;
   disabled?: boolean;
   carPark: CarPark;
-  date: Date | undefined; // This prop is now a Date object, which will be formatted internally
+  date: Date | undefined;
+  onBook: () => void;
+  onCancel: () => void;
+  existingBooking: Booking | null;
+  selectedSpaceBookedBy?: string | null;
+  isLoading?: boolean;
 }
 
 export function ParkingLot({
   carPark,
-  spaces, // Use the spaces prop passed from ParkingApp
+  spaces,
   bookings,
   selectedSpace,
   onSelectSpace,
   currentUser,
   disabled,
   date,
+  onBook,
+  onCancel,
+  existingBooking,
+  selectedSpaceBookedBy,
+  isLoading,
 }: ParkingLotProps) {
   const formattedDate = date ? formatDate(date) : undefined;
 
@@ -77,22 +87,6 @@ export function ParkingLot({
         </div>
       </div>
 
-      {/* Space types */}
-      <div className="flex flex-wrap gap-4 mb-6 pb-4 border-b border-border">
-        <div className="flex items-center gap-2 text-sm">
-          <Car className="w-4 h-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Standard</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Accessibility className="w-4 h-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Accessible</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Zap className="w-4 h-4 text-muted-foreground" />
-          <span className="text-muted-foreground">EV Charging</span>
-        </div>
-      </div>
-
       {/* Parking lot layout */}
       <div className="relative">
         {/* Entry/Exit indicator */}
@@ -138,6 +132,20 @@ export function ParkingLot({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Booking details */}
+      <div className="mt-6 pt-6 border-t border-border">
+        <BookingPanel
+          selectedDate={date || new Date()}
+          selectedSpace={selectedSpace}
+          currentUser={currentUser}
+          onBook={onBook}
+          onCancel={onCancel}
+          existingBooking={existingBooking}
+          selectedSpaceBookedBy={selectedSpaceBookedBy}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );
