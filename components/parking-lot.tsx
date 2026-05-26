@@ -1,8 +1,10 @@
 'use client';
 
+import { useMemo, useCallback } from 'react';
+import { Car, Zap, Accessibility } from 'lucide-react';
 import { ParkingSpaceCard } from './parking-space';
 import type { ParkingSpace, Booking, CarPark } from '@/lib/parking-data';
-import { Car, Zap, Accessibility } from 'lucide-react';
+import { formatDate } from '@/lib/parking-data'; // Import formatDate
 
 interface ParkingLotProps {
   spaces: ParkingSpace[];
@@ -12,26 +14,40 @@ interface ParkingLotProps {
   currentUser: string;
   disabled?: boolean;
   carPark: CarPark;
+  date: Date; // This prop is now a Date object, which will be formatted internally
 }
 
 export function ParkingLot({
-  spaces,
+  carPark,
+  spaces, // Use the spaces prop passed from ParkingApp
   bookings,
   selectedSpace,
   onSelectSpace,
   currentUser,
   disabled,
-  carPark,
+  date,
 }: ParkingLotProps) {
-  const rows = [...new Set(spaces.map((s) => s.row))];
-  
-  const isSpaceBooked = (spaceId: string) => {
-    return bookings.some((b) => b.spaceId === spaceId);
-  };
-  
-  const isCurrentUserBooking = (spaceId: string) => {
-    return bookings.some((b) => b.spaceId === spaceId && b.userName === currentUser);
-  };
+  const formattedDate = formatDate(date); // Format the date here
+
+  const rows = useMemo(() => {
+    const uniqueRows = new Set(spaces.map((s) => s.row));
+    return Array.from(uniqueRows).sort();
+  }, [spaces]);
+
+  const getBookingForSpace = useCallback((spaceId: string) => {
+    return bookings.find(
+      (b) => b.spaceId === spaceId && b.carParkId === carPark.id && b.date === formattedDate,
+    );
+  }, [bookings, carPark.id, formattedDate]);
+
+  const isSpaceBooked = useCallback((spaceId: string) => {
+    return !!getBookingForSpace(spaceId);
+  }, [getBookingForSpace]);
+
+  const isCurrentUserBooking = useCallback((spaceId: string) => {
+    const booking = getBookingForSpace(spaceId);
+    return booking?.userName === currentUser;
+  }, [getBookingForSpace, currentUser]);
 
   return (
     <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
@@ -99,6 +115,8 @@ export function ParkingLot({
                       isBooked={isSpaceBooked(space.id)}
                       isSelected={selectedSpace?.id === space.id}
                       isCurrentUserBooking={isCurrentUserBooking(space.id)}
+                      bookedBy={getBookingForSpace(space.id)?.userName}
+                      originalUser={getBookingForSpace(space.id)?.originalUser}
                       onSelect={onSelectSpace}
                       disabled={disabled}
                     />
