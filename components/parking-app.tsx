@@ -227,6 +227,28 @@ export function ParkingApp() {
     [dateBookings, refreshBookings],
   );
 
+  const handleReallocate = useCallback(
+    async (spaceId: string, userName: string) => {
+      if (!selectedCarPark) return;
+      try {
+        await fetch("/api/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            spaceId,
+            carParkId: selectedCarPark.id,
+            date: formatDate(selectedDate),
+            userName,
+          }),
+        });
+        refreshBookings();
+      } catch {
+        /* ignore */
+      }
+    },
+    [selectedCarPark, selectedDate, refreshBookings],
+  );
+
   // Stats
   const totalSpaces = parkingSpaces.length;
   const bookedToday = dateBookings.length;
@@ -398,6 +420,7 @@ export function ParkingApp() {
               selectedSpaceBookedBy={selectedSpaceBookedBy}
               isLoading={isLoading}
               onFreeSpace={handleFreeSpace}
+              onReallocate={handleReallocate}
             />
           </div>
 

@@ -1,6 +1,16 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
+function extractInitials(name: string): string {
+  return name
+    .split(/[\s._/-]+/)
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase())
+    .join('')
+    .slice(0, 2)
+    || name.charAt(0).toUpperCase();
+}
+
 export async function GET() {
   const supabase = await createClient();
   
@@ -85,16 +95,14 @@ export async function POST(request: Request) {
 
   if (deleteErr) return NextResponse.json({ error: `Delete failed: ${deleteErr.message}` }, { status: 500 });
 
-  // Log borrow event if the space changed hands
-  if (isBorrow) {
-    await supabase.from('borrow_history').insert({
-      space_id: spaceId,
-      car_park_id: carParkId,
-      booking_date: date,
-      original_owner: previousOwner,
-      borrowed_by: resolvedUserName,
-    });
-  }
+  // Log booking event
+  await supabase.from('borrow_history').insert({
+    space_id: spaceId,
+    car_park_id: carParkId,
+    booking_date: date,
+    original_owner: isBorrow ? previousOwner : '[NEW]',
+    borrowed_by: resolvedUserName,
+  });
 
   // Insert the new booking
   const { data: inserted, error: insertErr } = await supabase
@@ -104,6 +112,7 @@ export async function POST(request: Request) {
       car_park_id: carParkId,
       booking_date: date,
       user_name: resolvedUserName,
+      initials: extractInitials(resolvedUserName),
       original_user: isBorrow ? previousOwner : existing?.original_user,
     })
     .select();
@@ -154,7 +163,25 @@ export async function DELETE(request: Request) {
   if (!id) {
     return NextResponse.json({ error: 'Missing booking id' }, { status: 400 });
   }
-  
+
+  // Fetch the booking to log the free event
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (booking) {
+    const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+    await supabase.from('borrow_history').insert({
+      space_id: booking.space_id,
+      car_park_id: booking.car_park_id,
+      booking_date: booking.booking_date,
+      original_owner: booking.user_name,
+      borrowed_by: `${userName} [FREED]`,
+    });
+  }
+
   const { error } = await supabase
     .from('bookings')
     .delete()
