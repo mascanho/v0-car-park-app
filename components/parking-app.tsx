@@ -211,6 +211,22 @@ export function ParkingApp() {
     }
   }, [existingBooking, refreshBookings]);
 
+  const handleFreeSpace = useCallback(
+    async (spaceId: string) => {
+      const booking = dateBookings.find((b) => b.spaceId === spaceId);
+      if (!booking?.id) return;
+      try {
+        const res = await fetch(`/api/bookings?id=${booking.id}`, {
+          method: "DELETE",
+        });
+        if (res.ok) refreshBookings();
+      } catch {
+        /* ignore */
+      }
+    },
+    [dateBookings, refreshBookings],
+  );
+
   // Stats
   const totalSpaces = parkingSpaces.length;
   const bookedToday = dateBookings.length;
@@ -238,7 +254,7 @@ export function ParkingApp() {
                 <Car className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">ParkSpot</h1>
+                <h1 className="text-xl font-bold text-foreground">SlimSpot</h1>
                 <p className="text-xs text-muted-foreground">
                   Daily parking reservations
                 </p>
@@ -381,6 +397,7 @@ export function ParkingApp() {
               existingBooking={existingBooking}
               selectedSpaceBookedBy={selectedSpaceBookedBy}
               isLoading={isLoading}
+              onFreeSpace={handleFreeSpace}
             />
           </div>
 
