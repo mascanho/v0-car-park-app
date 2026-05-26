@@ -4,22 +4,25 @@ import { useState, useMemo, useCallback } from 'react';
 import { Calendar } from './calendar';
 import { ParkingLot } from './parking-lot';
 import { BookingPanel } from './booking-panel';
-import { generateParkingSpaces, formatDate, isPastDate } from '@/lib/parking-data';
-import type { ParkingSpace, Booking } from '@/lib/parking-data';
-import { Car, CalendarDays } from 'lucide-react';
+import { generateParkingSpaces, formatDate, isPastDate, CAR_PARKS } from '@/lib/parking-data';
+import type { ParkingSpace, Booking, CarPark } from '@/lib/parking-data';
+import { Car, CalendarDays, MapPin } from 'lucide-react';
 
 // Simulated bookings (in production, this would come from a database)
 const initialBookings: Booking[] = [
-  { spaceId: 'A3', date: formatDate(new Date()), userName: 'John Doe' },
-  { spaceId: 'B5', date: formatDate(new Date()), userName: 'Jane Smith' },
-  { spaceId: 'C2', date: formatDate(new Date()), userName: 'Bob Wilson' },
-  { spaceId: 'D8', date: formatDate(new Date()), userName: 'Alice Brown' },
-  { spaceId: 'A4', date: formatDate(new Date(new Date().setDate(new Date().getDate() + 1))), userName: 'John Doe' },
-  { spaceId: 'B1', date: formatDate(new Date(new Date().setDate(new Date().getDate() + 1))), userName: 'Sarah Lee' },
+  { spaceId: 'A3', date: formatDate(new Date()), userName: 'John Doe', carParkId: 'north' },
+  { spaceId: 'B5', date: formatDate(new Date()), userName: 'Jane Smith', carParkId: 'north' },
+  { spaceId: 'C2', date: formatDate(new Date()), userName: 'Bob Wilson', carParkId: 'north' },
+  { spaceId: 'D8', date: formatDate(new Date()), userName: 'Alice Brown', carParkId: 'north' },
+  { spaceId: 'A4', date: formatDate(new Date(new Date().setDate(new Date().getDate() + 1))), userName: 'John Doe', carParkId: 'north' },
+  { spaceId: 'B1', date: formatDate(new Date(new Date().setDate(new Date().getDate() + 1))), userName: 'Sarah Lee', carParkId: 'north' },
+  { spaceId: 'A2', date: formatDate(new Date()), userName: 'Mike Johnson', carParkId: 'south' },
+  { spaceId: 'B3', date: formatDate(new Date()), userName: 'Emma Davis', carParkId: 'south' },
 ];
 
 export function ParkingApp() {
   const [currentUser] = useState('Current User');
+  const [selectedCarPark, setSelectedCarPark] = useState<CarPark>(CAR_PARKS[0]);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
@@ -29,19 +32,19 @@ export function ParkingApp() {
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   
-  const parkingSpaces = useMemo(() => generateParkingSpaces(), []);
+  const parkingSpaces = useMemo(() => generateParkingSpaces(selectedCarPark), [selectedCarPark]);
   
-  // Get bookings for selected date
+  // Get bookings for selected date and car park
   const dateBookings = useMemo(() => {
     const dateStr = formatDate(selectedDate);
-    return bookings.filter((b) => b.date === dateStr);
-  }, [bookings, selectedDate]);
+    return bookings.filter((b) => b.date === dateStr && b.carParkId === selectedCarPark.id);
+  }, [bookings, selectedDate, selectedCarPark.id]);
   
-  // Get current user's booking for selected date
+  // Get current user's booking for selected date and car park
   const existingBooking = useMemo(() => {
     const dateStr = formatDate(selectedDate);
-    return bookings.find((b) => b.date === dateStr && b.userName === currentUser) || null;
-  }, [bookings, selectedDate, currentUser]);
+    return bookings.find((b) => b.date === dateStr && b.userName === currentUser && b.carParkId === selectedCarPark.id) || null;
+  }, [bookings, selectedDate, currentUser, selectedCarPark.id]);
   
   // Calculate booking counts per day for the calendar
   const bookingCounts = useMemo(() => {
@@ -55,6 +58,11 @@ export function ParkingApp() {
   const handleMonthChange = useCallback((month: number, year: number) => {
     setCurrentMonth(month);
     setCurrentYear(year);
+  }, []);
+  
+  const handleSelectCarPark = useCallback((carPark: CarPark) => {
+    setSelectedCarPark(carPark);
+    setSelectedSpace(null);
   }, []);
   
   const handleSelectDate = useCallback((date: Date) => {
@@ -78,6 +86,7 @@ export function ParkingApp() {
       spaceId: selectedSpace.id,
       date: formatDate(selectedDate),
       userName: currentUser,
+      carParkId: selectedCarPark.id,
     };
     
     setBookings((prev) => [...prev, newBooking]);
@@ -94,7 +103,7 @@ export function ParkingApp() {
     await new Promise((resolve) => setTimeout(resolve, 500));
     
     setBookings((prev) => 
-      prev.filter((b) => !(b.date === existingBooking.date && b.userName === existingBooking.userName))
+      prev.filter((b) => !(b.date === existingBooking.date && b.userName === existingBooking.userName && b.carParkId === existingBooking.carParkId))
     );
     setIsLoading(false);
   }, [existingBooking]);
@@ -139,10 +148,41 @@ export function ParkingApp() {
         </div>
       </header>
 
-      {/* Stats bar */}
+      {/* Car Park Selector */}
       <div className="bg-card border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="w-4 h-4" />
+              <span>Select Car Park:</span>
+            </div>
+            <div className="flex gap-3">
+              {CAR_PARKS.map((carPark) => (
+                <button
+                  key={carPark.id}
+                  onClick={() => handleSelectCarPark(carPark)}
+                  className={`flex-1 sm:flex-none px-4 py-3 rounded-lg border-2 transition-all text-left ${
+                    selectedCarPark.id === carPark.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-muted-foreground/30 bg-background'
+                  }`}
+                >
+                  <div className="font-medium text-foreground">{carPark.name}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{carPark.location}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats bar */}
+      <div className="bg-muted/30 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">{selectedCarPark.name}:</span>
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Total:</span>
               <span className="font-semibold text-foreground">{totalSpaces}</span>
@@ -192,6 +232,7 @@ export function ParkingApp() {
               onSelectSpace={handleSelectSpace}
               currentUser={currentUser}
               disabled={isPastDate(selectedDate) || !!existingBooking}
+              carPark={selectedCarPark}
             />
           </div>
         </div>

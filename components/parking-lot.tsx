@@ -1,7 +1,7 @@
 'use client';
 
 import { ParkingSpaceCard } from './parking-space';
-import type { ParkingSpace, Booking } from '@/lib/parking-data';
+import type { ParkingSpace, Booking, CarPark } from '@/lib/parking-data';
 import { Car, Zap, Accessibility } from 'lucide-react';
 
 interface ParkingLotProps {
@@ -11,6 +11,7 @@ interface ParkingLotProps {
   onSelectSpace: (space: ParkingSpace) => void;
   currentUser: string;
   disabled?: boolean;
+  carPark: CarPark;
 }
 
 export function ParkingLot({
@@ -20,6 +21,7 @@ export function ParkingLot({
   onSelectSpace,
   currentUser,
   disabled,
+  carPark,
 }: ParkingLotProps) {
   const rows = [...new Set(spaces.map((s) => s.row))];
   
@@ -33,6 +35,12 @@ export function ParkingLot({
 
   return (
     <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+      {/* Car Park Title */}
+      <div className="mb-4 pb-4 border-b border-border">
+        <h2 className="text-lg font-semibold text-foreground">{carPark.name}</h2>
+        <p className="text-sm text-muted-foreground">{carPark.location}</p>
+      </div>
+
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mb-6 pb-4 border-b border-border">
         <div className="flex items-center gap-2 text-sm">
