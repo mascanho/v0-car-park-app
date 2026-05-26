@@ -15,23 +15,13 @@ interface BorrowHistoryProps {
 }
 
 export function BorrowHistory({ carParkId, carParkName, selectedDate }: BorrowHistoryProps) {
-  const { data: allHistory = [], isLoading } = useSWR<BorrowRecord[]>('/api/history', fetcher);
+  const { data: allHistory = [], isLoading } = useSWR<BorrowRecord[]>('/api/history', fetcher, { refreshInterval: 2000 });
   const dateStr = formatDate(selectedDate);
 
   const filtered = useMemo(
     () => allHistory.filter((h) => h.carParkId === carParkId && h.date === dateStr),
     [allHistory, carParkId, dateStr]
   );
-
-  const grouped = useMemo(() => {
-    const map: Record<string, BorrowRecord[]> = {};
-    for (const entry of filtered) {
-      const d = entry.date;
-      if (!map[d]) map[d] = [];
-      map[d].push(entry);
-    }
-    return Object.entries(map).sort(([a], [b]) => b.localeCompare(a));
-  }, [filtered]);
 
   if (isLoading) return null;
   if (filtered.length === 0) return null;
