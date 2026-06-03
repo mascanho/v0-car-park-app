@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useMemo, useCallback } from 'react';
-import { ParkingSpaceCard } from './parking-space';
-import { BookingPanel } from './booking-panel';
-import type { ParkingSpace, Booking, CarPark } from '@/lib/parking-data';
-import { formatDate } from '@/lib/parking-data';
+import { useMemo, useCallback } from "react";
+import { ParkingSpaceCard } from "./parking-space";
+import { BookingPanel } from "./booking-panel";
+import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
+import { formatDate } from "@/lib/parking-data";
 
 interface ParkingLotProps {
   spaces: ParkingSpace[];
@@ -21,6 +21,7 @@ interface ParkingLotProps {
   selectedSpaceBookedBy?: string | null;
   isLoading?: boolean;
   onFreeSpace?: (spaceId: string) => void;
+  onReallocate?: (spaceId: string, userName: string) => void;
 }
 
 export function ParkingLot({
@@ -38,6 +39,7 @@ export function ParkingLot({
   selectedSpaceBookedBy,
   isLoading,
   onFreeSpace,
+  onReallocate,
 }: ParkingLotProps) {
   const formattedDate = date ? formatDate(date) : undefined;
 
@@ -46,26 +48,41 @@ export function ParkingLot({
     return Array.from(uniqueRows).sort();
   }, [spaces]);
 
-  const getBookingForSpace = useCallback((spaceId: string) => {
-    return bookings.find(
-      (b) => formattedDate && b.spaceId === spaceId && b.carParkId === carPark.id && b.date === formattedDate,
-    );
-  }, [bookings, carPark.id, formattedDate]);
+  const getBookingForSpace = useCallback(
+    (spaceId: string) => {
+      return bookings.find(
+        (b) =>
+          formattedDate &&
+          b.spaceId === spaceId &&
+          b.carParkId === carPark.id &&
+          b.date === formattedDate,
+      );
+    },
+    [bookings, carPark.id, formattedDate],
+  );
 
-  const isSpaceBooked = useCallback((spaceId: string) => {
-    return !!getBookingForSpace(spaceId);
-  }, [getBookingForSpace]);
+  const isSpaceBooked = useCallback(
+    (spaceId: string) => {
+      return !!getBookingForSpace(spaceId);
+    },
+    [getBookingForSpace],
+  );
 
-  const isCurrentUserBooking = useCallback((spaceId: string) => {
-    const booking = getBookingForSpace(spaceId);
-    return booking?.userName === currentUser;
-  }, [getBookingForSpace, currentUser]);
+  const isCurrentUserBooking = useCallback(
+    (spaceId: string) => {
+      const booking = getBookingForSpace(spaceId);
+      return booking?.userName === currentUser;
+    },
+    [getBookingForSpace, currentUser],
+  );
 
   return (
     <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
       {/* Car Park Title */}
       <div className="mb-4 pb-4 border-b border-border">
-        <h2 className="text-lg font-semibold text-foreground">{carPark.name}</h2>
+        <h2 className="text-lg font-semibold text-foreground">
+          {carPark.name}
+        </h2>
         <p className="text-sm text-muted-foreground">{carPark.location}</p>
       </div>
 
@@ -91,7 +108,7 @@ export function ParkingLot({
 
       {/* Parking lot layout */}
       <div className="relative">
-        {carPark.id === 'grosvenor' ? (
+        {carPark.id === "grosvenor" ? (
           <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
             Entry / Exit
           </div>
@@ -111,7 +128,9 @@ export function ParkingLot({
             const rowSpaces = spaces.filter((s) => s.row === row);
             return (
               <div key={row} className="flex items-center gap-2">
-                <span className="w-6 text-sm font-semibold text-muted-foreground">{row}</span>
+                <span className="w-6 text-sm font-semibold text-muted-foreground">
+                  {row}
+                </span>
                 <div className="flex flex-wrap gap-2">
                   {rowSpaces.map((space) => (
                     <ParkingSpaceCard
@@ -126,6 +145,8 @@ export function ParkingLot({
                       onSelect={onSelectSpace}
                       disabled={disabled}
                       onFreeSpace={onFreeSpace}
+                      onReallocate={onReallocate}
+                      carParkId={carPark.id}
                     />
                   ))}
                 </div>
@@ -135,7 +156,7 @@ export function ParkingLot({
         </div>
 
         {/* Driving lanes indicator / Entry */}
-        {carPark.id === 'grosvenor' ? (
+        {carPark.id === "grosvenor" ? (
           <div className="mt-4 flex justify-center">
             <div className="bg-muted/50 rounded-lg px-4 py-2">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
