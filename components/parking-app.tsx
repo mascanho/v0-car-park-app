@@ -444,9 +444,15 @@ export function ParkingApp() {
               selectedDate={selectedDate}
               currentUser={currentUser}
             />
+
+            {/* AG: temporary log of the selected car park */}
+            {console.log('Selected car park:', selectedCarPark)}
+
             <MapPanel
               address={selectedCarPark.address || selectedCarPark.location}
               name={selectedCarPark.name}
+              latitude={selectedCarPark.latitude}
+              longitude={selectedCarPark.longitude}
             />
           </div>
         </div>
