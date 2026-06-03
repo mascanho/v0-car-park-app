@@ -139,15 +139,7 @@ export function BookingPanel({
           </div>
           <p className="text-sm text-foreground">
             Space <span className="font-semibold">{selectedSpace.id}</span>
-            <span className="text-muted-foreground ml-2">
-              (
-              {selectedSpace.type === "handicap"
-                ? "Accessible"
-                : selectedSpace.type === "electric"
-                  ? "EV Charging"
-                  : "Standard"}
-              )
-            </span>
+            <span className="text-muted-foreground ml-2"></span>
           </p>
           {isBorrowing && (
             <p className="text-xs text-muted-foreground mt-1">
