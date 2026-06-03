@@ -57,11 +57,14 @@ CREATE TABLE IF NOT EXISTS borrow_history (
   booking_date DATE NOT NULL,
   original_owner TEXT NOT NULL,
   borrowed_by TEXT NOT NULL,
+  allocated_by TEXT,
   borrowed_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_borrow_history_date ON borrow_history (booking_date DESC);
 CREATE INDEX IF NOT EXISTS idx_borrow_history_carpark ON borrow_history (car_park_id);
+
+ALTER TABLE borrow_history ADD COLUMN IF NOT EXISTS allocated_by TEXT;
 
 ALTER TABLE borrow_history ENABLE ROW LEVEL SECURITY;
 
