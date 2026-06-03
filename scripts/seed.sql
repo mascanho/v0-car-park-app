@@ -218,3 +218,6 @@ CREATE TABLE IF NOT EXISTS notes (
 );
 
 CREATE INDEX IF NOT EXISTS idx_notes_date_carpark ON notes (note_date, car_park_id);
+
+-- Add allocated_by column to borrow_history if upgrading
+ALTER TABLE borrow_history ADD COLUMN IF NOT EXISTS allocated_by TEXT;

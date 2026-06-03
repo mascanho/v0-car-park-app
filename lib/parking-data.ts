@@ -2,6 +2,7 @@ export interface CarPark {
   id: string;
   name: string;
   location: string;
+  address?: string;
   rows: string[];
   spacesPerRow: Record<string, number>;
   spaceNumbers?: Record<string, number[]>;
@@ -11,7 +12,6 @@ export interface ParkingSpace {
   id: string;
   row: string;
   number: number;
-  type: 'standard' | 'handicap' | 'electric';
   carParkId: string;
 }
 
@@ -32,6 +32,7 @@ export interface BorrowRecord {
   date: string;
   originalOwner: string;
   borrowedBy: string;
+  allocatedBy?: string | null;
   borrowedAt: string;
 }
 
@@ -79,15 +80,10 @@ export function generateParkingSpaces(carPark: CarPark): ParkingSpace[] {
     const numbers = carPark.spaceNumbers?.[row] ?? Array.from({ length: spacesPerRow }, (_, i) => i + 1);
     
     numbers.forEach((num) => {
-      let type: ParkingSpace['type'] = 'standard';
-      if (row === carPark.rows[0] && numbers.indexOf(num) <= 1) type = 'handicap';
-      if (row === carPark.rows[carPark.rows.length - 1] && numbers.indexOf(num) >= numbers.length - 2) type = 'electric';
-      
       spaces.push({
         id: `${num}`,
         row,
         number: num,
-        type,
         carParkId: carPark.id,
       });
     });
