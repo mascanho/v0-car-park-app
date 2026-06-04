@@ -33,17 +33,29 @@ export function NotesPanel({ carParkId, selectedDate, currentUser }: NotesPanelP
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ carParkId, date: dateStr, message: newMessage.trim() }),
       });
-      if (res.ok) {
-        setNewMessage('');
-        mutate();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        console.error('Failed to save note:', res.status, err);
+        return;
       }
+      setNewMessage('');
+      mutate();
+    } catch (e) {
+      console.error('Failed to save note (network error):', e);
     } finally {
       setSending(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    await fetch(`/api/notes?id=${id}`, { method: 'DELETE' });
+    try {
+      const res = await fetch(`/api/notes?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        console.error('Failed to delete note:', res.status);
+      }
+    } catch (e) {
+      console.error('Failed to delete note (network error):', e);
+    }
     mutate();
   };
 
