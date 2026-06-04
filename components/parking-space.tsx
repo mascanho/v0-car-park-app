@@ -128,38 +128,40 @@ export function ParkingSpaceCard({
             !isCurrentUserBooking &&
             !isVisitor &&
             "border-destructive/50 bg-destructive/10 cursor-pointer hover:border-amber-500 hover:bg-amber-500/5",
-          isVisitor && "border-neutral-600 bg-neutral-800 cursor-pointer ",
+          isVisitor && "border-neutral-600 bg-black cursor-pointer",
           isCurrentUserBooking && "border-accent bg-accent/20 cursor-default",
           isSelected &&
-            "border-primary bg-primary/20 ring-2 ring-primary ring-offset-2",
+            "border-primary bg-blue-600/20 ring-2 ring-primary ring-offset-2 text-black",
           disabled && "opacity-50 cursor-not-allowed",
         )}
       >
-        <span
-          className={cn(
-            "text-xs font-semibold",
-            isSelected && "text-primary",
-            isBooked &&
-              !isCurrentUserBooking &&
-              !isVisitor &&
-              "text-destructive",
-            isVisitor && "text-neutral-100",
-            isCurrentUserBooking && "text-accent-foreground",
-          )}
-        >
-          {space.id}
-        </span>
-        <span
-          className={cn(
-            "mt-1 text-[10px] font-bold leading-none",
-            isSelected && "text-primary",
-            isBooked &&
-              !isCurrentUserBooking &&
-              !isVisitor &&
-              "text-destructive/70",
-            isVisitor && "text-neutral-300",
-            isCurrentUserBooking && "text-accent",
-          )}
+          <span
+            className={cn(
+              "text-xs font-semibold",
+              isSelected && "text-primary",
+              isBooked &&
+                !isCurrentUserBooking &&
+                !isVisitor &&
+                "text-destructive",
+              isVisitor && !isSelected && "text-neutral-100",
+              isVisitor && isSelected && "text-destructive",
+              isCurrentUserBooking && "text-accent-foreground",
+            )}
+          >
+            {space.id}
+          </span>
+          <span
+            className={cn(
+              "mt-1 text-[10px] font-bold leading-none",
+              isSelected && "text-primary",
+              isBooked &&
+                !isCurrentUserBooking &&
+                !isVisitor &&
+                "text-destructive/70",
+              isVisitor && !isSelected && "text-neutral-300",
+              isVisitor && isSelected && "text-destructive",
+              isCurrentUserBooking && "text-accent",
+            )}
         >
           {isCurrentUserBooking ? (
             <span className="text-[10px] font-bold">YOU</span>

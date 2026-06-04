@@ -67,13 +67,16 @@ export async function POST(request: Request) {
   const isAllocation = resolvedUserName !== authUserName;
 
   // If the user had a different booking on this date, release it
-  await supabase
-    .from('bookings')
-    .delete()
-    .eq('car_park_id', carParkId)
-    .eq('booking_date', date)
-    .eq('user_name', resolvedUserName)
-    .neq('space_id', spaceId);
+  // Skip for VISITOR to allow multiple visitor allocations per day
+  if (resolvedUserName !== 'VISITOR') {
+    await supabase
+      .from('bookings')
+      .delete()
+      .eq('car_park_id', carParkId)
+      .eq('booking_date', date)
+      .eq('user_name', resolvedUserName)
+      .neq('space_id', spaceId);
+  }
 
   // Fetch existing booking for this space/date to check for borrow
   const { data: existing } = await supabase

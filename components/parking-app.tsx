@@ -439,20 +439,20 @@ export function ParkingApp() {
 
           {/* Notes column */}
           <div className="lg:col-span-3 space-y-4">
-            <NotesPanel
-              carParkId={selectedCarPark.id}
-              selectedDate={selectedDate}
-              currentUser={currentUser}
-            />
-
-            {/* AG: temporary log of the selected car park */}
-            {console.log('Selected car park:', selectedCarPark)}
-
             <MapPanel
               address={selectedCarPark.address || selectedCarPark.location}
               name={selectedCarPark.name}
               latitude={selectedCarPark.latitude}
               longitude={selectedCarPark.longitude}
+            />
+
+            {/* AG: temporary log of the selected car park */}
+            {console.log('Selected car park:', selectedCarPark)}
+
+            <NotesPanel
+              carParkId={selectedCarPark.id}
+              selectedDate={selectedDate}
+              currentUser={currentUser}
             />
           </div>
         </div>
