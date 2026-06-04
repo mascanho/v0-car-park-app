@@ -310,7 +310,7 @@ export function ParkingApp() {
                 <span className="hidden sm:inline text-sm font-medium text-foreground">
                   {currentUser}
                 </span>
-                {userEmail.toLowerCase().trim() === 'm.guerreiro@slimstock.com' && (
+                {(userEmail.toLowerCase().trim() === 'm.guerreiro@slimstock.com' || currentUser === 'Marco Guerreiro') && (
                   <AdminDropdown
                     open={adminMenuOpen}
                     onToggle={() => setAdminMenuOpen((v) => !v)}
