@@ -310,7 +310,7 @@ export function ParkingApp() {
                 <span className="hidden sm:inline text-sm font-medium text-foreground">
                   {currentUser}
                 </span>
-                {userEmail.toLowerCase().trim() === 'm.guerreiro@slimstock.com' && (
+                {(userEmail.toLowerCase().trim() === 'm.guerreiro@slimstock.com' || currentUser === 'Marco Guerreiro') && (
                   <AdminDropdown
                     open={adminMenuOpen}
                     onToggle={() => setAdminMenuOpen((v) => !v)}
@@ -439,14 +439,20 @@ export function ParkingApp() {
 
           {/* Notes column */}
           <div className="lg:col-span-3 space-y-4">
+            <MapPanel
+              address={selectedCarPark.address || selectedCarPark.location}
+              name={selectedCarPark.name}
+              latitude={selectedCarPark.latitude}
+              longitude={selectedCarPark.longitude}
+            />
+
+            {/* AG: temporary log of the selected car park */}
+            {console.log('Selected car park:', selectedCarPark)}
+
             <NotesPanel
               carParkId={selectedCarPark.id}
               selectedDate={selectedDate}
               currentUser={currentUser}
-            />
-            <MapPanel
-              address={selectedCarPark.address || selectedCarPark.location}
-              name={selectedCarPark.name}
             />
           </div>
         </div>

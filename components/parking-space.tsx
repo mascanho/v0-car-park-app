@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { cn } from '@/lib/utils';
-import type { ParkingSpace } from '@/lib/parking-data';
-import { Car, Trash2, UserRoundPlus, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
+import type { ParkingSpace } from "@/lib/parking-data";
+import { Car, Trash2, UserRoundPlus, Loader2 } from "lucide-react";
 
 interface ParkingSpaceProps {
   space: ParkingSpace;
   isBooked: boolean;
   isSelected: boolean;
   isCurrentUserBooking: boolean;
+  isVisitor: boolean;
   bookedBy?: string;
   initials?: string;
   originalUser?: string | null;
@@ -18,6 +19,8 @@ interface ParkingSpaceProps {
   onFreeSpace?: (spaceId: string) => void;
   onReallocate?: (spaceId: string, userName: string) => void;
   carParkId?: string;
+  currentUser?: string;
+  currentUserEmail?: string;
 }
 
 export function ParkingSpaceCard({
@@ -25,6 +28,7 @@ export function ParkingSpaceCard({
   isBooked,
   isSelected,
   isCurrentUserBooking,
+  isVisitor,
   bookedBy,
   initials,
   originalUser,
@@ -33,6 +37,8 @@ export function ParkingSpaceCard({
   onFreeSpace,
   onReallocate,
   carParkId,
+  currentUser,
+  currentUserEmail,
 }: ParkingSpaceProps) {
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
   const [showUsers, setShowUsers] = useState(false);
@@ -48,8 +54,8 @@ export function ParkingSpaceCard({
         setShowUsers(false);
       }
     };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, [menuPos]);
 
   const handleClick = () => {
@@ -75,7 +81,9 @@ export function ParkingSpaceCard({
     try {
       const res = await fetch(`/api/users?carParkId=${carParkId}`);
       if (res.ok) setUsers(await res.json());
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setLoadingUsers(false);
   };
 
@@ -85,12 +93,23 @@ export function ParkingSpaceCard({
     if (onReallocate) onReallocate(space.id, userName);
   };
 
+  const handleVisitorAllocate = () => {
+    setMenuPos(null);
+    if (onReallocate) onReallocate(space.id, "VISITOR");
+  };
+
+  const isAdmin =
+    currentUserEmail === "m.guerreiro@slimstock.com" ||
+    currentUser === "Marco Guerreiro";
+
   const tooltip = isBooked
     ? isCurrentUserBooking
-      ? 'Your booking'
-      : originalUser
-        ? `Borrowed by ${bookedBy} from ${originalUser}`
-        : `Booked by ${bookedBy}`
+      ? "Your booking"
+      : isVisitor
+        ? "Visitor"
+        : originalUser
+          ? `Borrowed by ${bookedBy} from ${originalUser}`
+          : `Booked by ${bookedBy}`
     : space.id;
 
   return (
@@ -101,45 +120,78 @@ export function ParkingSpaceCard({
         disabled={disabled || isCurrentUserBooking}
         title={tooltip}
         className={cn(
-          'relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px]',
-          !isBooked && !isSelected && 'border-border bg-card hover:border-primary hover:bg-primary/5 cursor-pointer',
-          isBooked && !isCurrentUserBooking && 'border-destructive/50 bg-destructive/10 cursor-pointer hover:border-amber-500 hover:bg-amber-500/5',
-          isCurrentUserBooking && 'border-accent bg-accent/20 cursor-default',
-          isSelected && 'border-primary bg-primary/20 ring-2 ring-primary ring-offset-2',
-          disabled && 'opacity-50 cursor-not-allowed'
+          "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px]",
+          !isBooked &&
+            !isSelected &&
+            "border-border bg-card hover:border-primary hover:bg-primary/5 cursor-pointer",
+          isBooked &&
+            !isCurrentUserBooking &&
+            !isVisitor &&
+            "border-destructive/50 bg-destructive/10 cursor-pointer hover:border-amber-500 hover:bg-amber-500/5",
+          isVisitor && "border-neutral-600 bg-black cursor-pointer",
+          isCurrentUserBooking && "border-accent bg-accent/20 cursor-default",
+          isSelected &&
+            "border-primary bg-blue-600/20 ring-2 ring-primary ring-offset-2 text-black",
+          disabled && "opacity-50 cursor-not-allowed",
         )}
       >
-        <span className={cn(
-          'text-xs font-semibold',
-          isSelected && 'text-primary',
-          isBooked && !isCurrentUserBooking && 'text-destructive',
-          isCurrentUserBooking && 'text-accent-foreground'
-        )}>
-          {space.id}
-        </span>
-        <span className={cn(
-          'mt-1 text-[10px] font-bold leading-none',
-          isSelected && 'text-primary',
-          isBooked && !isCurrentUserBooking && 'text-destructive/70',
-          isCurrentUserBooking && 'text-accent'
-        )}>
-          {isCurrentUserBooking
-            ? <span className="text-[10px] font-bold">YOU</span>
-            : isBooked && initials
-              ? <span className="text-[10px] font-bold">{initials}</span>
-              : isBooked
-                ? <Car className="w-4 h-4" />
-                : <span className="text-[10px] font-bold">Free</span>
-          }
+          <span
+            className={cn(
+              "text-xs font-semibold",
+              isSelected && "text-primary",
+              isBooked &&
+                !isCurrentUserBooking &&
+                !isVisitor &&
+                "text-destructive",
+              isVisitor && !isSelected && "text-neutral-100",
+              isVisitor && isSelected && "text-destructive",
+              isCurrentUserBooking && "text-accent-foreground",
+            )}
+          >
+            {space.id}
+          </span>
+          <span
+            className={cn(
+              "mt-1 text-[10px] font-bold leading-none",
+              isSelected && "text-primary",
+              isBooked &&
+                !isCurrentUserBooking &&
+                !isVisitor &&
+                "text-destructive/70",
+              isVisitor && !isSelected && "text-neutral-300",
+              isVisitor && isSelected && "text-destructive",
+              isCurrentUserBooking && "text-accent",
+            )}
+        >
+          {isCurrentUserBooking ? (
+            <span className="text-[10px] font-bold">YOU</span>
+          ) : isVisitor ? (
+            <span className="text-[10px] font-bold">VISITOR</span>
+          ) : isBooked && initials ? (
+            <span className="text-[10px] font-bold">{initials}</span>
+          ) : isBooked ? (
+            <Car className="w-4 h-4" />
+          ) : (
+            <span className="text-[10px] font-bold">Free</span>
+          )}
         </span>
         {isCurrentUserBooking && (
           <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full border-2 border-card" />
+        )}
+        {isVisitor && (
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-neutral-400 rounded-full border-2 border-card" />
         )}
       </button>
 
       {menuPos && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => { setMenuPos(null); setShowUsers(false); }} />
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => {
+              setMenuPos(null);
+              setShowUsers(false);
+            }}
+          />
           <div
             ref={menuRef}
             className="fixed z-50 bg-card border border-border rounded-lg shadow-xl py-1 min-w-[180px]"
@@ -161,7 +213,7 @@ export function ParkingSpaceCard({
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 text-left"
                 >
                   <UserRoundPlus className="w-3.5 h-3.5" />
-                  {isBooked ? 'Re-allocate' : 'Allocate to...'}
+                  {isBooked ? "Re-allocate" : "Allocate to..."}
                 </button>
                 {showUsers && (
                   <div className="absolute left-full top-0 ml-1 bg-card border border-border rounded-lg shadow-xl py-1 min-w-[180px] max-h-60 overflow-y-auto">
@@ -183,6 +235,15 @@ export function ParkingSpaceCard({
                   </div>
                 )}
               </div>
+            )}
+            {isAdmin && onReallocate && (
+              <button
+                onClick={handleVisitorAllocate}
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm  hover:bg-neutral-800/50 text-left"
+              >
+                <UserRoundPlus className="w-3.5 h-3.5" />
+                Allocate to VISITOR
+              </button>
             )}
           </div>
         </>

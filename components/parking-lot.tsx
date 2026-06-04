@@ -12,6 +12,7 @@ interface ParkingLotProps {
   selectedSpace: ParkingSpace | null;
   onSelectSpace: (space: ParkingSpace) => void;
   currentUser: string;
+  currentUserEmail: string;
   disabled?: boolean;
   carPark: CarPark;
   date: Date | undefined;
@@ -31,6 +32,7 @@ export function ParkingLot({
   selectedSpace,
   onSelectSpace,
   currentUser,
+  currentUserEmail,
   disabled,
   date,
   onBook,
@@ -76,6 +78,14 @@ export function ParkingLot({
     [getBookingForSpace, currentUser],
   );
 
+  const isVisitor = useCallback(
+    (spaceId: string) => {
+      const booking = getBookingForSpace(spaceId);
+      return booking?.userName === "VISITOR";
+    },
+    [getBookingForSpace],
+  );
+
   return (
     <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
       {/* Car Park Title */}
@@ -103,6 +113,10 @@ export function ParkingLot({
         <div className="flex items-center gap-2 text-sm">
           <div className="w-4 h-4 rounded bg-primary/20 border-2 border-primary ring-2 ring-primary ring-offset-1" />
           <span className="text-muted-foreground">Selected</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <div className="w-4 h-4 rounded bg-neutral-800 border-2 border-neutral-600" />
+          <span className="text-muted-foreground">Visitor</span>
         </div>
       </div>
 
@@ -139,6 +153,7 @@ export function ParkingLot({
                       isBooked={isSpaceBooked(space.id)}
                       isSelected={selectedSpace?.id === space.id}
                       isCurrentUserBooking={isCurrentUserBooking(space.id)}
+                      isVisitor={isVisitor(space.id)}
                       bookedBy={getBookingForSpace(space.id)?.userName}
                       initials={getBookingForSpace(space.id)?.initials}
                       originalUser={getBookingForSpace(space.id)?.originalUser}
@@ -147,6 +162,8 @@ export function ParkingLot({
                       onFreeSpace={onFreeSpace}
                       onReallocate={onReallocate}
                       carParkId={carPark.id}
+                      currentUser={currentUser}
+                      currentUserEmail={currentUserEmail}
                     />
                   ))}
                 </div>
