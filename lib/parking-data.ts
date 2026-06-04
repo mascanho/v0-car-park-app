@@ -3,6 +3,8 @@ export interface CarPark {
   name: string;
   location: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
   rows: string[];
   spacesPerRow: Record<string, number>;
   spaceNumbers?: Record<string, number[]>;
