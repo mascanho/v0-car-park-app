@@ -127,11 +127,11 @@ export function ParkingLot({
             Entry / Exit
           </div>
         ) : (
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-muted/50 rounded-full px-4 py-2">
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-muted/50 rounded-full px-4 py-2 ">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="w-8 h-0.5 bg-muted-foreground/30" />
-              <span>Driving Lane</span>
-              <div className="w-8 h-0.5 bg-muted-foreground/30" />
+              <div className="w-20 h-0.5 bg-muted-foreground/30" />
+              <span className="text-center w-full">Driving Lane</span>
+              <div className="w-20 h-0.5 bg-muted-foreground/30" />
             </div>
           </div>
         )}
@@ -145,7 +145,7 @@ export function ParkingLot({
                 <span className="w-6 text-sm font-semibold text-muted-foreground">
                   {row}
                 </span>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mt-4">
                   {rowSpaces.map((space) => (
                     <ParkingSpaceCard
                       key={space.id}
@@ -193,7 +193,7 @@ export function ParkingLot({
       </div>
 
       {/* Booking details */}
-      <div className="mt-6 pt-6 border-t border-border">
+      <div className="mt-6 pt-2 border-t border-border">
         <BookingPanel
           selectedDate={date || new Date()}
           selectedSpace={selectedSpace}

@@ -22,7 +22,6 @@ export function BorrowHistory({
   const { data: allHistory = [], isLoading } = useSWR<BorrowRecord[]>(
     "/api/history",
     fetcher,
-    { refreshInterval: 2000 },
   );
   const dateStr = formatDate(selectedDate);
 
