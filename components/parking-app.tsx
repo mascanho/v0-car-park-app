@@ -394,12 +394,10 @@ export function ParkingApp() {
       {/* Stats bar */}
       <div className="bg-muted/30 border-b border-border">
         <div className="max-w-8xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-6 text-sm flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">
-                {selectedCarPark.name}:
-              </span>
-            </div>
+          <div className="flex items-center gap-2 sm:gap-6 text-xs sm:text-sm flex-wrap">
+            <span className="text-muted-foreground font-medium shrink-0">
+              {selectedCarPark.name}:
+            </span>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Total:</span>
               <span className="font-semibold text-foreground">
