@@ -73,7 +73,6 @@ export function ParkingApp() {
   } = useSWR<Booking[]>(
     "/api/bookings",
     fetcher,
-    { refreshInterval: 5000 }, // Refresh every 5 seconds
   );
 
   const parkingSpaces = useMemo(() => {
@@ -409,11 +408,6 @@ export function ParkingApp() {
               onMonthChange={handleMonthChange}
               bookingCounts={bookingCounts}
             />
-            <BorrowHistory
-              carParkId={selectedCarPark.id}
-              carParkName={selectedCarPark.name}
-              selectedDate={selectedDate}
-            />
           </div>
 
           {/* Parking lot */}
@@ -439,6 +433,12 @@ export function ParkingApp() {
 
           {/* Notes column */}
           <div className="lg:col-span-3 space-y-4">
+            <BorrowHistory
+              carParkId={selectedCarPark.id}
+              carParkName={selectedCarPark.name}
+              selectedDate={selectedDate}
+            />
+
             <MapPanel
               address={selectedCarPark.address || selectedCarPark.location}
               name={selectedCarPark.name}

@@ -22,7 +22,6 @@ export function BorrowHistory({
   const { data: allHistory = [], isLoading } = useSWR<BorrowRecord[]>(
     "/api/history",
     fetcher,
-    { refreshInterval: 2000 },
   );
   const dateStr = formatDate(selectedDate);
 
@@ -33,7 +32,6 @@ export function BorrowHistory({
   );
 
   if (isLoading) return null;
-  if (filtered.length === 0) return null;
 
   return (
     <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
