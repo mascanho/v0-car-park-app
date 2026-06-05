@@ -3,10 +3,17 @@
 interface MapPanelProps {
   address: string;
   name: string;
+  latitude?: number;
+  longitude?: number;
 }
 
-export function MapPanel({ address, name }: MapPanelProps) {
-  const query = encodeURIComponent(address);
+export function MapPanel({ address, name, latitude, longitude }: MapPanelProps) {
+  const location =
+    latitude !== undefined && longitude !== undefined
+      ? `${latitude},${longitude}`
+      : address;
+
+  const query = encodeURIComponent(location);
 
   return (
     <div className="bg-card rounded-xl border border-border p-4 shadow-sm">

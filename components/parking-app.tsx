@@ -9,12 +9,20 @@ import { BorrowHistory } from "./borrow-history";
 import { NotesPanel } from "./notes-panel";
 import { MapPanel } from "./map-panel";
 import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "./ui/sheet";
+import {
   generateParkingSpaces,
   formatDate,
   isPastDate,
 } from "@/lib/parking-data";
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
-import { Car, CalendarDays, MapPin, Loader2, LogOut, Shield, Database } from "lucide-react";
+import { Car, CalendarDays, MapPin, Loader2, LogOut, Shield, Database, Info } from "lucide-react";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -73,7 +81,6 @@ export function ParkingApp() {
   } = useSWR<Booking[]>(
     "/api/bookings",
     fetcher,
-    { refreshInterval: 5000 }, // Refresh every 5 seconds
   );
 
   const parkingSpaces = useMemo(() => {
@@ -277,17 +284,39 @@ export function ParkingApp() {
       <header className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-8xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Car className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">SlimSpot</h1>
-                <p className="text-xs text-muted-foreground">
-                  Daily parking reservations
-                </p>
-              </div>
-            </div>
+            <Sheet>
+              <SheetTrigger asChild>
+                <div className="flex items-center gap-3 cursor-pointer">
+                  <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                    <Car className="w-6 h-6 text-primary-foreground" />
+                  </div>
+                  <div className="min-w-0">
+                    <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">SlimSpot</h1>
+                    <p className="text-xs text-muted-foreground hidden sm:block">
+                      Daily parking reservations
+                    </p>
+                  </div>
+                </div>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <SheetHeader>
+                  <SheetTitle>SlimSpot</SheetTitle>
+                  <SheetDescription>
+                    Daily parking reservations
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="px-4 space-y-4 text-sm text-muted-foreground">
+                  <p>
+                    Manage your team's parking spaces. Book, cancel, re-allocate, and
+                    keep track of daily parking usage across multiple locations.
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border">
+                    <Info className="w-3 h-3" />
+                    <span>v1.0.0</span>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
                 <CalendarDays className="w-4 h-4" />
@@ -310,7 +339,7 @@ export function ParkingApp() {
                 <span className="hidden sm:inline text-sm font-medium text-foreground">
                   {currentUser}
                 </span>
-                {userEmail.toLowerCase().trim() === 'm.guerreiro@slimstock.com' && (
+                {(userEmail.toLowerCase().trim() === 'm.guerreiro@slimstock.com' || currentUser === 'Marco Guerreiro') && (
                   <AdminDropdown
                     open={adminMenuOpen}
                     onToggle={() => setAdminMenuOpen((v) => !v)}
@@ -365,12 +394,10 @@ export function ParkingApp() {
       {/* Stats bar */}
       <div className="bg-muted/30 border-b border-border">
         <div className="max-w-8xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">
-                {selectedCarPark.name}:
-              </span>
-            </div>
+          <div className="flex items-center gap-2 sm:gap-6 text-xs sm:text-sm flex-wrap">
+            <span className="text-muted-foreground font-medium shrink-0">
+              {selectedCarPark.name}:
+            </span>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Total:</span>
               <span className="font-semibold text-foreground">
@@ -409,11 +436,13 @@ export function ParkingApp() {
               onMonthChange={handleMonthChange}
               bookingCounts={bookingCounts}
             />
-            <BorrowHistory
-              carParkId={selectedCarPark.id}
-              carParkName={selectedCarPark.name}
-              selectedDate={selectedDate}
-            />
+            <div className="hidden lg:block">
+              <BorrowHistory
+                carParkId={selectedCarPark.id}
+                carParkName={selectedCarPark.name}
+                selectedDate={selectedDate}
+              />
+            </div>
           </div>
 
           {/* Parking lot */}
@@ -439,14 +468,27 @@ export function ParkingApp() {
 
           {/* Notes column */}
           <div className="lg:col-span-3 space-y-4">
+            <div className="lg:hidden">
+              <BorrowHistory
+                carParkId={selectedCarPark.id}
+                carParkName={selectedCarPark.name}
+                selectedDate={selectedDate}
+              />
+            </div>
+            <MapPanel
+              address={selectedCarPark.address || selectedCarPark.location}
+              name={selectedCarPark.name}
+              latitude={selectedCarPark.latitude}
+              longitude={selectedCarPark.longitude}
+            />
+
+            {/* AG: temporary log of the selected car park */}
+            {console.log('Selected car park:', selectedCarPark)}
+
             <NotesPanel
               carParkId={selectedCarPark.id}
               selectedDate={selectedDate}
               currentUser={currentUser}
-            />
-            <MapPanel
-              address={selectedCarPark.address || selectedCarPark.location}
-              name={selectedCarPark.name}
             />
           </div>
         </div>

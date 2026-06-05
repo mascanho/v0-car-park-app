@@ -51,7 +51,7 @@ export function BookingPanel({
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+    <div className="bg-card rounded-xl border border-border p-6 shadow-sm mt-4">
       <h3 className="font-semibold text-lg text-foreground mb-4">
         Booking Details
       </h3>

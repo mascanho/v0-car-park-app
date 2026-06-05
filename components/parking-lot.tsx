@@ -12,6 +12,7 @@ interface ParkingLotProps {
   selectedSpace: ParkingSpace | null;
   onSelectSpace: (space: ParkingSpace) => void;
   currentUser: string;
+  currentUserEmail: string;
   disabled?: boolean;
   carPark: CarPark;
   date: Date | undefined;
@@ -31,6 +32,7 @@ export function ParkingLot({
   selectedSpace,
   onSelectSpace,
   currentUser,
+  currentUserEmail,
   disabled,
   date,
   onBook,
@@ -76,6 +78,14 @@ export function ParkingLot({
     [getBookingForSpace, currentUser],
   );
 
+  const isVisitor = useCallback(
+    (spaceId: string) => {
+      const booking = getBookingForSpace(spaceId);
+      return booking?.userName === "VISITOR";
+    },
+    [getBookingForSpace],
+  );
+
   return (
     <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
       {/* Car Park Title */}
@@ -104,6 +114,10 @@ export function ParkingLot({
           <div className="w-4 h-4 rounded bg-primary/20 border-2 border-primary ring-2 ring-primary ring-offset-1" />
           <span className="text-muted-foreground">Selected</span>
         </div>
+        <div className="flex items-center gap-2 text-sm">
+          <div className="w-4 h-4 rounded bg-neutral-800 border-2 border-neutral-600" />
+          <span className="text-muted-foreground">Visitor</span>
+        </div>
       </div>
 
       {/* Parking lot layout */}
@@ -113,11 +127,11 @@ export function ParkingLot({
             Entry / Exit
           </div>
         ) : (
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-muted/50 rounded-full px-4 py-2">
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-muted/50 rounded-full px-4 py-2 ">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="w-8 h-0.5 bg-muted-foreground/30" />
-              <span>Driving Lane</span>
-              <div className="w-8 h-0.5 bg-muted-foreground/30" />
+              <div className="w-20 h-0.5 bg-muted-foreground/30" />
+              <span className="text-center w-full">Driving Lane</span>
+              <div className="w-20 h-0.5 bg-muted-foreground/30" />
             </div>
           </div>
         )}
@@ -131,7 +145,7 @@ export function ParkingLot({
                 <span className="w-6 text-sm font-semibold text-muted-foreground">
                   {row}
                 </span>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mt-4">
                   {rowSpaces.map((space) => (
                     <ParkingSpaceCard
                       key={space.id}
@@ -139,6 +153,7 @@ export function ParkingLot({
                       isBooked={isSpaceBooked(space.id)}
                       isSelected={selectedSpace?.id === space.id}
                       isCurrentUserBooking={isCurrentUserBooking(space.id)}
+                      isVisitor={isVisitor(space.id)}
                       bookedBy={getBookingForSpace(space.id)?.userName}
                       initials={getBookingForSpace(space.id)?.initials}
                       originalUser={getBookingForSpace(space.id)?.originalUser}
@@ -147,6 +162,8 @@ export function ParkingLot({
                       onFreeSpace={onFreeSpace}
                       onReallocate={onReallocate}
                       carParkId={carPark.id}
+                      currentUser={currentUser}
+                      currentUserEmail={currentUserEmail}
                     />
                   ))}
                 </div>
@@ -176,7 +193,7 @@ export function ParkingLot({
       </div>
 
       {/* Booking details */}
-      <div className="mt-6 pt-6 border-t border-border">
+      <div className="mt-6 pt-2 border-t border-border">
         <BookingPanel
           selectedDate={date || new Date()}
           selectedSpace={selectedSpace}
