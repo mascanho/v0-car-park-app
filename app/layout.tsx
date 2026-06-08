@@ -10,6 +10,16 @@ export const metadata: Metadata = {
   title: "SlimSpot - Car Park Booking",
   description: "Book your parking space daily with ease",
   generator: "v0.app",
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
   icons: {
     icon: [
       {
