@@ -107,11 +107,11 @@ export function ParkingLot({
           <span className="text-muted-foreground">Occupied</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-accent/20 border-2 border-accent" />
+          <div className="w-4 h-4 rounded bg-blue-500/20 border-2 border-blue-500" />
           <span className="text-muted-foreground">Your Booking</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-primary/20 border-2 border-primary ring-2 ring-primary ring-offset-1" />
+          <div className="w-4 h-4 rounded bg-violet-500/20 border-2 border-violet-500 ring-2 ring-violet-500 ring-offset-1" />
           <span className="text-muted-foreground">Selected</span>
         </div>
         <div className="flex items-center gap-2 text-sm">

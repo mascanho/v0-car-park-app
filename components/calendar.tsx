@@ -11,7 +11,7 @@ interface CalendarProps {
   currentMonth: number;
   currentYear: number;
   onMonthChange: (month: number, year: number) => void;
-  bookingCounts?: Record<string, number>;
+  fullyBookedDates?: Record<string, boolean>;
 }
 
 export function Calendar({
@@ -20,7 +20,7 @@ export function Calendar({
   currentMonth,
   currentYear,
   onMonthChange,
-  bookingCounts = {},
+  fullyBookedDates = {},
 }: CalendarProps) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -103,8 +103,7 @@ export function Calendar({
           const isSelected = formatDate(selectedDate) === dateStr;
           const isToday = formatDate(today) === dateStr;
           const isPast = isPastDate(date);
-          const bookingCount = bookingCounts[dateStr] || 0;
-          const hasBookings = bookingCount > 0;
+          const isFullyBooked = fullyBookedDates[dateStr] === true;
 
           return (
             <button
@@ -113,25 +112,34 @@ export function Calendar({
               disabled={isPast}
               className={cn(
                 'relative h-10 rounded-lg text-sm font-medium transition-all duration-200',
-                // Default
-                'hover:bg-primary/10',
-                // Selected
+                // Selected (overrides everything)
                 isSelected && 'bg-primary text-primary-foreground hover:bg-primary',
                 // Today (not selected)
                 isToday && !isSelected && 'border-2 border-primary',
-                // Past dates
+                // Past dates (disabled)
                 isPast && 'text-muted-foreground/40 cursor-not-allowed hover:bg-transparent',
-                // Has bookings indicator
-                hasBookings && !isSelected && 'bg-accent/10'
+                // Fully booked (no spaces available) - red
+                !isPast && !isSelected && isFullyBooked && 'bg-red-500/20 text-red-700 dark:bg-red-500/20 dark:text-red-400 hover:bg-red-500/30',
+                // Available (spaces available) - green
+                !isPast && !isSelected && !isFullyBooked && 'bg-green-500/20 text-green-700 dark:bg-green-500/20 dark:text-green-400 hover:bg-green-500/30'
               )}
             >
               {day}
-              {hasBookings && !isSelected && (
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-accent" />
-              )}
             </button>
           );
         })}
+      </div>
+
+      {/* Color legend */}
+      <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-green-500/20 border border-green-500/50" />
+          <span className="text-xs text-muted-foreground">Available</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-red-500/20 border border-red-500/50" />
+          <span className="text-xs text-muted-foreground">Fully booked</span>
+        </div>
       </div>
     </div>
   );

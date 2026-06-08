@@ -75,10 +75,10 @@ export function BookingPanel({
       {/* Existing booking (only when not switching) */}
       {existingBooking &&
         (!selectedSpace || selectedSpace.id === existingBooking.spaceId) && (
-          <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-4">
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <MapPin className="w-4 h-4 text-accent" />
-              <span className="font-medium text-accent-foreground text-black">
+              <MapPin className="w-4 h-4 text-blue-500" />
+              <span className="font-medium text-blue-700 dark:text-blue-400">
                 Your booking
               </span>
             </div>

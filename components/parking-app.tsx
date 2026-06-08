@@ -120,14 +120,30 @@ export function ParkingApp() {
       : null;
   }, [selectedSpace, dateBookings, currentUser]);
 
-  // Calculate booking counts per day for the calendar
-  const bookingCounts = useMemo(() => {
+  // Calculate booking counts per day for the selected car park
+  const carParkBookingCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    allBookings.forEach((b) => {
-      counts[b.date] = (counts[b.date] || 0) + 1;
-    });
+    if (!selectedCarPark) return counts;
+    allBookings
+      .filter(b => b.carParkId === selectedCarPark.id)
+      .forEach((b) => {
+        counts[b.date] = (counts[b.date] || 0) + 1;
+      });
     return counts;
-  }, [allBookings]);
+  }, [allBookings, selectedCarPark]);
+
+  // Determine which dates are fully booked (no spaces left) for the selected car park
+  const fullyBookedDates = useMemo(() => {
+    const full: Record<string, boolean> = {};
+    if (!selectedCarPark) return full;
+    const total = parkingSpaces.length;
+    Object.entries(carParkBookingCounts).forEach(([date, count]) => {
+      if (count >= total) {
+        full[date] = true;
+      }
+    });
+    return full;
+  }, [carParkBookingCounts, parkingSpaces, selectedCarPark]);
 
   const handleMonthChange = useCallback((month: number, year: number) => {
     setCurrentMonth(month);
@@ -434,7 +450,7 @@ export function ParkingApp() {
               currentMonth={currentMonth}
               currentYear={currentYear}
               onMonthChange={handleMonthChange}
-              bookingCounts={bookingCounts}
+              fullyBookedDates={fullyBookedDates}
             />
             <div className="hidden lg:block">
               <BorrowHistory
