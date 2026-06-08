@@ -4,7 +4,8 @@ import { useMemo, useCallback } from "react";
 import { ParkingSpaceCard } from "./parking-space";
 import { BookingPanel } from "./booking-panel";
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
-import { formatDate } from "@/lib/parking-data";
+import { formatDate, findUserSpace } from "@/lib/parking-data";
+import { Loader2 } from "lucide-react";
 
 interface ParkingLotProps {
   spaces: ParkingSpace[];
@@ -23,6 +24,7 @@ interface ParkingLotProps {
   isLoading?: boolean;
   onFreeSpace?: (spaceId: string) => void;
   onReallocate?: (spaceId: string, userName: string) => void;
+  onQuickBook?: () => void;
 }
 
 export function ParkingLot({
@@ -42,6 +44,7 @@ export function ParkingLot({
   isLoading,
   onFreeSpace,
   onReallocate,
+  onQuickBook,
 }: ParkingLotProps) {
   const formattedDate = date ? formatDate(date) : undefined;
 
@@ -62,6 +65,12 @@ export function ParkingLot({
     },
     [bookings, carPark.id, formattedDate],
   );
+
+  const defaultSpaceId = (findUserSpace(currentUser, currentUserEmail, carPark.id))?.spaceId || null;
+  const defaultSpaceBooked = defaultSpaceId
+    ? bookings.some((b) => b.spaceId === defaultSpaceId)
+    : false;
+  const canQuickBook = !disabled && !existingBooking && !!defaultSpaceId && !defaultSpaceBooked && !!onQuickBook;
 
   const isSpaceBooked = useCallback(
     (spaceId: string) => {
@@ -99,7 +108,7 @@ export function ParkingLot({
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mb-6 pb-4 border-b border-border">
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-card border-2 border-border" />
+          <div className="w-4 h-4 rounded bg-green-500/20 border-2 border-green-500/50" />
           <span className="text-muted-foreground">Available</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
@@ -107,11 +116,11 @@ export function ParkingLot({
           <span className="text-muted-foreground">Occupied</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-accent/20 border-2 border-accent" />
+          <div className="w-4 h-4 rounded bg-blue-500/20 border-2 border-blue-500" />
           <span className="text-muted-foreground">Your Booking</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-primary/20 border-2 border-primary ring-2 ring-primary ring-offset-1" />
+          <div className="w-4 h-4 rounded bg-violet-500/20 border-2 border-violet-500 ring-2 ring-violet-500 ring-offset-1" />
           <span className="text-muted-foreground">Selected</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
@@ -119,6 +128,19 @@ export function ParkingLot({
           <span className="text-muted-foreground">Visitor</span>
         </div>
       </div>
+
+      {/* Quick actions */}
+      {canQuickBook && (
+        <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
+          <button
+            onClick={onQuickBook}
+            disabled={isLoading}
+            className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+          >
+            {isLoading ? "Booking..." : "Book my space"}
+          </button>
+        </div>
+      )}
 
       {/* Parking lot layout */}
       <div className="relative">
