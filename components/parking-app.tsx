@@ -20,9 +20,11 @@ import {
   generateParkingSpaces,
   formatDate,
   isPastDate,
+  findUserSpace,
 } from "@/lib/parking-data";
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
-import { Car, CalendarDays, MapPin, Loader2, LogOut, Shield, Database, Info } from "lucide-react";
+import { Car, CalendarDays, MapPin, Loader2, LogOut, Shield, Database, Info, ParkingCircle } from "lucide-react";
+import { BulkFreeModal } from "./bulk-free-modal";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -31,6 +33,7 @@ export function ParkingApp() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const [bulkFreeOpen, setBulkFreeOpen] = useState(false);
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
@@ -278,6 +281,53 @@ export function ParkingApp() {
     [selectedCarPark, selectedDate, refreshBookings],
   );
 
+  const handleQuickBook = useCallback(async () => {
+    if (!selectedCarPark || !currentUser) return;
+    const spaceId = findUserSpace(currentUser, userEmail, selectedCarPark.id)?.spaceId;
+    if (!spaceId) return;
+    if (isPastDate(selectedDate)) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          spaceId,
+          carParkId: selectedCarPark.id,
+          date: formatDate(selectedDate),
+          userName: currentUser,
+          replaceExisting: true,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to book");
+      const data = await response.json();
+      await refreshBookings(data.allBookings, { revalidate: false });
+    } catch (error) {
+      console.error("Quick book failed:", error);
+      alert(error instanceof Error ? error.message : "Failed to book your space");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedCarPark, currentUser, selectedDate, refreshBookings]);
+
+  const handleQuickFree = useCallback(async () => {
+    if (!existingBooking?.id) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/bookings?id=${existingBooking.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to free space");
+      await refreshBookings();
+    } catch (error) {
+      console.error("Quick free failed:", error);
+      alert("Failed to free your space");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [existingBooking, refreshBookings]);
+
   // Stats
   const totalSpaces = parkingSpaces.length;
   const bookedToday = dateBookings.length;
@@ -360,8 +410,25 @@ export function ParkingApp() {
                     open={adminMenuOpen}
                     onToggle={() => setAdminMenuOpen((v) => !v)}
                     onClose={() => setAdminMenuOpen(false)}
+                    onOpenBulkFree={() => setBulkFreeOpen(true)}
                   />
                 )}
+                <button
+                  onClick={() => setBulkFreeOpen(true)}
+                  className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                  title="Bulk Free"
+                >
+                  <ParkingCircle className="w-4 h-4" />
+                </button>
+                <BulkFreeModal
+                  open={bulkFreeOpen}
+                  onOpenChange={setBulkFreeOpen}
+                  carParks={carParks}
+                  selectedCarPark={selectedCarPark}
+                  currentUser={currentUser}
+                  userEmail={userEmail}
+                  onFreed={() => refreshBookings()}
+                />
                 <button
                   onClick={handleSignOut}
                   className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
@@ -479,6 +546,8 @@ export function ParkingApp() {
               isLoading={isLoading}
               onFreeSpace={handleFreeSpace}
               onReallocate={handleReallocate}
+              onQuickBook={handleQuickBook}
+              onQuickFree={handleQuickFree}
             />
           </div>
 
@@ -522,7 +591,7 @@ export function ParkingApp() {
   );
 }
 
-function AdminDropdown({ open, onToggle, onClose }: { open: boolean; onToggle: () => void; onClose: () => void }) {
+function AdminDropdown({ open, onToggle, onClose, onOpenBulkFree }: { open: boolean; onToggle: () => void; onClose: () => void; onOpenBulkFree: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -561,6 +630,13 @@ function AdminDropdown({ open, onToggle, onClose }: { open: boolean; onToggle: (
           >
             <Shield className="w-4 h-4 text-muted-foreground" />
             Raw Bookings
+          </button>
+          <button
+            onClick={() => { onOpenBulkFree(); onClose(); }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
+          >
+            <Trash2 className="w-4 h-4 text-destructive/70" />
+            Bulk Free
           </button>
         </div>
       )}

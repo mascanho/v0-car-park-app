@@ -137,3 +137,87 @@ export function extractInitials(name: string): string {
     .slice(0, 2)
     || name.charAt(0).toUpperCase();
 }
+
+// Default user-to-space assignments (from seed data)
+export const USER_DEFAULT_SPACES: Record<string, Record<string, string>> = {
+  grosvenor: {
+    'Hayley Thornton': '6',
+    'Natasha Cooper': '7',
+    'Jessie Cooper': '8',
+    'Jenny Lowrie / Samara Simons': '14',
+    'Emily Berry': '15',
+    'Sam Phipps': '16',
+    'Mike Donnelly': '26',
+    'Will Severn': '29',
+    'Lee Eagleton': '39',
+    'Adam Greensmith': '40',
+    'Jack Shortt': '41',
+    'Richard Evans': '52',
+  },
+  smallwood: {
+    'Lisa Berry': '31',
+    'Jason Haller': '32',
+    'Samual Round': '33',
+    'Andrew Brush': '34',
+    'Chris Robertson': '35',
+    'Joshua Taiwo': '36',
+    'Rob Hutton': '37',
+    'Zu Ali': '38',
+    'Marco Guerreirco': '39',
+    'Victoria Lima': '40',
+    'Rob Crellin': '56',
+    'Javier Garcia': '58',
+    'Mark Wheeler': '59',
+  },
+};
+
+export function getUserDefaultSpace(userName: string, carParkId: string): string | null {
+  return USER_DEFAULT_SPACES[carParkId]?.[userName] ?? null;
+}
+
+export function findUserSpace(userName: string, email: string | undefined, carParkId: string): { spaceId: string; dbUserName: string } | null {
+  const spaces = USER_DEFAULT_SPACES[carParkId];
+  if (!spaces) return null;
+
+  // Exact match by name
+  if (spaces[userName]) return { spaceId: spaces[userName], dbUserName: userName };
+
+  if (!email) return null;
+
+  const emailPrefix = email.split('@')[0].toLowerCase();
+
+  // Direct email-to-name override (handles typos in seed data)
+  const EMAIL_TO_NAME: Record<string, string> = {
+    'm.guerreiro': 'Marco Guerreirco',
+  };
+  const overrideName = EMAIL_TO_NAME[emailPrefix];
+  if (overrideName && spaces[overrideName]) {
+    return { spaceId: spaces[overrideName], dbUserName: overrideName };
+  }
+
+  // Try fuzzy match against each key
+  for (const [key, spaceId] of Object.entries(spaces)) {
+    const keyNorm = key.toLowerCase().replace(/\s+/g, '');
+    const emailNorm = emailPrefix.replace(/[.\-_]/g, '');
+
+    if (keyNorm.includes(emailNorm) || emailNorm.includes(keyNorm)) {
+      return { spaceId, dbUserName: key };
+    }
+
+    const emailAsName = emailPrefix.replace(/\./g, ' ');
+    if (key.toLowerCase().startsWith(emailAsName)) {
+      return { spaceId, dbUserName: key };
+    }
+
+    // Match by last name (part after the dot in email)
+    const dotIndex = emailPrefix.lastIndexOf('.');
+    if (dotIndex !== -1) {
+      const lastName = emailPrefix.slice(dotIndex + 1);
+      if (lastName.length > 2 && keyNorm.includes(lastName)) {
+        return { spaceId, dbUserName: key };
+      }
+    }
+  }
+
+  return null;
+}

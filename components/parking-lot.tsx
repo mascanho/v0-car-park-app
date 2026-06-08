@@ -4,7 +4,8 @@ import { useMemo, useCallback } from "react";
 import { ParkingSpaceCard } from "./parking-space";
 import { BookingPanel } from "./booking-panel";
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
-import { formatDate } from "@/lib/parking-data";
+import { formatDate, findUserSpace } from "@/lib/parking-data";
+import { Loader2 } from "lucide-react";
 
 interface ParkingLotProps {
   spaces: ParkingSpace[];
@@ -23,6 +24,8 @@ interface ParkingLotProps {
   isLoading?: boolean;
   onFreeSpace?: (spaceId: string) => void;
   onReallocate?: (spaceId: string, userName: string) => void;
+  onQuickBook?: () => void;
+  onQuickFree?: () => void;
 }
 
 export function ParkingLot({
@@ -42,6 +45,8 @@ export function ParkingLot({
   isLoading,
   onFreeSpace,
   onReallocate,
+  onQuickBook,
+  onQuickFree,
 }: ParkingLotProps) {
   const formattedDate = date ? formatDate(date) : undefined;
 
@@ -62,6 +67,13 @@ export function ParkingLot({
     },
     [bookings, carPark.id, formattedDate],
   );
+
+  const defaultSpaceId = (findUserSpace(currentUser, currentUserEmail, carPark.id))?.spaceId || null;
+  const defaultSpaceBooked = defaultSpaceId
+    ? bookings.some((b) => b.spaceId === defaultSpaceId)
+    : false;
+  const canQuickBook = !disabled && !existingBooking && !!defaultSpaceId && !defaultSpaceBooked && !!onQuickBook;
+  const canQuickFree = !disabled && !!existingBooking && !!onQuickFree;
 
   const isSpaceBooked = useCallback(
     (spaceId: string) => {
@@ -119,6 +131,30 @@ export function ParkingLot({
           <span className="text-muted-foreground">Visitor</span>
         </div>
       </div>
+
+      {/* Quick actions */}
+      {(canQuickBook || canQuickFree) && (
+        <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
+          {canQuickBook && (
+            <button
+              onClick={onQuickBook}
+              disabled={isLoading}
+              className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isLoading ? "Booking..." : "Book my space"}
+            </button>
+          )}
+          {canQuickFree && (
+            <button
+              onClick={onQuickFree}
+              disabled={isLoading}
+              className="px-3 py-1.5 text-xs font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50"
+            >
+              {isLoading ? "Freeing..." : "Free my space"}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Parking lot layout */}
       <div className="relative">
