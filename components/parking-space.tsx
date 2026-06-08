@@ -123,7 +123,7 @@ export function ParkingSpaceCard({
           "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px]",
           !isBooked &&
             !isSelected &&
-            "border-border bg-card hover:border-primary hover:bg-primary/5 cursor-pointer",
+            "border-green-500/50 bg-green-500/20 hover:border-primary hover:bg-primary/5 cursor-pointer",
           isBooked &&
             !isCurrentUserBooking &&
             !isVisitor &&
@@ -139,6 +139,7 @@ export function ParkingSpaceCard({
             className={cn(
               "text-xs font-semibold",
               isSelected && "text-violet-600 dark:text-violet-400",
+              !isBooked && !isSelected && "text-green-600 dark:text-green-400",
               isBooked &&
                 !isCurrentUserBooking &&
                 !isVisitor &&
@@ -154,6 +155,7 @@ export function ParkingSpaceCard({
             className={cn(
               "mt-1 text-[10px] font-bold leading-none",
               isSelected && "text-violet-600 dark:text-violet-400",
+              !isBooked && !isSelected && "text-green-600 dark:text-green-400",
               isBooked &&
                 !isCurrentUserBooking &&
                 !isVisitor &&

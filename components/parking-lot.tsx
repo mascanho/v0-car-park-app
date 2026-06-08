@@ -99,7 +99,7 @@ export function ParkingLot({
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mb-6 pb-4 border-b border-border">
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-card border-2 border-border" />
+          <div className="w-4 h-4 rounded bg-green-500/20 border-2 border-green-500/50" />
           <span className="text-muted-foreground">Available</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
