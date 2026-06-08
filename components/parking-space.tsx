@@ -208,7 +208,7 @@ export function ParkingSpaceCard({
                 Free this space
               </button>
             )}
-            {onReallocate && (
+            {isAdmin && onReallocate && (
               <div className="relative">
                 <button
                   onClick={handleReallocateClick}
