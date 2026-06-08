@@ -25,7 +25,6 @@ interface ParkingLotProps {
   onFreeSpace?: (spaceId: string) => void;
   onReallocate?: (spaceId: string, userName: string) => void;
   onQuickBook?: () => void;
-  onQuickFree?: () => void;
 }
 
 export function ParkingLot({
@@ -46,7 +45,6 @@ export function ParkingLot({
   onFreeSpace,
   onReallocate,
   onQuickBook,
-  onQuickFree,
 }: ParkingLotProps) {
   const formattedDate = date ? formatDate(date) : undefined;
 
@@ -73,7 +71,6 @@ export function ParkingLot({
     ? bookings.some((b) => b.spaceId === defaultSpaceId)
     : false;
   const canQuickBook = !disabled && !existingBooking && !!defaultSpaceId && !defaultSpaceBooked && !!onQuickBook;
-  const canQuickFree = !disabled && !!existingBooking && !!onQuickFree;
 
   const isSpaceBooked = useCallback(
     (spaceId: string) => {
@@ -133,26 +130,15 @@ export function ParkingLot({
       </div>
 
       {/* Quick actions */}
-      {(canQuickBook || canQuickFree) && (
+      {canQuickBook && (
         <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
-          {canQuickBook && (
-            <button
-              onClick={onQuickBook}
-              disabled={isLoading}
-              className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? "Booking..." : "Book my space"}
-            </button>
-          )}
-          {canQuickFree && (
-            <button
-              onClick={onQuickFree}
-              disabled={isLoading}
-              className="px-3 py-1.5 text-xs font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? "Freeing..." : "Free my space"}
-            </button>
-          )}
+          <button
+            onClick={onQuickBook}
+            disabled={isLoading}
+            className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+          >
+            {isLoading ? "Booking..." : "Book my space"}
+          </button>
         </div>
       )}
 

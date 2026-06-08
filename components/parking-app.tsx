@@ -311,23 +311,6 @@ export function ParkingApp() {
     }
   }, [selectedCarPark, currentUser, selectedDate, refreshBookings]);
 
-  const handleQuickFree = useCallback(async () => {
-    if (!existingBooking?.id) return;
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/bookings?id=${existingBooking.id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Failed to free space");
-      await refreshBookings();
-    } catch (error) {
-      console.error("Quick free failed:", error);
-      alert("Failed to free your space");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [existingBooking, refreshBookings]);
-
   // Stats
   const totalSpaces = parkingSpaces.length;
   const bookedToday = dateBookings.length;
@@ -547,7 +530,6 @@ export function ParkingApp() {
               onFreeSpace={handleFreeSpace}
               onReallocate={handleReallocate}
               onQuickBook={handleQuickBook}
-              onQuickFree={handleQuickFree}
             />
           </div>
 
