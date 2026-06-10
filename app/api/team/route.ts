@@ -1,16 +1,23 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
+const FULL_SELECT = 'name, email, car_park, is_regular, birthday, photo, bio, website, role';
+const FALLBACK_SELECT = 'name, email, car_park, is_regular, birthday';
+
 export async function GET() {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('users')
-    .select('name, email, car_park, is_regular, birthday')
+    .select(FULL_SELECT)
     .order('name');
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const { data: fallback } = await supabase
+      .from('users')
+      .select(FALLBACK_SELECT)
+      .order('name');
+    data = (fallback || []) as typeof data;
   }
 
   return NextResponse.json(data || []);
