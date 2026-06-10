@@ -169,15 +169,17 @@ export async function DELETE(request: Request) {
   const endDate = searchParams.get('endDate');
   const carParkId = searchParams.get('carParkId');
   const userName = searchParams.get('userName');
+  const userNames = searchParams.getAll('userNames');
   const dates = searchParams.getAll('dates');
+  const targetUsers = userNames.length > 0 ? userNames : (userName ? [userName] : []);
 
-  // Bulk delete by specific dates (non-sequential) for a user
-  if (dates.length > 0 && carParkId && userName) {
+  // Bulk delete by specific dates (non-sequential) for users
+  if (dates.length > 0 && carParkId && targetUsers.length > 0) {
     const { data: bookings, error: fetchErr } = await supabase
       .from('bookings')
       .select('*')
       .eq('car_park_id', carParkId)
-      .eq('user_name', userName)
+      .in('user_name', targetUsers)
       .in('booking_date', dates);
 
     if (fetchErr) {
@@ -198,7 +200,7 @@ export async function DELETE(request: Request) {
       .from('bookings')
       .delete()
       .eq('car_park_id', carParkId)
-      .eq('user_name', userName)
+      .in('user_name', targetUsers)
       .in('booking_date', dates);
 
     if (deleteErr) {
@@ -208,13 +210,13 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true, freedCount: bookings?.length || 0 });
   }
 
-  // Bulk delete by date range for a specific user
-  if (startDate && endDate && carParkId && userName) {
+  // Bulk delete by date range for users
+  if (startDate && endDate && carParkId && targetUsers.length > 0) {
     const { data: bookings, error: fetchErr } = await supabase
       .from('bookings')
       .select('*')
       .eq('car_park_id', carParkId)
-      .eq('user_name', userName)
+      .in('user_name', targetUsers)
       .gte('booking_date', startDate)
       .lte('booking_date', endDate);
 
@@ -236,7 +238,7 @@ export async function DELETE(request: Request) {
       .from('bookings')
       .delete()
       .eq('car_park_id', carParkId)
-      .eq('user_name', userName)
+      .in('user_name', targetUsers)
       .gte('booking_date', startDate)
       .lte('booking_date', endDate);
 

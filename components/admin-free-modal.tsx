@@ -14,7 +14,11 @@ import { Button } from "@/components/ui/button";
 import type { CarPark } from "@/lib/parking-data";
 import { X, CalendarDays } from "lucide-react";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+};
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -76,7 +80,7 @@ export function AdminFreeModal({
   onFreed,
 }: AdminFreeModalProps) {
   const [carParkId, setCarParkId] = useState(carParks[0]?.id || "");
-  const [userName, setUserName] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [dates, setDates] = useState<string[]>([]);
   const [tab, setTab] = useState<"single" | "range">("single");
   const [dateInput, setDateInput] = useState("");
@@ -85,19 +89,16 @@ export function AdminFreeModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{ freedCount: number } | null>(null);
 
-  const { data: allUsers = [] } = useSWR<string[]>(
+  const { data: rawUsers } = useSWR<string[]>(
     `/api/users?carParkId=${carParkId}`,
     fetcher,
   );
-
-  const filteredUsers = allUsers.filter((u) =>
-    u.toLowerCase().includes(userName.toLowerCase()),
-  );
+  const allUsers = Array.isArray(rawUsers) ? rawUsers : [];
 
   useEffect(() => {
     if (open) {
       setCarParkId(carParks[0]?.id || "");
-      setUserName("");
+      setSelectedUsers([]);
       setDates([]);
       setDateInput("");
       setRangeStart("");
@@ -105,6 +106,17 @@ export function AdminFreeModal({
       setResult(null);
     }
   }, [open]);
+
+  const toggleUser = (u: string) => {
+    setSelectedUsers((prev) =>
+      prev.includes(u) ? prev.filter((x) => x !== u) : [...prev, u],
+    );
+  };
+
+  const selectAll = () => {
+    if (Array.isArray(allUsers)) setSelectedUsers([...allUsers]);
+  };
+  const deselectAll = () => setSelectedUsers([]);
 
   const addDate = (iso: string) => {
     if (!iso || dates.includes(iso)) return;
@@ -133,14 +145,14 @@ export function AdminFreeModal({
   };
 
   const handleSubmit = async () => {
-    if (dates.length === 0 || !userName || !carParkId) return;
+    if (dates.length === 0 || selectedUsers.length === 0 || !carParkId) return;
     setIsSubmitting(true);
     setResult(null);
     try {
       const params = new URLSearchParams();
       dates.forEach((d) => params.append("dates", d));
       params.set("carParkId", carParkId);
-      params.set("userName", userName);
+      selectedUsers.forEach((u) => params.append("userNames", u));
       const res = await fetch(`/api/bookings?${params}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -155,7 +167,7 @@ export function AdminFreeModal({
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setUserName("");
+      setSelectedUsers([]);
       setDates([]);
       setDateInput("");
       setRangeStart("");
@@ -177,10 +189,13 @@ export function AdminFreeModal({
 
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <label className="text-sm font-bold">Car Park</label>
+            <label className="text-sm font-medium">Car Park</label>
             <select
               value={carParkId}
-              onChange={(e) => setCarParkId(e.target.value)}
+              onChange={(e) => {
+                setCarParkId(e.target.value);
+                setSelectedUsers([]);
+              }}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {carParks.map((cp) => (
@@ -192,32 +207,85 @@ export function AdminFreeModal({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-bold">User</label>
-            <input
-              type="text"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Type a user name..."
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
+            <label className="text-sm font-medium">Users</label>
 
-            <h3 className="text-xs mt-2 font-bold text-gray-500">
-              Freeing spots for: {filteredUsers.length} user(s)
-            </h3>
-            {userName && filteredUsers.length > 0 && (
-              <div className="max-h-32 overflow-y-auto rounded-md border border-border bg-popover shadow-sm">
-                {filteredUsers.map((u) => (
+            {selectedUsers.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs text-muted-foreground">
+                    {selectedUsers.length} selected
+                  </p>
                   <button
-                    key={u}
                     type="button"
-                    onClick={() => setUserName(u)}
-                    className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors bg-blue-200"
+                    onClick={deselectAll}
+                    className="text-xs text-muted-foreground hover:text-foreground underline"
                   >
-                    {u}
+                    Clear all
                   </button>
-                ))}
+                </div>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {selectedUsers.map((u) => (
+                    <span
+                      key={u}
+                      className="inline-flex items-center gap-1 rounded-md border border-border bg-muted pl-2 pr-1 py-1 text-xs font-medium"
+                    >
+                      <span>{u}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleUser(u)}
+                        className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                      >
+                        <X className="w-2.5 h-2.5 text-red-500" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
+
+            <div className="flex items-center gap-2 text-xs mb-1">
+              {allUsers.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={selectAll}
+                    className="text-muted-foreground hover:text-foreground underline"
+                  >
+                    Select all
+                  </button>
+                  <span className="text-muted-foreground">·</span>
+                </>
+              )}
+              <span className="text-muted-foreground">
+                {allUsers.length} users in this car park
+              </span>
+            </div>
+
+            <div className="max-h-32 overflow-y-auto rounded-md border border-border p-1.5 space-y-0.5">
+              {allUsers.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-2 text-center">
+                  No users found for this car park.
+                </p>
+              ) : (
+                allUsers.map((u) => {
+                  const active = selectedUsers.includes(u);
+                  return (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => toggleUser(u)}
+                      className={`w-full text-left px-2.5 py-1.5 rounded text-sm transition-colors ${
+                        active
+                          ? "bg-primary/10 text-foreground font-medium"
+                          : "text-muted-foreground hover:bg-accent"
+                      }`}
+                    >
+                      {u}
+                    </button>
+                  );
+                })
+              )}
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -254,7 +322,7 @@ export function AdminFreeModal({
                     setDateInput(val);
                     if (val) addDate(val);
                   }}
-                  placeholder="dd/mm/yyyy"
+                  placeholder="Click to select days"
                 />
               </div>
             )}
@@ -349,13 +417,13 @@ export function AdminFreeModal({
           <Button
             onClick={handleSubmit}
             disabled={
-              dates.length === 0 || !userName || !carParkId || isSubmitting
+              dates.length === 0 || selectedUsers.length === 0 || isSubmitting
             }
             variant="destructive"
           >
             {isSubmitting
               ? "Freeing..."
-              : `Free (${dates.length} date${dates.length !== 1 ? "s" : ""})`}
+              : `Free (${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""}, ${dates.length} date${dates.length !== 1 ? "s" : ""})`}
           </Button>
         </DialogFooter>
       </DialogContent>

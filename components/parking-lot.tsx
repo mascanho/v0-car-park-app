@@ -6,6 +6,7 @@ import { BookingPanel } from "./booking-panel";
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
 import { formatDate, findUserSpace } from "@/lib/parking-data";
 import { Loader2 } from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface ParkingLotProps {
   spaces: ParkingSpace[];
@@ -96,6 +97,7 @@ export function ParkingLot({
   );
 
   return (
+    <TooltipProvider>
     <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
       {/* Car Park Title */}
       <div className="mb-4 pb-4 border-b border-border">
@@ -228,5 +230,6 @@ export function ParkingLot({
         />
       </div>
     </div>
+    </TooltipProvider>
   );
 }

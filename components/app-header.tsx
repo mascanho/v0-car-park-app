@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Sheet, SheetTrigger } from "./ui/sheet";
 import {
+  Menu,
   Car,
-  CalendarDays,
   LogOut,
   Shield,
   Database,
@@ -61,8 +61,13 @@ export function AppHeader({
       <div className="max-w-8xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Sheet>
-            <SheetTrigger asChild>
-              <div className="flex items-center gap-3 cursor-pointer">
+            <div className="flex items-center gap-3">
+              <SheetTrigger asChild>
+                <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+                  <Menu className="w-6 h-6" />
+                </button>
+              </SheetTrigger>
+              <div className="hidden sm:flex items-center gap-3 cursor-pointer">
                 <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                   <Car className="w-6 h-6 text-primary-foreground" />
                 </div>
@@ -75,31 +80,11 @@ export function AppHeader({
                   </p>
                 </div>
               </div>
-            </SheetTrigger>
+            </div>
             <AppInfoSheet />
           </Sheet>
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-              <CalendarDays className="w-4 h-4" />
-              <span>{currentYear}</span>
-            </div>
             <div className="flex items-center gap-3">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={currentUser}
-                  className="w-8 h-8 rounded-full"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-primary">
-                    {currentUser.charAt(0)}
-                  </span>
-                </div>
-              )}
-              <span className="hidden sm:inline text-sm font-medium text-foreground">
-                {currentUser}
-              </span>
               {[
                 "m.guerreiro@slimstock.com",
                 "j.cooper@slimstock.com",
@@ -115,9 +100,10 @@ export function AppHeader({
               )}
               <button
                 onClick={onOpenBulkFree}
-                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                className="p-1.5 text-sm flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
                 title="Bulk Free"
               >
+                My Parking
                 <ParkingCircle className="w-4 h-4 animate-pulse text-orange-600" />
               </button>
               <BulkFreeModal
@@ -135,18 +121,79 @@ export function AppHeader({
                 carParks={carParks}
                 onFreed={onRefreshBookings}
               />
-              <button
-                onClick={onSignOut}
-                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                title="Sign out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              <AvatarMenu
+                currentUser={currentUser}
+                avatarUrl={avatarUrl}
+                onSignOut={onSignOut}
+              />
             </div>
           </div>
         </div>
       </div>
     </header>
+  );
+}
+
+function AvatarMenu({
+  currentUser,
+  avatarUrl,
+  onSignOut,
+}: {
+  currentUser: string;
+  avatarUrl: string;
+  onSignOut: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 cursor-pointer"
+      >
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={currentUser}
+            className="w-8 h-8 rounded-full"
+          />
+        ) : (
+          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+            <span className="text-sm font-medium text-primary">
+              {currentUser.charAt(0)}
+            </span>
+          </div>
+        )}
+        <span className="hidden sm:inline text-sm font-medium text-foreground">
+          {currentUser}
+        </span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-lg shadow-lg py-1 z-50">
+          <button
+            onClick={() => {
+              setOpen(false);
+              onSignOut();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
+          >
+            <LogOut className="w-4 h-4 text-muted-foreground" />
+            Sign out
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -184,7 +231,7 @@ function AdminDropdown({
         className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
         title="Admin"
       >
-        <Shield className="w-4 h-4" />
+        <LayoutDashboard className="w-4 h-4" />
       </button>
       {open && (
         <div className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-lg shadow-lg py-1 z-50">

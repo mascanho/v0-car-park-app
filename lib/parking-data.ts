@@ -68,7 +68,7 @@ export const CAR_PARKS: CarPark[] = [
     spacesPerRow: { A: 20, B: 20 },
     spaceNumbers: {
       A: [31, 32, 33, 34, 35, 36, 37, 38, 39, 40],
-      B: [56, 58, 59],
+      B: [56, 57, 58, 59],
     },
   },
 ];
@@ -144,7 +144,8 @@ export const USER_DEFAULT_SPACES: Record<string, Record<string, string>> = {
     'Hayley Thornton': '6',
     'Natasha Cooper': '7',
     'Jessie Cooper': '8',
-    'Jenny Lowrie / Samara Simons': '14',
+    'Samara Simons': '14',
+    'Jenny Lowrie': '14',
     'Emily Berry': '15',
     'Sam Phipps': '16',
     'Mike Donnelly': '26',
@@ -157,15 +158,16 @@ export const USER_DEFAULT_SPACES: Record<string, Record<string, string>> = {
   smallwood: {
     'Lisa Berry': '31',
     'Jason Haller': '32',
-    'Samual Round': '33',
+    'Samuel Round': '33',
     'Andrew Brush': '34',
     'Chris Robertson': '35',
     'Joshua Taiwo': '36',
     'Rob Hutton': '37',
     'Zu Ali': '38',
-    'Marco Guerreirco': '39',
+    'Marco Guerreiro': '39',
     'Victoria Lima': '40',
     'Rob Crellin': '56',
+    'Viv Keech': '57',
     'Javier Garcia': '58',
     'Mark Wheeler': '59',
   },
@@ -188,7 +190,7 @@ export function findUserSpace(userName: string, email: string | undefined, carPa
 
   // Direct email-to-name override (handles typos in seed data)
   const EMAIL_TO_NAME: Record<string, string> = {
-    'm.guerreiro': 'Marco Guerreirco',
+    'm.guerreiro': 'Marco Guerreiro',
   };
   const overrideName = EMAIL_TO_NAME[emailPrefix];
   if (overrideName && spaces[overrideName]) {
