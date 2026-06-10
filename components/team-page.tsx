@@ -35,13 +35,13 @@ function BirthdayBadge({ birthday }: { birthday: string | null }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 h-6 rounded-full text-xs font-medium leading-none ${
+      className={`inline-flex items-center gap-1 px-1.5 h-5 rounded-full text-[10px] font-medium leading-none ${
         isToday
           ? "bg-pink-100 text-pink-700 ring-1 ring-pink-300"
           : "bg-muted text-muted-foreground"
       }`}
     >
-      <Cake className="w-3 h-3" />
+      <Cake className="w-2.5 h-2.5" />
       {new Date(birthday).toLocaleDateString("en-GB", {
         day: "numeric",
         month: "short",
@@ -97,7 +97,7 @@ function MemberCard({ m }: { m: TeamMember }) {
               </p>
             )}
             <p className="text-xs text-muted-foreground/60 mt-0.5 flex items-center gap-1 truncate">
-              <span className="truncate">{m.email}</span>
+              <span className="truncate">{m.email.toLowerCase()}</span>
               <button
                 onClick={() => navigator.clipboard.writeText(m.email)}
                 className="shrink-0 p-0.5 rounded hover:bg-muted/80 transition-colors opacity-0 group-hover:opacity-100"
@@ -132,15 +132,17 @@ function MemberCard({ m }: { m: TeamMember }) {
         )}
 
         {/* Footer */}
-        <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-border/50">
+        <div className="flex flex-wrap items-center gap-1.5 mt-4 pt-3 border-t border-border/50">
           {(m.car_park || m.car_space) && (
-            <span className="inline-flex items-center gap-1 px-2.5 h-6 rounded-full bg-muted/50 text-[10px] font-medium leading-none text-muted-foreground/60">
-              <ParkingCircle className="w-3 h-3 opacity-50 shrink-0" />
+            <span className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full bg-muted/50 text-[10px] font-medium leading-none text-muted-foreground/60">
+              <ParkingCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
               {m.car_space && (
                 <span className="tabular-nums">#{m.car_space}</span>
               )}
               {m.car_park && (
-                <span className="truncate max-w-24 capitalize">{m.car_park}</span>
+                <span className="truncate max-w-24 capitalize">
+                  {m.car_park}
+                </span>
               )}
             </span>
           )}
@@ -154,9 +156,9 @@ function MemberCard({ m }: { m: TeamMember }) {
               }
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 h-6 rounded-full text-xs font-medium leading-none text-primary hover:bg-primary/10 transition-colors"
+              className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full text-[10px] font-medium leading-none text-primary hover:bg-primary/10 transition-colors"
             >
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-2.5 h-2.5" />
               {new URL(
                 m.website.startsWith("http")
                   ? m.website
@@ -193,8 +195,8 @@ export function TeamPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground">Meet the Team</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {members.length} member{members.length !== 1 ? "s" : ""} across{" "}
-            {carParks.length} location{carParks.length !== 1 ? "s" : ""}
+            {members.length} member{members.length !== 1 ? "s" : ""} in the
+            United Kingdom office.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
