@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import useSWR from "swr";
 import { createClient } from "@/lib/supabase/client";
 import { Calendar } from "./calendar";
@@ -20,6 +20,7 @@ import {
 } from "@/lib/parking-data";
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
 import { Loader2 } from "lucide-react";
+import { BirthdaySonner } from "./BirthdaySonner";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -35,16 +36,22 @@ export function ParkingApp() {
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRegular, setIsRegular] = useState(false);
-  const supabase = createClient();
+  const [birthday, setBirthday] = useState<{
+    name: string;
+    imageUrl: string;
+    message: string;
+  } | null>(null);
+  const supabaseRef = useRef(createClient());
 
   useEffect(() => {
+    const supabase = supabaseRef.current;
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (user) {
         const email = user.email || user.user_metadata?.email || "";
         console.log("Logged in email:", email);
-        setCurrentUser(
-          user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
-        );
+        const name =
+          user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+        setCurrentUser(name);
         setUserEmail(email);
         setAvatarUrl(user.user_metadata?.avatar_url || "");
 
@@ -54,14 +61,43 @@ export function ParkingApp() {
           .eq("email", email)
           .maybeSingle();
         setIsRegular(userRecord?.is_regular ?? false);
+
+        const { data: bdRecord } = await supabase
+          .from("users")
+          .select("name, birthday")
+          .eq("email", email)
+          .maybeSingle();
+        if (bdRecord?.birthday) {
+          const today = new Date();
+          const bd = new Date(bdRecord.birthday);
+          console.log(
+            "Birthday check:",
+            bdRecord.name,
+            bdRecord.birthday,
+            bd.getMonth(),
+            bd.getDate(),
+            today.getMonth(),
+            today.getDate(),
+          );
+          if (
+            bd.getMonth() === today.getMonth() &&
+            bd.getDate() === today.getDate()
+          ) {
+            setBirthday({
+              name: bdRecord.name,
+              imageUrl: user.user_metadata?.avatar_url || "",
+              message: "Wishing you a wonderful birthday!",
+            });
+          }
+        }
       }
     });
-  }, [supabase]);
+  }, []);
 
   const handleSignOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    await supabaseRef.current.auth.signOut();
     window.location.href = "/auth";
-  }, [supabase]);
+  }, []);
 
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -381,7 +417,10 @@ export function ParkingApp() {
             </div>
           </div>
 
-          <div id="parking-lot" className="lg:col-span-6 space-y-4 scroll-mt-20">
+          <div
+            id="parking-lot"
+            className="lg:col-span-6 space-y-4 scroll-mt-20"
+          >
             <ParkingLot
               spaces={parkingSpaces}
               bookings={dateBookings}
@@ -429,6 +468,16 @@ export function ParkingApp() {
       </main>
 
       <AppFooter />
+
+      {/* THE BIRTHDAY SONNER WILL BE ABOVE EVERYTHING FLOATING */}
+
+      <BirthdaySonner
+        name={birthday?.name}
+        imageUrl={birthday?.imageUrl}
+        message={birthday?.message}
+        show={true}
+        onClose={() => setBirthday(null)}
+      />
     </div>
   );
 }
