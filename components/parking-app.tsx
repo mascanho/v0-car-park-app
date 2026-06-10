@@ -37,7 +37,7 @@ export function ParkingApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRegular, setIsRegular] = useState(false);
   const [birthdays, setBirthdays] = useState<
-    { name: string; imageUrl: string }[]
+    { name: string; email: string; imageUrl: string }[]
   >([]);
   const supabaseRef = useRef(createClient());
 
@@ -76,6 +76,7 @@ export function ParkingApp() {
           setBirthdays(
             matched.map((u) => ({
               name: u.name,
+              email: u.email,
               imageUrl:
                 u.email === email
                   ? user.user_metadata?.avatar_url || ""
@@ -394,7 +395,7 @@ export function ParkingApp() {
         {birthdays.length > 0 && (
           <div className="mb-4 space-y-3 lg:hidden">
             {birthdays.map((b) => (
-              <BirthdayBanner key={b.name} name={b.name} imageUrl={b.imageUrl} />
+              <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
             ))}
           </div>
         )}
@@ -452,7 +453,7 @@ export function ParkingApp() {
             {birthdays.length > 0 && (
               <div className="hidden lg:block lg:space-y-3">
                 {birthdays.map((b) => (
-                  <BirthdayBanner key={b.name} name={b.name} imageUrl={b.imageUrl} />
+                  <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
                 ))}
               </div>
             )}

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { SiteHeader } from "./site-header";
 import { AppFooter } from "./app-footer";
 import { AppBreadcrumbs } from "./app-breadcrumbs";
+import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 import {
   Cake,
   MapPin,
@@ -27,28 +28,52 @@ interface TeamMember {
   role: string | null;
 }
 
-function BirthdayBadge({ birthday }: { birthday: string | null }) {
+function BirthdayBadge({
+  birthday,
+  name,
+  email,
+}: {
+  birthday: string | null;
+  name: string;
+  email: string;
+}) {
   if (!birthday) return null;
   const today = new Date();
   const bd = new Date(birthday);
   const isToday =
     bd.getMonth() === today.getMonth() && bd.getDate() === today.getDate();
 
+  function handleClick() {
+    window.open(
+      `https://teams.microsoft.com/l/chat/0/0?users=${email}`,
+      "_blank",
+    );
+  }
+
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-1.5 h-5 rounded-full text-[10px] font-medium leading-none ${
-        isToday
-          ? "bg-pink-100 text-pink-700 ring-1 ring-pink-300"
-          : "bg-muted text-muted-foreground"
-      }`}
-    >
-      <Cake className="w-2.5 h-2.5" />
-      {new Date(birthday).toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-      })}
-      {isToday && <span className="animate-pulse">🎉</span>}
-    </span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={handleClick}
+          className={`inline-flex items-center gap-1 px-1.5 h-5 rounded-full text-[10px] font-medium leading-none cursor-pointer ${
+            isToday
+              ? "bg-pink-100 text-pink-700 ring-1 ring-pink-300"
+              : "bg-muted text-muted-foreground"
+          }`}
+        >
+          <Cake className="w-2.5 h-2.5" />
+          {new Date(birthday).toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+          })}
+          {isToday && <span className="animate-pulse">🎉</span>}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        Click to wish {name} a happy birthday
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -147,7 +172,7 @@ function MemberCard({ m }: { m: TeamMember }) {
               )}
             </span>
           )}
-          <BirthdayBadge birthday={m.birthday} />
+          <BirthdayBadge birthday={m.birthday} name={m.name} email={m.email} />
           {m.website && (
             <a
               href={
