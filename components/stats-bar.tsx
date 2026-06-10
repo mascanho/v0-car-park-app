@@ -9,7 +9,13 @@ interface StatsBarProps {
   bookingsLoading: boolean;
 }
 
-export function StatsBar({ selectedCarPark, totalSpaces, availableToday, bookedToday, bookingsLoading }: StatsBarProps) {
+export function StatsBar({
+  selectedCarPark,
+  totalSpaces,
+  availableToday,
+  bookedToday,
+  bookingsLoading,
+}: StatsBarProps) {
   return (
     <div className="bg-muted/30 border-b border-border">
       <div className="max-w-8xl mx-auto px-4 py-3">
@@ -19,13 +25,13 @@ export function StatsBar({ selectedCarPark, totalSpaces, availableToday, bookedT
           </span>
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">Total:</span>
-            <span className="font-semibold text-foreground">
-              {totalSpaces}
-            </span>
+            <span className="font-semibold text-foreground">{totalSpaces}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">Available:</span>
-            <span className="font-semibold text-accent">
+            <span
+              className={`font-semibold ${availableToday === 0 ? "text-destructive" : "text-green-500"}`}
+            >
               {availableToday}
             </span>
           </div>

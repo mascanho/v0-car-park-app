@@ -67,10 +67,13 @@ export function AppHeader({
             <div className="flex items-center gap-3">
               <SheetTrigger asChild>
                 <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-                  <Menu className="w-6 h-6" />
+                  <Menu className="w-6 h-6 cursor-pointer" />
                 </button>
               </SheetTrigger>
-              <div className="hidden sm:flex items-center gap-3 cursor-pointer">
+              <div
+                className="hidden sm:flex items-center gap-3"
+                onClick={() => (window.location.href = "/")}
+              >
                 <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                   <Car className="w-6 h-6 text-primary-foreground" />
                 </div>
@@ -107,8 +110,8 @@ export function AppHeader({
                   className="p-1.5  flex items-center gap-1 hover:cursor-pointer  bg-orange-600 rounded-sm text-xs text-white px-3 hover:bg-orange-700 transition-all active:scale-100"
                   title="Bulk Free"
                 >
-                  My Parking
                   <ParkingCircle className="w-4 h-4 text-white" />
+                  My Parking
                 </button>
               )}
               <BulkFreeModal

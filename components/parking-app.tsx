@@ -363,7 +363,7 @@ export function ParkingApp() {
 
       <main className="max-w-8xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-3 space-y-4">
+          <div id="calendar" className="lg:col-span-3 space-y-4 scroll-mt-20">
             <Calendar
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
@@ -372,7 +372,7 @@ export function ParkingApp() {
               onMonthChange={handleMonthChange}
               fullyBookedDates={fullyBookedDates}
             />
-            <div className="hidden lg:block">
+            <div id="history" className="hidden lg:block scroll-mt-20">
               <BorrowHistory
                 carParkId={selectedCarPark.id}
                 carParkName={selectedCarPark.name}
@@ -381,7 +381,7 @@ export function ParkingApp() {
             </div>
           </div>
 
-          <div className="lg:col-span-6 space-y-4">
+          <div id="parking-lot" className="lg:col-span-6 space-y-4 scroll-mt-20">
             <ParkingLot
               spaces={parkingSpaces}
               bookings={dateBookings}
@@ -402,7 +402,7 @@ export function ParkingApp() {
             />
           </div>
 
-          <div className="lg:col-span-3 space-y-4">
+          <div id="map-view" className="lg:col-span-3 space-y-4 scroll-mt-20">
             <div className="lg:hidden">
               <BorrowHistory
                 carParkId={selectedCarPark.id}
@@ -417,11 +417,13 @@ export function ParkingApp() {
               longitude={selectedCarPark.longitude}
             />
 
-            <NotesPanel
-              carParkId={selectedCarPark.id}
-              selectedDate={selectedDate}
-              currentUser={currentUser}
-            />
+            <div id="notes" className="scroll-mt-20">
+              <NotesPanel
+                carParkId={selectedCarPark.id}
+                selectedDate={selectedDate}
+                currentUser={currentUser}
+              />
+            </div>
           </div>
         </div>
       </main>
