@@ -21,6 +21,22 @@ function weekday(dateStr: string) {
   return WEEKDAYS[day];
 }
 
+function formatEuro(dateStr: string) {
+  const [y, m, d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function parseEuroDate(str: string): string | null {
+  const parts = str.split("/");
+  if (parts.length !== 3) return null;
+  const [d, m, y] = parts;
+  if (d.length !== 2 || m.length !== 2 || y.length !== 4) return null;
+  const iso = `${y}-${m}-${d}`;
+  const date = new Date(iso + "T00:00:00");
+  if (isNaN(date.getTime())) return null;
+  return iso;
+}
+
 interface BulkFreeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -42,7 +58,10 @@ export function BulkFreeModal({
 }: BulkFreeModalProps) {
   const [carParkId, setCarParkId] = useState(selectedCarPark.id);
   const [dates, setDates] = useState<string[]>([]);
+  const [tab, setTab] = useState<"single" | "range">("single");
   const [dateInput, setDateInput] = useState("");
+  const [rangeStart, setRangeStart] = useState("");
+  const [rangeEnd, setRangeEnd] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{ freedCount: number } | null>(null);
   const userMatch = findUserSpace(currentUser, userEmail, carParkId);
@@ -59,6 +78,8 @@ export function BulkFreeModal({
       setCarParkId(firstMatch?.id || selectedCarPark.id);
       setDates([]);
       setDateInput("");
+      setRangeStart("");
+      setRangeEnd("");
       setResult(null);
     }
   }, [open, selectedCarPark.id, currentUser, userEmail]);
@@ -68,6 +89,23 @@ export function BulkFreeModal({
     if (dates.includes(dateInput)) return;
     setDates((prev) => [...prev, dateInput].sort());
     setDateInput("");
+  };
+
+  const addRange = () => {
+    if (!rangeStart || !rangeEnd) return;
+    const start = new Date(rangeStart + "T00:00:00");
+    const end = new Date(rangeEnd + "T00:00:00");
+    if (start > end) return;
+    const newDates: string[] = [];
+    const cur = new Date(start);
+    while (cur <= end) {
+      newDates.push(cur.toISOString().slice(0, 10));
+      cur.setDate(cur.getDate() + 1);
+    }
+    setDates((prev) => {
+      const merged = [...prev, ...newDates];
+      return [...new Set(merged)].sort();
+    });
   };
 
   const removeDate = (d: string) => {
@@ -100,6 +138,8 @@ export function BulkFreeModal({
     if (!isSubmitting) {
       setDates([]);
       setDateInput("");
+      setRangeStart("");
+      setRangeEnd("");
       setResult(null);
       onOpenChange(false);
     }
@@ -151,48 +191,122 @@ export function BulkFreeModal({
             </div>
           )}
 
+          {/* Tabbed date input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Days to free space</label>
-            <div className="flex gap-2">
-              <input
-                type="date"
-                value={dateInput}
-                onChange={(e) => setDateInput(e.target.value)}
-                className="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-              <Button
+            <div className="flex border-b border-border">
+              <button
                 type="button"
-                variant="outline"
-                onClick={addDate}
-                disabled={!dateInput}
+                onClick={() => setTab("single")}
+                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                  tab === "single"
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
               >
-                Add
-              </Button>
+                Single dates
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("range")}
+                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                  tab === "range"
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Range
+              </button>
             </div>
+
+            {tab === "single" && (
+              <div className="flex gap-2 pt-1">
+                <input
+                  type="date"
+                  value={dateInput}
+                  onChange={(e) => setDateInput(e.target.value)}
+                  className="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addDate}
+                  disabled={!dateInput}
+                >
+                  Add
+                </Button>
+              </div>
+            )}
+
+            {tab === "range" && (
+              <div className="flex items-end gap-2 pt-1">
+                <div className="flex-1">
+                  <span className="text-xs text-muted-foreground block mb-1">
+                    From
+                  </span>
+                  <input
+                    type="date"
+                    value={rangeStart}
+                    onChange={(e) => setRangeStart(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
+                <div className="flex-1">
+                  <span className="text-xs text-muted-foreground block mb-1">
+                    To
+                  </span>
+                  <input
+                    type="date"
+                    value={rangeEnd}
+                    onChange={(e) => setRangeEnd(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addRange}
+                  disabled={!rangeStart || !rangeEnd}
+                  className="shrink-0"
+                >
+                  Add Range
+                </Button>
+              </div>
+            )}
           </div>
 
-          {/* <div className="space-y-1.5"> */}
-          {/*   <label className="text-sm font-medium">Selected Dates</label> */}
-          {/* </div> */}
           {dates.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {dates.map((d) => (
-                <span
-                  key={d}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted pl-2 pr-1.5 py-1 text-[9.5px] sm:text-[11px] font-medium w-full"
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium">
+                  Selected Dates ({dates.length})
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setDates([])}
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
                 >
-                  <CalendarDays className="w-2 h-2 sm:h-3 sm:w-3 text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground">{weekday(d)}</span>
-                  <span className="flex-1">{d}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeDate(d)}
-                    className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                  Clear all
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {dates.map((d) => (
+                  <span
+                    key={d}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted pl-2 pr-1.5 py-1 text-[9.5px] sm:text-[11px] font-medium w-full"
                   >
-                    <X className="w-2 h-2 text-red-500" />
-                  </button>
-                </span>
-              ))}
+                    <CalendarDays className="w-2 h-2 sm:h-3 sm:w-3 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">{weekday(d)}</span>
+                    <span className="flex-1">{formatEuro(d)}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeDate(d)}
+                      className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                    >
+                      <X className="w-2 h-2 text-red-500" />
+                    </button>
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
