@@ -274,7 +274,7 @@ function AdminDropdown({
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
           >
             <Car className="w-4 h-4 text-destructive/70" />
-            Manage Spaces
+            Manage spaces
           </button>
           {/* <button */}
           {/*   onClick={() => { */}
