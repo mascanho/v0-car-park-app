@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import useSWR from "swr";
 import {
   Dialog,
   DialogContent,
@@ -11,8 +12,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { CarPark } from "@/lib/parking-data";
-import { findUserSpace } from "@/lib/parking-data";
-import { X, CalendarDays, FilePlus, CircleFadingPlus } from "lucide-react";
+import { X, CalendarDays } from "lucide-react";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+};
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -60,26 +66,21 @@ function DatePicker({
   );
 }
 
-interface BulkFreeModalProps {
+interface AdminFreeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   carParks: CarPark[];
-  selectedCarPark: CarPark;
-  currentUser: string;
-  userEmail?: string;
   onFreed: () => void;
 }
 
-export function BulkFreeModal({
+export function AdminFreeModal({
   open,
   onOpenChange,
   carParks,
-  selectedCarPark,
-  currentUser,
-  userEmail,
   onFreed,
-}: BulkFreeModalProps) {
-  const [carParkId, setCarParkId] = useState(selectedCarPark.id);
+}: AdminFreeModalProps) {
+  const [carParkId, setCarParkId] = useState(carParks[0]?.id || "");
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [dates, setDates] = useState<string[]>([]);
   const [tab, setTab] = useState<"single" | "range">("single");
   const [dateInput, setDateInput] = useState("");
@@ -87,29 +88,38 @@ export function BulkFreeModal({
   const [rangeEnd, setRangeEnd] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{ freedCount: number } | null>(null);
-  const userMatch = findUserSpace(currentUser, userEmail, carParkId);
 
-  const userCarParks = carParks.filter(
-    (cp) => findUserSpace(currentUser, userEmail, cp.id) !== null,
+  const { data: rawUsers } = useSWR<string[]>(
+    `/api/users?carParkId=${carParkId}`,
+    fetcher,
   );
+  const allUsers = Array.isArray(rawUsers) ? rawUsers : [];
 
   useEffect(() => {
     if (open) {
-      const firstMatch = userCarParks.find(
-        (cp) => findUserSpace(currentUser, userEmail, cp.id) !== null,
-      );
-      setCarParkId(firstMatch?.id || selectedCarPark.id);
+      setCarParkId(carParks[0]?.id || "");
+      setSelectedUsers([]);
       setDates([]);
       setDateInput("");
       setRangeStart("");
       setRangeEnd("");
       setResult(null);
     }
-  }, [open, selectedCarPark.id, currentUser, userEmail]);
+  }, [open]);
+
+  const toggleUser = (u: string) => {
+    setSelectedUsers((prev) =>
+      prev.includes(u) ? prev.filter((x) => x !== u) : [...prev, u],
+    );
+  };
+
+  const selectAll = () => {
+    if (Array.isArray(allUsers)) setSelectedUsers([...allUsers]);
+  };
+  const deselectAll = () => setSelectedUsers([]);
 
   const addDate = (iso: string) => {
-    if (!iso) return;
-    if (dates.includes(iso)) return;
+    if (!iso || dates.includes(iso)) return;
     setDates((prev) => [...prev, iso].sort());
     setDateInput("");
   };
@@ -135,22 +145,21 @@ export function BulkFreeModal({
   };
 
   const handleSubmit = async () => {
-    if (dates.length === 0) return;
+    if (dates.length === 0 || selectedUsers.length === 0 || !carParkId) return;
     setIsSubmitting(true);
     setResult(null);
     try {
-      const bookingUserName = userMatch?.dbUserName || currentUser;
       const params = new URLSearchParams();
       dates.forEach((d) => params.append("dates", d));
       params.set("carParkId", carParkId);
-      params.set("userName", bookingUserName);
+      selectedUsers.forEach((u) => params.append("userNames", u));
       const res = await fetch(`/api/bookings?${params}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setResult(data);
       onFreed();
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Bulk free failed");
+      alert(error instanceof Error ? error.message : "Failed to free bookings");
     } finally {
       setIsSubmitting(false);
     }
@@ -158,6 +167,7 @@ export function BulkFreeModal({
 
   const handleClose = () => {
     if (!isSubmitting) {
+      setSelectedUsers([]);
       setDates([]);
       setDateInput("");
       setRangeStart("");
@@ -171,49 +181,113 @@ export function BulkFreeModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Free your car space</DialogTitle>
+          <DialogTitle>Admin Free</DialogTitle>
           <DialogDescription>
-            Not going to be in? Let someone else use your spot.
+            Free any user's booking from any car park.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Car Park</label>
-            {userCarParks.length > 0 ? (
-              <select
-                value={carParkId}
-                onChange={(e) => setCarParkId(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {userCarParks.map((cp) => (
-                  <option key={cp.id} value={cp.id}>
-                    {cp.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p className="text-sm text-muted-foreground py-2">
-                No car park spot assigned to your account.
-              </p>
-            )}
+            <select
+              value={carParkId}
+              onChange={(e) => {
+                setCarParkId(e.target.value);
+                setSelectedUsers([]);
+              }}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {carParks.map((cp) => (
+                <option key={cp.id} value={cp.id}>
+                  {cp.name}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {userMatch && (
-            <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 p-4 text-center">
-              <p className="text-xs text-muted-foreground mb-1">
-                You will free
-              </p>
-              <p className="text-2xl font-bold text-destructive">
-                Space {userMatch.spaceId}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {userMatch.dbUserName}
-              </p>
-            </div>
-          )}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Users</label>
 
-          {/* Tabbed date input */}
+            {selectedUsers.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs text-muted-foreground">
+                    {selectedUsers.length} selected
+                  </p>
+                  <button
+                    type="button"
+                    onClick={deselectAll}
+                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                  >
+                    Clear all
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {selectedUsers.map((u) => (
+                    <span
+                      key={u}
+                      className="inline-flex items-center gap-1 rounded-md border border-border bg-muted pl-2 pr-1 py-1 text-xs font-medium"
+                    >
+                      <span>{u}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleUser(u)}
+                        className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                      >
+                        <X className="w-2.5 h-2.5 text-red-500" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 text-xs mb-1">
+              {allUsers.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={selectAll}
+                    className="text-muted-foreground hover:text-foreground underline"
+                  >
+                    Select all
+                  </button>
+                  <span className="text-muted-foreground">·</span>
+                </>
+              )}
+              <span className="text-muted-foreground">
+                {allUsers.length} users in this car park
+              </span>
+            </div>
+
+            <div className="max-h-32 overflow-y-auto rounded-md border border-border p-1.5 space-y-0.5">
+              {allUsers.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-2 text-center">
+                  No users found for this car park.
+                </p>
+              ) : (
+                allUsers.map((u) => {
+                  const active = selectedUsers.includes(u);
+                  return (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => toggleUser(u)}
+                      className={`w-full text-left px-2.5 py-1.5 rounded text-sm transition-colors ${
+                        active
+                          ? "bg-primary/10 text-foreground font-medium"
+                          : "text-muted-foreground hover:bg-accent"
+                      }`}
+                    >
+                      {u}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <div className="flex border-b border-border">
               <button
@@ -225,7 +299,7 @@ export function BulkFreeModal({
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Specific dates
+                Single dates
               </button>
               <button
                 type="button"
@@ -248,7 +322,7 @@ export function BulkFreeModal({
                     setDateInput(val);
                     if (val) addDate(val);
                   }}
-                  placeholder="Select days"
+                  placeholder="Click to select days"
                 />
               </div>
             )}
@@ -282,7 +356,7 @@ export function BulkFreeModal({
                   disabled={!rangeStart || !rangeEnd}
                   className="shrink-0"
                 >
-                  <CircleFadingPlus className="w-4 h-4" />
+                  Add Range
                 </Button>
               </div>
             )}
@@ -343,13 +417,13 @@ export function BulkFreeModal({
           <Button
             onClick={handleSubmit}
             disabled={
-              dates.length === 0 || isSubmitting || userCarParks.length === 0
+              dates.length === 0 || selectedUsers.length === 0 || isSubmitting
             }
             variant="destructive"
           >
             {isSubmitting
               ? "Freeing..."
-              : `Free My Bookings (${dates.length} date${dates.length !== 1 ? "s" : ""})`}
+              : `Free (${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""}, ${dates.length} date${dates.length !== 1 ? "s" : ""})`}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -4,6 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { ParkingSpace } from "@/lib/parking-data";
 import { Car, Trash2, UserRoundPlus, Loader2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 interface ParkingSpaceProps {
   space: ParkingSpace;
@@ -110,80 +115,88 @@ export function ParkingSpaceCard({
         : originalUser
           ? `Borrowed by ${bookedBy} from ${originalUser}`
           : `Booked by ${bookedBy}`
-    : space.id;
+    : null;
 
   return (
     <div className="relative">
-      <button
-        onClick={handleClick}
-        onContextMenu={handleContextMenu}
-        disabled={disabled || isCurrentUserBooking}
-        title={tooltip}
-        className={cn(
-          "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px]",
-          !isBooked &&
-            !isSelected &&
-            "border-green-500/50 bg-green-500/20 hover:border-primary hover:bg-primary/5 cursor-pointer",
-          isBooked &&
-            !isCurrentUserBooking &&
-            !isVisitor &&
-            "border-destructive/50 bg-destructive/10 cursor-pointer hover:border-amber-500 hover:bg-amber-500/5",
-          isVisitor && "border-neutral-600 bg-black cursor-pointer",
-          isCurrentUserBooking && "border-blue-500 bg-blue-500/20 cursor-default",
-          isSelected &&
-            "border-violet-500 bg-violet-500/20 ring-2 ring-violet-500 ring-offset-2",
-          disabled && "opacity-50 cursor-not-allowed",
-        )}
-      >
-          <span
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleClick}
+            onContextMenu={handleContextMenu}
+            disabled={disabled || isCurrentUserBooking}
             className={cn(
-              "text-xs font-semibold",
-              isSelected && "text-violet-600 dark:text-violet-400",
-              !isBooked && !isSelected && "text-green-600 dark:text-green-400",
+              "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px]",
+              !isBooked &&
+                !isSelected &&
+                "border-green-500/50 bg-green-500/20 hover:border-primary hover:bg-primary/5 cursor-pointer",
               isBooked &&
                 !isCurrentUserBooking &&
                 !isVisitor &&
-                "text-destructive",
-              isVisitor && !isSelected && "text-neutral-100",
-              isVisitor && isSelected && "text-destructive",
-              isCurrentUserBooking && "text-blue-600 dark:text-blue-400",
+                "border-destructive/50 bg-destructive/10 cursor-pointer hover:border-amber-500 hover:bg-amber-500/5",
+              isVisitor && "border-neutral-600 bg-black cursor-pointer",
+              isCurrentUserBooking && "border-blue-500 bg-blue-500/20 cursor-default",
+              isSelected &&
+                "border-violet-500 bg-violet-500/20 ring-2 ring-violet-500 ring-offset-2",
+              disabled && "opacity-50 cursor-not-allowed",
             )}
           >
-            {space.id}
-          </span>
-          <span
-            className={cn(
-              "mt-1 text-[10px] font-bold leading-none",
-              isSelected && "text-violet-600 dark:text-violet-400",
-              !isBooked && !isSelected && "text-green-600 dark:text-green-400",
-              isBooked &&
-                !isCurrentUserBooking &&
-                !isVisitor &&
-                "text-destructive/70",
-              isVisitor && !isSelected && "text-neutral-300",
-              isVisitor && isSelected && "text-destructive",
-              isCurrentUserBooking && "text-blue-500",
+            <span
+              className={cn(
+                "text-xs font-semibold",
+                isSelected && "text-violet-600 dark:text-violet-400",
+                !isBooked && !isSelected && "text-green-600 dark:text-green-400",
+                isBooked &&
+                  !isCurrentUserBooking &&
+                  !isVisitor &&
+                  "text-destructive",
+                isVisitor && !isSelected && "text-neutral-100",
+                isVisitor && isSelected && "text-destructive",
+                isCurrentUserBooking && "text-blue-600 dark:text-blue-400",
+              )}
+            >
+              {space.id}
+            </span>
+            <span
+              className={cn(
+                "mt-1 text-[10px] font-bold leading-none",
+                isSelected && "text-violet-600 dark:text-violet-400",
+                !isBooked && !isSelected && "text-green-600 dark:text-green-400",
+                isBooked &&
+                  !isCurrentUserBooking &&
+                  !isVisitor &&
+                  "text-destructive/70",
+                isVisitor && !isSelected && "text-neutral-300",
+                isVisitor && isSelected && "text-destructive",
+                isCurrentUserBooking && "text-blue-500",
+              )}
+            >
+              {isCurrentUserBooking ? (
+                <span className="text-[10px] font-bold">YOU</span>
+              ) : isVisitor ? (
+                <span className="text-[10px] font-bold">VISITOR</span>
+              ) : isBooked && initials ? (
+                <span className="text-[10px] font-bold">{initials}</span>
+              ) : isBooked ? (
+                <Car className="w-4 h-4" />
+              ) : (
+                <span className="text-[10px] font-bold">Free</span>
+              )}
+            </span>
+            {isCurrentUserBooking && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-card" />
             )}
-        >
-          {isCurrentUserBooking ? (
-            <span className="text-[10px] font-bold">YOU</span>
-          ) : isVisitor ? (
-            <span className="text-[10px] font-bold">VISITOR</span>
-          ) : isBooked && initials ? (
-            <span className="text-[10px] font-bold">{initials}</span>
-          ) : isBooked ? (
-            <Car className="w-4 h-4" />
-          ) : (
-            <span className="text-[10px] font-bold">Free</span>
-          )}
-        </span>
-        {isCurrentUserBooking && (
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-card" />
+            {isVisitor && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-neutral-400 rounded-full border-2 border-card" />
+            )}
+          </button>
+        </TooltipTrigger>
+        {tooltip && (
+          <TooltipContent side="top" className="max-w-[200px] text-center">
+            {tooltip}
+          </TooltipContent>
         )}
-        {isVisitor && (
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-neutral-400 rounded-full border-2 border-card" />
-        )}
-      </button>
+      </Tooltip>
 
       {menuPos && (
         <>
