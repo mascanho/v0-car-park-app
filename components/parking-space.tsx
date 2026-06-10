@@ -109,13 +109,15 @@ export function ParkingSpaceCard({
 
   const tooltip = isBooked
     ? isCurrentUserBooking
-      ? "Your booking"
+      ? space.electrified ? "Your booking — Electrified" : "Your booking"
       : isVisitor
         ? "Visitor"
         : originalUser
           ? `Borrowed by ${bookedBy} from ${originalUser}`
           : `Booked by ${bookedBy}`
-    : null;
+    : space.electrified
+      ? "Electrified"
+      : null;
 
   return (
     <div className="relative">
@@ -188,6 +190,11 @@ export function ParkingSpaceCard({
             )}
             {isVisitor && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-neutral-400 rounded-full border-2 border-card" />
+            )}
+            {space.electrified && (
+              <span className="absolute inset-0 flex items-center justify-center text-3xl pointer-events-none select-none text-yellow-500/30">
+                ⚡
+              </span>
             )}
           </button>
         </TooltipTrigger>
