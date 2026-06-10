@@ -12,7 +12,14 @@ import {
 import { Button } from "@/components/ui/button";
 import type { CarPark } from "@/lib/parking-data";
 import { findUserSpace } from "@/lib/parking-data";
-import { X } from "lucide-react";
+import { X, CalendarDays } from "lucide-react";
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function weekday(dateStr: string) {
+  const day = new Date(dateStr + "T00:00:00").getDay();
+  return WEEKDAYS[day];
+}
 
 interface BulkFreeModalProps {
   open: boolean;
@@ -145,7 +152,7 @@ export function BulkFreeModal({
           )}
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Dates</label>
+            <label className="text-sm font-medium">Days to free space</label>
             <div className="flex gap-2">
               <input
                 type="date"
@@ -164,20 +171,25 @@ export function BulkFreeModal({
             </div>
           </div>
 
+          {/* <div className="space-y-1.5"> */}
+          {/*   <label className="text-sm font-medium">Selected Dates</label> */}
+          {/* </div> */}
           {dates.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {dates.map((d) => (
                 <span
                   key={d}
-                  className="inline-flex items-center gap-1 rounded-md border border-border bg-muted px-2.5 py-1 text-xs font-medium"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted pl-2 pr-1.5 py-1 text-[9.5px] sm:text-[11px] font-medium w-full"
                 >
-                  {d}
+                  <CalendarDays className="w-2 h-2 sm:h-3 sm:w-3 text-muted-foreground shrink-0" />
+                  <span className="text-muted-foreground">{weekday(d)}</span>
+                  <span className="flex-1">{d}</span>
                   <button
                     type="button"
                     onClick={() => removeDate(d)}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-2 h-2 text-red-500" />
                   </button>
                 </span>
               ))}
@@ -203,9 +215,7 @@ export function BulkFreeModal({
           <Button
             onClick={handleSubmit}
             disabled={
-              dates.length === 0 ||
-              isSubmitting ||
-              userCarParks.length === 0
+              dates.length === 0 || isSubmitting || userCarParks.length === 0
             }
             variant="destructive"
           >
