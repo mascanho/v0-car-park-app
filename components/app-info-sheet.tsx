@@ -11,6 +11,7 @@ import {
   History,
   StickyNote,
   Info,
+  Users,
 } from "lucide-react";
 import { SheetMenuItem } from "./sheet-menu-item";
 
@@ -69,10 +70,10 @@ export function AppInfoSheet() {
       <div className="flex-1 overflow-y-auto px-2 space-y-4 py-4">
         <NavSection label="Main">
           <SheetMenuItem
-            icon={CalendarDays}
+            icon={Users}
             label="Meet The Team"
             description="View Slimstock's UK team"
-            onClick={() => scrollTo("calendar")}
+            href="/team"
           />
           <SheetMenuItem
             icon={Car}
