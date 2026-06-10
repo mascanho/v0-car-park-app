@@ -54,7 +54,7 @@ export function EmployeeOfTheDay() {
 
   return (
     <div className="px-4 pb-4 flex-1 flex flex-col pt-4 mt-2 border-t border-border">
-      <div className="flex-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 p-[3px] shadow-2xl">
+      <div className="flex-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 p-[3px]">
         <div className="h-full rounded-2xl bg-background p-5 flex flex-col relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-orange-500/5 pointer-events-none" />
           <div className="absolute -top-8 -right-8 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl" />

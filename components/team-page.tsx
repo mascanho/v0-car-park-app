@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { SiteHeader } from "./site-header";
 import { AppFooter } from "./app-footer";
+import { AppBreadcrumbs } from "./app-breadcrumbs";
 import {
   Cake,
   MapPin,
@@ -192,6 +193,7 @@ export function TeamPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <SiteHeader />
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
+        <AppBreadcrumbs segments={[{ label: "Meet the Team" }]} />
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground">Meet the Team</h1>
           <p className="text-sm text-muted-foreground mt-1">
