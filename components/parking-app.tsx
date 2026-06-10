@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import useSWR from "swr";
 import { createClient } from "@/lib/supabase/client";
 import { Calendar } from "./calendar";
@@ -8,14 +8,10 @@ import { ParkingLot } from "./parking-lot";
 import { BorrowHistory } from "./borrow-history";
 import { NotesPanel } from "./notes-panel";
 import { MapPanel } from "./map-panel";
-import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "./ui/sheet";
+import { AppHeader } from "./app-header";
+import { CarParkSelector } from "./car-park-selector";
+import { StatsBar } from "./stats-bar";
+import { AppFooter } from "./app-footer";
 import {
   generateParkingSpaces,
   formatDate,
@@ -23,8 +19,7 @@ import {
   findUserSpace,
 } from "@/lib/parking-data";
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
-import { Car, CalendarDays, MapPin, Loader2, LogOut, Shield, Database, Info, ParkingCircle } from "lucide-react";
-import { BulkFreeModal } from "./bulk-free-modal";
+import { Loader2 } from "lucide-react";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -44,7 +39,7 @@ export function ParkingApp() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         const email = user.email || user.user_metadata?.email || "";
-        console.log('Logged in email:', email);
+        console.log("Logged in email:", email);
         setCurrentUser(
           user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
         );
@@ -63,35 +58,28 @@ export function ParkingApp() {
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
-  // Fetch car parks from database
   const { data: carParks = [], isLoading: carParksLoading } = useSWR<CarPark[]>(
     "/api/car-parks",
     fetcher,
   );
 
-  // Set initial car park when data loads
   useMemo(() => {
     if (carParks.length > 0 && !selectedCarPark) {
       setSelectedCarPark(carParks[0]);
     }
   }, [carParks, selectedCarPark]);
 
-  // Fetch all bookings from database
   const {
     data: allBookings = [],
     isLoading: bookingsLoading,
     mutate: refreshBookings,
-  } = useSWR<Booking[]>(
-    "/api/bookings",
-    fetcher,
-  );
+  } = useSWR<Booking[]>("/api/bookings", fetcher);
 
   const parkingSpaces = useMemo(() => {
     if (!selectedCarPark) return [];
     return generateParkingSpaces(selectedCarPark);
   }, [selectedCarPark]);
 
-  // Get bookings for selected date and car park
   const dateBookings = useMemo(() => {
     if (!selectedCarPark) return [];
     const dateStr = formatDate(selectedDate);
@@ -100,7 +88,6 @@ export function ParkingApp() {
     );
   }, [allBookings, selectedDate, selectedCarPark]);
 
-  // Get current user's booking for selected date and car park
   const existingBooking = useMemo(() => {
     if (!selectedCarPark) return null;
     const dateStr = formatDate(selectedDate);
@@ -114,7 +101,6 @@ export function ParkingApp() {
     );
   }, [allBookings, selectedDate, currentUser, selectedCarPark]);
 
-  // If selected space is booked by someone else, it's borrowable
   const selectedSpaceBookedBy = useMemo(() => {
     if (!selectedSpace) return null;
     const booking = dateBookings.find((b) => b.spaceId === selectedSpace.id);
@@ -123,19 +109,17 @@ export function ParkingApp() {
       : null;
   }, [selectedSpace, dateBookings, currentUser]);
 
-  // Calculate booking counts per day for the selected car park
   const carParkBookingCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     if (!selectedCarPark) return counts;
     allBookings
-      .filter(b => b.carParkId === selectedCarPark.id)
+      .filter((b) => b.carParkId === selectedCarPark.id)
       .forEach((b) => {
         counts[b.date] = (counts[b.date] || 0) + 1;
       });
     return counts;
   }, [allBookings, selectedCarPark]);
 
-  // Determine which dates are fully booked (no spaces left) for the selected car park
   const fullyBookedDates = useMemo(() => {
     const full: Record<string, boolean> = {};
     if (!selectedCarPark) return full;
@@ -210,7 +194,6 @@ export function ParkingApp() {
         );
       }
 
-      // Update the SWR cache directly with the new list of all bookings
       await refreshBookings(responseData.allBookings, { revalidate: false });
     } catch (error) {
       console.error("Booking failed:", error);
@@ -283,7 +266,11 @@ export function ParkingApp() {
 
   const handleQuickBook = useCallback(async () => {
     if (!selectedCarPark || !currentUser) return;
-    const spaceId = findUserSpace(currentUser, userEmail, selectedCarPark.id)?.spaceId;
+    const spaceId = findUserSpace(
+      currentUser,
+      userEmail,
+      selectedCarPark.id,
+    )?.spaceId;
     if (!spaceId) return;
     if (isPastDate(selectedDate)) return;
 
@@ -305,13 +292,14 @@ export function ParkingApp() {
       await refreshBookings(data.allBookings, { revalidate: false });
     } catch (error) {
       console.error("Quick book failed:", error);
-      alert(error instanceof Error ? error.message : "Failed to book your space");
+      alert(
+        error instanceof Error ? error.message : "Failed to book your space",
+      );
     } finally {
       setIsLoading(false);
     }
   }, [selectedCarPark, currentUser, selectedDate, refreshBookings]);
 
-  // Stats
   const totalSpaces = parkingSpaces.length;
   const bookedToday = dateBookings.length;
   const availableToday = totalSpaces - bookedToday;
@@ -329,170 +317,39 @@ export function ParkingApp() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="max-w-8xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Sheet>
-              <SheetTrigger asChild>
-                <div className="flex items-center gap-3 cursor-pointer">
-                  <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                    <Car className="w-6 h-6 text-primary-foreground" />
-                  </div>
-                  <div className="min-w-0">
-                    <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">SlimSpot</h1>
-                    <p className="text-xs text-muted-foreground hidden sm:block">
-                      Daily parking reservations
-                    </p>
-                  </div>
-                </div>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <SheetHeader>
-                  <SheetTitle>SlimSpot</SheetTitle>
-                  <SheetDescription>
-                    Daily parking reservations
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="px-4 space-y-4 text-sm text-muted-foreground">
-                  <p>
-                    Manage your team's parking spaces. Book, cancel, re-allocate, and
-                    keep track of daily parking usage across multiple locations.
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border">
-                    <Info className="w-3 h-3" />
-                    <span>v1.0.0</span>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-                <CalendarDays className="w-4 h-4" />
-                <span>{currentYear}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt={currentUser}
-                    className="w-8 h-8 rounded-full"
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-primary">
-                      {currentUser.charAt(0)}
-                    </span>
-                  </div>
-                )}
-                <span className="hidden sm:inline text-sm font-medium text-foreground">
-                  {currentUser}
-                </span>
-                {(userEmail.toLowerCase().trim() === 'm.guerreiro@slimstock.com' || currentUser === 'Marco Guerreiro') && (
-                  <AdminDropdown
-                    open={adminMenuOpen}
-                    onToggle={() => setAdminMenuOpen((v) => !v)}
-                    onClose={() => setAdminMenuOpen(false)}
-                    onOpenBulkFree={() => setBulkFreeOpen(true)}
-                  />
-                )}
-                <button
-                  onClick={() => setBulkFreeOpen(true)}
-                  className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                  title="Bulk Free"
-                >
-                  <ParkingCircle className="w-4 h-4" />
-                </button>
-                <BulkFreeModal
-                  open={bulkFreeOpen}
-                  onOpenChange={setBulkFreeOpen}
-                  carParks={carParks}
-                  selectedCarPark={selectedCarPark}
-                  currentUser={currentUser}
-                  userEmail={userEmail}
-                  onFreed={() => refreshBookings()}
-                />
-                <button
-                  onClick={handleSignOut}
-                  className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                  title="Sign out"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        currentUser={currentUser}
+        avatarUrl={avatarUrl}
+        userEmail={userEmail}
+        adminMenuOpen={adminMenuOpen}
+        onToggleAdminMenu={() => setAdminMenuOpen((v) => !v)}
+        onCloseAdminMenu={() => setAdminMenuOpen(false)}
+        bulkFreeOpen={bulkFreeOpen}
+        onOpenBulkFree={() => setBulkFreeOpen(true)}
+        onCloseBulkFree={() => setBulkFreeOpen(false)}
+        carParks={carParks}
+        selectedCarPark={selectedCarPark}
+        onRefreshBookings={() => refreshBookings()}
+        onSignOut={handleSignOut}
+        currentYear={currentYear}
+      />
 
-      {/* Car Park Selector */}
-      <div className="bg-card border-b border-border">
-        <div className="max-w-8xl mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="w-4 h-4" />
-              <span>Select Car Park:</span>
-            </div>
-            <div className="flex gap-3">
-              {carParks.map((carPark) => (
-                <button
-                  key={carPark.id}
-                  onClick={() => handleSelectCarPark(carPark)}
-                  className={`flex-1 sm:flex-none px-4 py-3 rounded-lg border-2 transition-all text-left ${
-                    selectedCarPark.id === carPark.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-muted-foreground/30 bg-background"
-                  }`}
-                >
-                  <div className="font-medium text-foreground">
-                    {carPark.name}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    {carPark.location}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <CarParkSelector
+        carParks={carParks}
+        selectedCarPark={selectedCarPark}
+        onSelectCarPark={handleSelectCarPark}
+      />
 
-      {/* Stats bar */}
-      <div className="bg-muted/30 border-b border-border">
-        <div className="max-w-8xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-2 sm:gap-6 text-xs sm:text-sm flex-wrap">
-            <span className="text-muted-foreground font-medium shrink-0">
-              {selectedCarPark.name}:
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Total:</span>
-              <span className="font-semibold text-foreground">
-                {totalSpaces}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Available:</span>
-              <span className="font-semibold text-accent">
-                {availableToday}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Booked:</span>
-              <span className="font-semibold text-destructive">
-                {bookedToday}
-              </span>
-            </div>
-            {bookingsLoading && (
-              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-            )}
-          </div>
-        </div>
-      </div>
+      <StatsBar
+        selectedCarPark={selectedCarPark}
+        totalSpaces={totalSpaces}
+        availableToday={availableToday}
+        bookedToday={bookedToday}
+        bookingsLoading={bookingsLoading}
+      />
 
-      {/* Main content */}
       <main className="max-w-8xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Calendar sidebar */}
           <div className="lg:col-span-3 space-y-4">
             <Calendar
               selectedDate={selectedDate}
@@ -511,7 +368,6 @@ export function ParkingApp() {
             </div>
           </div>
 
-          {/* Parking lot */}
           <div className="lg:col-span-6 space-y-4">
             <ParkingLot
               spaces={parkingSpaces}
@@ -533,7 +389,6 @@ export function ParkingApp() {
             />
           </div>
 
-          {/* Notes column */}
           <div className="lg:col-span-3 space-y-4">
             <div className="lg:hidden">
               <BorrowHistory
@@ -549,9 +404,6 @@ export function ParkingApp() {
               longitude={selectedCarPark.longitude}
             />
 
-            {/* AG: temporary log of the selected car park */}
-            {console.log('Selected car park:', selectedCarPark)}
-
             <NotesPanel
               carParkId={selectedCarPark.id}
               selectedDate={selectedDate}
@@ -561,67 +413,7 @@ export function ParkingApp() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-card border-t border-border mt-auto">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <p className="text-center text-xs text-muted-foreground">
-            Bookings reset daily at midnight. Please renew your space each day.
-          </p>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-function AdminDropdown({ open, onToggle, onClose, onOpenBulkFree }: { open: boolean; onToggle: () => void; onClose: () => void; onOpenBulkFree: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        onCloseRef.current();
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={onToggle}
-        className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-        title="Admin"
-      >
-        <Shield className="w-4 h-4" />
-      </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-lg shadow-lg py-1 z-50">
-          <button
-            onClick={() => { window.open('https://supabase.com/dashboard/project/pmjdrswfxxuaqayojccz', '_blank'); onClose(); }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
-          >
-            <Database className="w-4 h-4 text-muted-foreground" />
-            Supabase Dashboard
-          </button>
-          <button
-            onClick={() => { window.open('/api/bookings?format=json', '_blank'); onClose(); }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
-          >
-            <Shield className="w-4 h-4 text-muted-foreground" />
-            Raw Bookings
-          </button>
-          <button
-            onClick={() => { onOpenBulkFree(); onClose(); }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
-          >
-            <Trash2 className="w-4 h-4 text-destructive/70" />
-            Bulk Free
-          </button>
-        </div>
-      )}
+      <AppFooter />
     </div>
   );
 }
