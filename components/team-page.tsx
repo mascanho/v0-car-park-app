@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AppHeader } from "./app-header";
+import { SiteHeader } from "./site-header";
 import { AppFooter } from "./app-footer";
-import type { CarPark } from "@/lib/parking-data";
 import {
   Cake,
   MapPin,
@@ -139,26 +138,7 @@ export function TeamPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AppHeader
-        currentUser="Team"
-        avatarUrl=""
-        userEmail=""
-        adminMenuOpen={false}
-        onToggleAdminMenu={() => {}}
-        onCloseAdminMenu={() => {}}
-        bulkFreeOpen={false}
-        onOpenBulkFree={() => {}}
-        onCloseBulkFree={() => {}}
-        adminFreeOpen={false}
-        onOpenAdminFree={() => {}}
-        onCloseAdminFree={() => {}}
-        carParks={[] as CarPark[]}
-        selectedCarPark={{} as CarPark}
-        onRefreshBookings={() => {}}
-        onSignOut={async () => {}}
-        currentYear={new Date().getFullYear()}
-        isRegular={false}
-      />
+      <SiteHeader />
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground">Meet the Team</h1>
