@@ -279,8 +279,12 @@ CREATE TABLE IF NOT EXISTS users (
   is_regular BOOLEAN NOT NULL DEFAULT TRUE,
   car_park TEXT NOT NULL,
   car_space TEXT NOT NULL,
-  birthday TEXT NOT NULL DEFAULT ''
+  birthday TEXT NOT NULL DEFAULT '',
+  eom BOOLEAN DEFAULT FALSE
 );
+
+-- Add eom column if upgrading
+ALTER TABLE users ADD COLUMN IF NOT EXISTS eom BOOLEAN DEFAULT FALSE;
 
 -- Ensure the UNIQUE constraint exists even if the table was created without it
 DO $$ BEGIN
@@ -321,3 +325,6 @@ INSERT INTO users (name, email, is_regular, car_park, car_space, birthday) VALUE
   ('Will Severn',        'W.Severn@slimstock.com',      TRUE, 'grosvenor', '29',  '10/06/2026'),
   ('Zu Ali',             'z.ali@slimstock.com',         TRUE, 'smallwood', '38',  '10/06/2026')
 ON CONFLICT (name) DO NOTHING;
+
+-- Set Emily Berry as Employee of the Day
+UPDATE users SET eom = TRUE WHERE name = 'Emily Berry';
