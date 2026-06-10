@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { CarPark } from "@/lib/parking-data";
-import { X, CalendarDays } from "lucide-react";
+import { X } from "lucide-react";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -88,6 +88,18 @@ export function AdminFreeModal({
   const [rangeEnd, setRangeEnd] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{ freedCount: number } | null>(null);
+  const [usersOpen, setUsersOpen] = useState(false);
+  const usersRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (usersRef.current && !usersRef.current.contains(e.target as Node)) {
+        setUsersOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const { data: rawUsers } = useSWR<string[]>(
     `/api/users?carParkId=${carParkId}`,
@@ -195,6 +207,7 @@ export function AdminFreeModal({
               onChange={(e) => {
                 setCarParkId(e.target.value);
                 setSelectedUsers([]);
+                setUsersOpen(false);
               }}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -208,87 +221,115 @@ export function AdminFreeModal({
 
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Users</label>
-
-            {selectedUsers.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs text-muted-foreground">
-                    {selectedUsers.length} selected
-                  </p>
-                  <button
-                    type="button"
-                    onClick={deselectAll}
-                    className="text-xs text-muted-foreground hover:text-foreground underline"
-                  >
-                    Clear all
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {selectedUsers.map((u) => (
-                    <span
-                      key={u}
-                      className="inline-flex items-center gap-1 rounded-md border border-border bg-muted pl-2 pr-1 py-1 text-xs font-medium"
-                    >
-                      <span>{u}</span>
+            <div className="relative" ref={usersRef}>
+              <button
+                type="button"
+                onClick={() => setUsersOpen(!usersOpen)}
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <span
+                  className={
+                    selectedUsers.length === 0 ? "text-muted-foreground" : ""
+                  }
+                >
+                  {selectedUsers.length === 0
+                    ? "Select users..."
+                    : `${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""} selected`}
+                </span>
+                <svg
+                  className={`h-4 w-4 text-muted-foreground transition-transform ${usersOpen ? "rotate-180" : ""}`}
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              {usersOpen && (
+                <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md">
+                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-border">
+                    <span className="text-xs text-muted-foreground">
+                      {allUsers.length} users
+                    </span>
+                    <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => toggleUser(u)}
-                        className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                        onClick={selectAll}
+                        className="text-xs text-muted-foreground hover:text-foreground underline"
                       >
-                        <X className="w-2.5 h-2.5 text-red-500" />
+                        All
                       </button>
-                    </span>
-                  ))}
+                      <button
+                        type="button"
+                        onClick={deselectAll}
+                        className="text-xs text-muted-foreground hover:text-foreground underline"
+                      >
+                        None
+                      </button>
+                    </div>
+                  </div>
+                  <div className="max-h-40 overflow-y-auto p-1">
+                    {allUsers.length === 0 ? (
+                      <p className="text-xs text-muted-foreground py-4 text-center">
+                        No users found for this car park.
+                      </p>
+                    ) : (
+                      allUsers.map((u) => {
+                        const active = selectedUsers.includes(u);
+                        return (
+                          <label
+                            key={u}
+                            className="flex items-center gap-2 px-2.5 py-1.5 rounded text-sm hover:bg-accent cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={active}
+                              onChange={() => toggleUser(u)}
+                              className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+                            />
+                            <span
+                              className={
+                                active
+                                  ? "font-medium text-foreground"
+                                  : "text-muted-foreground"
+                              }
+                            >
+                              {u}
+                            </span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                  {selectedUsers.length > 0 && (
+                    <div className="flex flex-wrap gap-1 border-t border-border p-2 max-h-20 overflow-y-auto">
+                      {selectedUsers.map((u) => (
+                        <span
+                          key={u}
+                          className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
+                        >
+                          {u}
+                          <button
+                            type="button"
+                            onClick={() => toggleUser(u)}
+                            className="hover:bg-primary/20 rounded-sm p-0.5"
+                          >
+                            <X className="w-2.5 h-2.5 text-red-500" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2 text-xs mb-1">
-              {allUsers.length > 0 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={selectAll}
-                    className="text-muted-foreground hover:text-foreground underline"
-                  >
-                    Select all
-                  </button>
-                  <span className="text-muted-foreground">·</span>
-                </>
-              )}
-              <span className="text-muted-foreground">
-                {allUsers.length} users in this car park
-              </span>
-            </div>
-
-            <div className="max-h-32 overflow-y-auto rounded-md border border-border p-1.5 space-y-0.5">
-              {allUsers.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2 text-center">
-                  No users found for this car park.
-                </p>
-              ) : (
-                allUsers.map((u) => {
-                  const active = selectedUsers.includes(u);
-                  return (
-                    <button
-                      key={u}
-                      type="button"
-                      onClick={() => toggleUser(u)}
-                      className={`w-full text-left px-2.5 py-1.5 rounded text-sm transition-colors ${
-                        active
-                          ? "bg-primary/10 text-foreground font-medium"
-                          : "text-muted-foreground hover:bg-accent"
-                      }`}
-                    >
-                      {u}
-                    </button>
-                  );
-                })
               )}
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 bg-muted p-2 rounded-md">
             <div className="flex border-b border-border">
               <button
                 type="button"
@@ -315,7 +356,7 @@ export function AdminFreeModal({
             </div>
 
             {tab === "single" && (
-              <div className="pt-1">
+              <div className="pt-1 space-y-2">
                 <DatePicker
                   value={dateInput}
                   onChange={(val) => {
@@ -324,79 +365,89 @@ export function AdminFreeModal({
                   }}
                   placeholder="Click to select days"
                 />
+                {dates.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                    {dates.map((d) => (
+                      <span
+                        key={d}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-slate-100 pl-2 pr-1.5 py-1 text-[11px] font-medium"
+                      >
+                        <span className="text-muted-foreground">
+                          {weekday(d)}
+                        </span>
+                        <span>{formatEuro(d)}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeDate(d)}
+                          className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                        >
+                          <X className="w-2.5 h-2.5 text-red-500" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {tab === "range" && (
-              <div className="flex items-end gap-2 pt-1">
-                <div className="flex-1">
-                  <span className="text-xs text-muted-foreground block mb-1">
-                    From
-                  </span>
-                  <DatePicker
-                    value={rangeStart}
-                    onChange={setRangeStart}
-                    placeholder="dd/mm/yyyy"
-                  />
+              <div className="pt-1 space-y-2">
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <span className="text-xs text-muted-foreground block mb-1">
+                      From
+                    </span>
+                    <DatePicker
+                      value={rangeStart}
+                      onChange={setRangeStart}
+                      placeholder="dd/mm/yyyy"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-xs text-muted-foreground block mb-1">
+                      To
+                    </span>
+                    <DatePicker
+                      value={rangeEnd}
+                      onChange={setRangeEnd}
+                      placeholder="dd/mm/yyyy"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addRange}
+                    disabled={!rangeStart || !rangeEnd}
+                    className="shrink-0"
+                  >
+                    Add Range
+                  </Button>
                 </div>
-                <div className="flex-1">
-                  <span className="text-xs text-muted-foreground block mb-1">
-                    To
-                  </span>
-                  <DatePicker
-                    value={rangeEnd}
-                    onChange={setRangeEnd}
-                    placeholder="dd/mm/yyyy"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addRange}
-                  disabled={!rangeStart || !rangeEnd}
-                  className="shrink-0"
-                >
-                  Add Range
-                </Button>
+                {dates.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                    {dates.map((d) => (
+                      <span
+                        key={d}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-slate-100 pl-2 pr-1.5 py-1 text-[11px] font-medium"
+                      >
+                        <span className="text-muted-foreground">
+                          {weekday(d)}
+                        </span>
+                        <span>{formatEuro(d)}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeDate(d)}
+                          className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                        >
+                          <X className="w-2.5 h-2.5 text-red-500" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
-
-          {dates.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium">
-                  Selected Dates ({dates.length})
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setDates([])}
-                  className="text-xs text-muted-foreground hover:text-foreground underline"
-                >
-                  Clear all
-                </button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-36 overflow-y-auto pr-1 border p-3 rounded-md">
-                {dates.map((d) => (
-                  <span
-                    key={d}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted pl-2 pr-1.5 py-1 text-[9.5px] sm:text-[11px] font-medium w-full"
-                  >
-                    <CalendarDays className="w-2 h-2 sm:h-3 sm:w-3 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{weekday(d)}</span>
-                    <span className="flex-1">{formatEuro(d)}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeDate(d)}
-                      className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
-                    >
-                      <X className="w-2 h-2 text-red-500" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
 
           {result && (
             <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-700 dark:text-green-400">
