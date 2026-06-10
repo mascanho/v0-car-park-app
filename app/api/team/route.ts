@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
-const FULL_SELECT = 'name, email, car_park, is_regular, birthday, photo, bio, website, role';
-const FALLBACK_SELECT = 'name, email, car_park, is_regular, birthday';
+const FULL_SELECT = 'name, email, car_park, car_space, is_regular, birthday, photo, bio, website, role';
+const FALLBACK_SELECT = 'name, email, car_park, car_space, is_regular, birthday';
 
 export async function GET() {
   const supabase = await createClient();
