@@ -35,6 +35,7 @@ interface AppHeaderProps {
   onRefreshBookings: () => void;
   onSignOut: () => void;
   currentYear: number;
+  isRegular: boolean;
 }
 
 export function AppHeader({
@@ -55,6 +56,7 @@ export function AppHeader({
   onRefreshBookings,
   onSignOut,
   currentYear,
+  isRegular,
 }: AppHeaderProps) {
   return (
     <header className="bg-card border-b border-border sticky top-0 z-10">
@@ -98,14 +100,16 @@ export function AppHeader({
                   onOpenAdminFree={onOpenAdminFree}
                 />
               )}
-              <button
-                onClick={onOpenBulkFree}
-                className="p-1.5 text-sm flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-                title="Bulk Free"
-              >
-                My Parking
-                <ParkingCircle className="w-4 h-4 animate-pulse text-orange-600" />
-              </button>
+              {isRegular && (
+                <button
+                  onClick={onOpenBulkFree}
+                  className="p-1.5  flex items-center gap-1 hover:cursor-pointer  bg-orange-600 rounded-sm text-xs text-white px-3 hover:bg-orange-700 transition-all active:scale-100"
+                  title="Bulk Free"
+                >
+                  My Parking
+                  <ParkingCircle className="w-4 h-4 text-white" />
+                </button>
+              )}
               <BulkFreeModal
                 open={bulkFreeOpen}
                 onOpenChange={onCloseBulkFree}

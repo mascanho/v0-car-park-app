@@ -34,10 +34,11 @@ export function ParkingApp() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegular, setIsRegular] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (user) {
         const email = user.email || user.user_metadata?.email || "";
         console.log("Logged in email:", email);
@@ -46,6 +47,13 @@ export function ParkingApp() {
         );
         setUserEmail(email);
         setAvatarUrl(user.user_metadata?.avatar_url || "");
+
+        const { data: userRecord } = await supabase
+          .from("users")
+          .select("is_regular")
+          .eq("email", email)
+          .maybeSingle();
+        setIsRegular(userRecord?.is_regular ?? false);
       }
     });
   }, [supabase]);
@@ -336,6 +344,7 @@ export function ParkingApp() {
         onRefreshBookings={() => refreshBookings()}
         onSignOut={handleSignOut}
         currentYear={currentYear}
+        isRegular={isRegular}
       />
 
       <CarParkSelector
