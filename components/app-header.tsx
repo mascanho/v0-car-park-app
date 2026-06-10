@@ -16,6 +16,7 @@ import { BulkFreeModal } from "./bulk-free-modal";
 import { AdminFreeModal } from "./admin-free-modal";
 import { AppInfoSheet } from "./app-info-sheet";
 import type { CarPark } from "@/lib/parking-data";
+import { CarParkSelector } from "./car-park-selector";
 
 interface AppHeaderProps {
   currentUser: string;
@@ -59,8 +60,8 @@ export function AppHeader({
   isRegular,
 }: AppHeaderProps) {
   return (
-    <header className="bg-card border-b border-border sticky top-0 z-10">
-      <div className="max-w-8xl mx-auto px-4 py-4">
+    <header className="bg-card border-b border-border shadow-xs sticky top-0 z-10">
+      <div className="max-w-8xl mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           <Sheet>
             <div className="flex items-center gap-3">
@@ -190,9 +191,9 @@ function AvatarMenu({
               setOpen(false);
               onSignOut();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left hover:text-white"
           >
-            <LogOut className="w-4 h-4 text-muted-foreground" />
+            <LogOut className="w-4 h-4 text-black hover:text-white active:text-white" />
             Sign out
           </button>
         </div>
@@ -235,7 +236,7 @@ function AdminDropdown({
         className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
         title="Admin"
       >
-        <LayoutDashboard className="w-4 h-4" />
+        <LayoutDashboard className="w-4 h-4 cursor-pointer" />
       </button>
       {open && (
         <div className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-lg shadow-lg py-1 z-50">
@@ -269,8 +270,8 @@ function AdminDropdown({
             }}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
           >
-            <LayoutDashboard className="w-4 h-4 text-destructive/70" />
-            Admin Free
+            <Car className="w-4 h-4 text-destructive/70" />
+            Manage Spaces
           </button>
           {/* <button */}
           {/*   onClick={() => { */}
