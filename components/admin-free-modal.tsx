@@ -366,11 +366,11 @@ export function AdminFreeModal({
                   placeholder="Click to select days"
                 />
                 {dates.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-32 overflow-y-auto">
                     {dates.map((d) => (
                       <span
                         key={d}
-                        className="inline-flex items-center gap-1 rounded-md border border-border bg-slate-100 pl-2 pr-1.5 py-1 text-[11px] font-medium"
+                        className="flex w-full items-center gap-1 rounded-md border border-border bg-slate-100 pl-2 pr-1.5 py-1 text-[11px] font-medium"
                       >
                         <span className="text-muted-foreground">
                           {weekday(d)}
@@ -379,7 +379,7 @@ export function AdminFreeModal({
                         <button
                           type="button"
                           onClick={() => removeDate(d)}
-                          className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                          className="ml-auto text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
                         >
                           <X className="w-2.5 h-2.5 text-red-500" />
                         </button>
@@ -424,11 +424,11 @@ export function AdminFreeModal({
                   </Button>
                 </div>
                 {dates.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-32 overflow-y-auto">
                     {dates.map((d) => (
                       <span
                         key={d}
-                        className="inline-flex items-center gap-1 rounded-md border border-border bg-slate-100 pl-2 pr-1.5 py-1 text-[11px] font-medium"
+                        className="flex w-full items-center gap-1 rounded-md border border-border bg-slate-100 pl-2 pr-1.5 py-1 text-[11px] font-medium"
                       >
                         <span className="text-muted-foreground">
                           {weekday(d)}
@@ -437,7 +437,7 @@ export function AdminFreeModal({
                         <button
                           type="button"
                           onClick={() => removeDate(d)}
-                          className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                          className="ml-auto text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
                         >
                           <X className="w-2.5 h-2.5 text-red-500" />
                         </button>

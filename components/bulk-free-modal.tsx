@@ -248,7 +248,7 @@ export function BulkFreeModal({
                     setDateInput(val);
                     if (val) addDate(val);
                   }}
-                  placeholder="Select days"
+                  placeholder="Click to select days"
                 />
               </div>
             )}
@@ -280,7 +280,7 @@ export function BulkFreeModal({
                   variant="outline"
                   onClick={addRange}
                   disabled={!rangeStart || !rangeEnd}
-                  className="shrink-0"
+                  className="shrink-0 cursor-pointer"
                 >
                   <CircleFadingPlus className="w-4 h-4" />
                 </Button>
@@ -302,11 +302,11 @@ export function BulkFreeModal({
                   Clear all
                 </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-36 overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 max-h-36 overflow-y-auto p-2 bg-muted border rounded-md">
                 {dates.map((d) => (
                   <span
                     key={d}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted pl-2 pr-1.5 py-1 text-[9.5px] sm:text-[11px] font-medium w-full"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-slate-100 pl-2 pr-1.5 py-1 text-[9.5px] sm:text-[11px] font-medium w-full"
                   >
                     <CalendarDays className="w-2 h-2 sm:h-3 sm:w-3 text-muted-foreground shrink-0" />
                     <span className="text-muted-foreground">{weekday(d)}</span>
@@ -349,7 +349,7 @@ export function BulkFreeModal({
           >
             {isSubmitting
               ? "Freeing..."
-              : `Free My Bookings (${dates.length} date${dates.length !== 1 ? "s" : ""})`}
+              : `Free my space (${dates.length} date${dates.length !== 1 ? "s" : ""})`}
           </Button>
         </DialogFooter>
       </DialogContent>
