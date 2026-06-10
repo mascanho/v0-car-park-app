@@ -21,6 +21,7 @@ import {
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
 import { Loader2 } from "lucide-react";
 import { BirthdayBanner } from "./birthday-banner";
+import { getPhotoUrl } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -74,14 +75,11 @@ export function ParkingApp() {
         });
         if (matched.length > 0) {
           setBirthdays(
-            matched.map((u) => ({
-              name: u.name,
-              email: u.email,
-              imageUrl:
-                u.email === email
-                  ? user.user_metadata?.avatar_url || ""
-                  : "",
-            })),
+            matched.map((u) => {
+              const url = getPhotoUrl(u.email) || "";
+              console.log("Birthday photo URL:", url, "email:", u.email);
+              return { name: u.name, email: u.email, imageUrl: url };
+            }),
           );
         }
       }

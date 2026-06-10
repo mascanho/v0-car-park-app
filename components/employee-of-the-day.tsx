@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Crown, Medal, ParkingCircle, ExternalLink, Cake } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
+import { getPhotoUrl } from "@/lib/utils";
 
 interface EotdUser {
   name: string;
@@ -77,6 +78,9 @@ export function EmployeeOfTheDay() {
 
   if (!user) return null;
 
+  const photoUrl = getPhotoUrl(user.email, user.photo);
+  console.log("EOTD photo URL:", photoUrl, "email:", user.email, "raw photo:", user.photo);
+
   return (
     <div className="px-4 pb-4 flex-1 flex flex-col">
       <div className="flex-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 p-[3px]">
@@ -95,9 +99,9 @@ export function EmployeeOfTheDay() {
           <div className="flex items-center gap-4 mb-4">
             <div className="relative shrink-0">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-orange-500 p-[3px]">
-                {user.photo ? (
+                {photoUrl ? (
                   <img
-                    src={user.photo}
+                    src={photoUrl}
                     alt={user.name}
                     className="w-full h-full rounded-full object-cover"
                   />

@@ -5,6 +5,7 @@ import { SiteHeader } from "./site-header";
 import { AppFooter } from "./app-footer";
 import { AppBreadcrumbs } from "./app-breadcrumbs";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
+import { getPhotoUrl } from "@/lib/utils";
 import {
   Cake,
   MapPin,
@@ -81,6 +82,8 @@ function MemberCard({ m }: { m: TeamMember }) {
   const [imgErr, setImgErr] = useState(false);
   const [bioExpanded, setBioExpanded] = useState(false);
   const isLongBio = (m.bio?.length ?? 0) > 120;
+  const photoUrl = getPhotoUrl(m.email, m.photo);
+  console.log("TeamMember photo URL:", photoUrl, "email:", m.email, "raw photo:", m.photo);
 
   return (
     <div className="relative rounded-2xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group flex flex-col">
@@ -93,9 +96,9 @@ function MemberCard({ m }: { m: TeamMember }) {
         {/* Avatar + Name row */}
         <div className="flex items-start gap-4">
           <div className="relative shrink-0">
-            {m.photo && !imgErr ? (
+            {photoUrl && !imgErr ? (
               <img
-                src={m.photo}
+                src={photoUrl}
                 alt={m.name}
                 onError={() => setImgErr(true)}
                 className="w-14 h-14 rounded-xl object-cover ring-2 ring-border group-hover:ring-primary/30 transition-all"
