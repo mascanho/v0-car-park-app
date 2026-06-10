@@ -34,7 +34,7 @@ function NavSection({
 
 export function AppInfoSheet() {
   return (
-    <SheetContent side="right" className="flex flex-col">
+    <SheetContent side="right" className="flex flex-col w-full sm:max-w-[26.4rem]">
       <SheetHeader>
         <SheetTitle>Navigation</SheetTitle>
         <SheetDescription>Quick access to app sections</SheetDescription>
