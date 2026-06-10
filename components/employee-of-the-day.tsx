@@ -85,7 +85,7 @@ export function EmployeeOfTheDay() {
           <div className="absolute -top-8 -right-8 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl" />
           <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl" />
 
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-6">
             <Medal className="w-4 h-4 text-orange-500" />
             <span className="text-[11px] font-bold uppercase tracking-widest text-blue-600">
               Employee of the Month

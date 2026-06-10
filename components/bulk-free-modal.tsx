@@ -349,7 +349,7 @@ export function BulkFreeModal({
           >
             {isSubmitting
               ? "Freeing..."
-              : `Free my space (${dates.length} date${dates.length !== 1 ? "s" : ""})`}
+              : `Free my space (${dates.length} day${dates.length !== 1 ? "s" : ""})`}
           </Button>
         </DialogFooter>
       </DialogContent>
