@@ -29,6 +29,7 @@ export function ParkingApp() {
   const [userEmail, setUserEmail] = useState("");
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [bulkFreeOpen, setBulkFreeOpen] = useState(false);
+  const [adminFreeOpen, setAdminFreeOpen] = useState(false);
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
@@ -327,6 +328,9 @@ export function ParkingApp() {
         bulkFreeOpen={bulkFreeOpen}
         onOpenBulkFree={() => setBulkFreeOpen(true)}
         onCloseBulkFree={() => setBulkFreeOpen(false)}
+        adminFreeOpen={adminFreeOpen}
+        onOpenAdminFree={() => setAdminFreeOpen(true)}
+        onCloseAdminFree={() => setAdminFreeOpen(false)}
         carParks={carParks}
         selectedCarPark={selectedCarPark}
         onRefreshBookings={() => refreshBookings()}

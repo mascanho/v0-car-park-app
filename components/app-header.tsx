@@ -10,8 +10,10 @@ import {
   Database,
   ParkingCircle,
   Trash2,
+  LayoutDashboard,
 } from "lucide-react";
 import { BulkFreeModal } from "./bulk-free-modal";
+import { AdminFreeModal } from "./admin-free-modal";
 import { AppInfoSheet } from "./app-info-sheet";
 import type { CarPark } from "@/lib/parking-data";
 
@@ -25,6 +27,9 @@ interface AppHeaderProps {
   bulkFreeOpen: boolean;
   onOpenBulkFree: () => void;
   onCloseBulkFree: () => void;
+  adminFreeOpen: boolean;
+  onOpenAdminFree: () => void;
+  onCloseAdminFree: () => void;
   carParks: CarPark[];
   selectedCarPark: CarPark;
   onRefreshBookings: () => void;
@@ -42,6 +47,9 @@ export function AppHeader({
   bulkFreeOpen,
   onOpenBulkFree,
   onCloseBulkFree,
+  adminFreeOpen,
+  onOpenAdminFree,
+  onCloseAdminFree,
   carParks,
   selectedCarPark,
   onRefreshBookings,
@@ -92,14 +100,17 @@ export function AppHeader({
               <span className="hidden sm:inline text-sm font-medium text-foreground">
                 {currentUser}
               </span>
-              {(userEmail.toLowerCase().trim() ===
-                "m.guerreiro@slimstock.com" ||
-                currentUser === "Marco Guerreiro") && (
+              {[
+                "m.guerreiro@slimstock.com",
+                "j.cooper@slimstock.com",
+                "n.cooper@slimstock.com",
+              ].includes(userEmail.toLowerCase().trim()) && (
                 <AdminDropdown
                   open={adminMenuOpen}
                   onToggle={onToggleAdminMenu}
                   onClose={onCloseAdminMenu}
                   onOpenBulkFree={onOpenBulkFree}
+                  onOpenAdminFree={onOpenAdminFree}
                 />
               )}
               <button
@@ -116,6 +127,12 @@ export function AppHeader({
                 selectedCarPark={selectedCarPark}
                 currentUser={currentUser}
                 userEmail={userEmail}
+                onFreed={onRefreshBookings}
+              />
+              <AdminFreeModal
+                open={adminFreeOpen}
+                onOpenChange={onCloseAdminFree}
+                carParks={carParks}
                 onFreed={onRefreshBookings}
               />
               <button
@@ -138,11 +155,13 @@ function AdminDropdown({
   onToggle,
   onClose,
   onOpenBulkFree,
+  onOpenAdminFree,
 }: {
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
   onOpenBulkFree: () => void;
+  onOpenAdminFree: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -194,14 +213,24 @@ function AdminDropdown({
           </button>
           <button
             onClick={() => {
-              onOpenBulkFree();
+              onOpenAdminFree();
               onClose();
             }}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
           >
-            <Trash2 className="w-4 h-4 text-destructive/70" />
-            Bulk Free
+            <LayoutDashboard className="w-4 h-4 text-destructive/70" />
+            Admin Free
           </button>
+          {/* <button */}
+          {/*   onClick={() => { */}
+          {/*     onOpenBulkFree(); */}
+          {/*     onClose(); */}
+          {/*   }} */}
+          {/*   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left" */}
+          {/* > */}
+          {/*   <Trash2 className="w-4 h-4 text-destructive/70" /> */}
+          {/*   Bulk Free */}
+          {/* </button> */}
         </div>
       )}
     </div>
