@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { CarPark } from "@/lib/parking-data";
 import { findUserSpace } from "@/lib/parking-data";
+import { X } from "lucide-react";
 
 interface BulkFreeModalProps {
   open: boolean;
@@ -33,8 +34,8 @@ export function BulkFreeModal({
   onFreed,
 }: BulkFreeModalProps) {
   const [carParkId, setCarParkId] = useState(selectedCarPark.id);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [dates, setDates] = useState<string[]>([]);
+  const [dateInput, setDateInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{ freedCount: number } | null>(null);
   const userMatch = findUserSpace(currentUser, userEmail, carParkId);
@@ -49,24 +50,33 @@ export function BulkFreeModal({
         (cp) => findUserSpace(currentUser, userEmail, cp.id) !== null,
       );
       setCarParkId(firstMatch?.id || selectedCarPark.id);
-      setStartDate("");
-      setEndDate("");
+      setDates([]);
+      setDateInput("");
       setResult(null);
     }
   }, [open, selectedCarPark.id, currentUser, userEmail]);
 
+  const addDate = () => {
+    if (!dateInput) return;
+    if (dates.includes(dateInput)) return;
+    setDates((prev) => [...prev, dateInput].sort());
+    setDateInput("");
+  };
+
+  const removeDate = (d: string) => {
+    setDates((prev) => prev.filter((date) => date !== d));
+  };
+
   const handleSubmit = async () => {
-    if (!startDate || !endDate) return;
+    if (dates.length === 0) return;
     setIsSubmitting(true);
     setResult(null);
     try {
       const bookingUserName = userMatch?.dbUserName || currentUser;
-      const params = new URLSearchParams({
-        startDate,
-        endDate,
-        carParkId,
-        userName: bookingUserName,
-      });
+      const params = new URLSearchParams();
+      dates.forEach((d) => params.append("dates", d));
+      params.set("carParkId", carParkId);
+      params.set("userName", bookingUserName);
       const res = await fetch(`/api/bookings?${params}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -81,8 +91,8 @@ export function BulkFreeModal({
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setStartDate("");
-      setEndDate("");
+      setDates([]);
+      setDateInput("");
       setResult(null);
       onOpenChange(false);
     }
@@ -135,24 +145,44 @@ export function BulkFreeModal({
           )}
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
+            <label className="text-sm font-medium">Dates</label>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={dateInput}
+                onChange={(e) => setDateInput(e.target.value)}
+                className="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addDate}
+                disabled={!dateInput}
+              >
+                Add
+              </Button>
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </div>
+          {dates.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {dates.map((d) => (
+                <span
+                  key={d}
+                  className="inline-flex items-center gap-1 rounded-md border border-border bg-muted px-2.5 py-1 text-xs font-medium"
+                >
+                  {d}
+                  <button
+                    type="button"
+                    onClick={() => removeDate(d)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
 
           {result && (
             <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-700 dark:text-green-400">
@@ -173,14 +203,15 @@ export function BulkFreeModal({
           <Button
             onClick={handleSubmit}
             disabled={
-              !startDate ||
-              !endDate ||
+              dates.length === 0 ||
               isSubmitting ||
               userCarParks.length === 0
             }
             variant="destructive"
           >
-            {isSubmitting ? "Freeing..." : "Free My Bookings"}
+            {isSubmitting
+              ? "Freeing..."
+              : `Free My Bookings (${dates.length} date${dates.length !== 1 ? "s" : ""})`}
           </Button>
         </DialogFooter>
       </DialogContent>
