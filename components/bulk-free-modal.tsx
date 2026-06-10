@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { CarPark } from "@/lib/parking-data";
 import { findUserSpace } from "@/lib/parking-data";
-import { X, CalendarDays } from "lucide-react";
+import { X, CalendarDays, FilePlus, CircleFadingPlus } from "lucide-react";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -26,15 +26,38 @@ function formatEuro(dateStr: string) {
   return `${d}/${m}/${y}`;
 }
 
-function parseEuroDate(str: string): string | null {
-  const parts = str.split("/");
-  if (parts.length !== 3) return null;
-  const [d, m, y] = parts;
-  if (d.length !== 2 || m.length !== 2 || y.length !== 4) return null;
-  const iso = `${y}-${m}-${d}`;
-  const date = new Date(iso + "T00:00:00");
-  if (isNaN(date.getTime())) return null;
-  return iso;
+function DatePicker({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
+  const dateRef = useRef<HTMLInputElement>(null);
+  const display = value ? formatEuro(value) : "";
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={display}
+        placeholder={placeholder}
+        readOnly
+        onClick={() => dateRef.current?.showPicker()}
+        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
+      />
+      <input
+        ref={dateRef}
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="absolute inset-0 opacity-0 pointer-events-none"
+        tabIndex={-1}
+      />
+    </div>
+  );
 }
 
 interface BulkFreeModalProps {
@@ -84,21 +107,20 @@ export function BulkFreeModal({
     }
   }, [open, selectedCarPark.id, currentUser, userEmail]);
 
-  const addDate = () => {
-    if (!dateInput) return;
-    if (dates.includes(dateInput)) return;
-    setDates((prev) => [...prev, dateInput].sort());
+  const addDate = (iso: string) => {
+    if (!iso) return;
+    if (dates.includes(iso)) return;
+    setDates((prev) => [...prev, iso].sort());
     setDateInput("");
   };
 
   const addRange = () => {
     if (!rangeStart || !rangeEnd) return;
-    const start = new Date(rangeStart + "T00:00:00");
-    const end = new Date(rangeEnd + "T00:00:00");
-    if (start > end) return;
+    if (rangeStart > rangeEnd) return;
     const newDates: string[] = [];
-    const cur = new Date(start);
-    while (cur <= end) {
+    const cur = new Date(rangeStart + "T00:00:00");
+    const endDate = new Date(rangeEnd + "T00:00:00");
+    while (cur <= endDate) {
       newDates.push(cur.toISOString().slice(0, 10));
       cur.setDate(cur.getDate() + 1);
     }
@@ -203,7 +225,7 @@ export function BulkFreeModal({
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Single dates
+                Specific dates
               </button>
               <button
                 type="button"
@@ -219,21 +241,15 @@ export function BulkFreeModal({
             </div>
 
             {tab === "single" && (
-              <div className="flex gap-2 pt-1">
-                <input
-                  type="date"
+              <div className="pt-1">
+                <DatePicker
                   value={dateInput}
-                  onChange={(e) => setDateInput(e.target.value)}
-                  className="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onChange={(val) => {
+                    setDateInput(val);
+                    if (val) addDate(val);
+                  }}
+                  placeholder="Select days"
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addDate}
-                  disabled={!dateInput}
-                >
-                  Add
-                </Button>
               </div>
             )}
 
@@ -243,22 +259,20 @@ export function BulkFreeModal({
                   <span className="text-xs text-muted-foreground block mb-1">
                     From
                   </span>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={rangeStart}
-                    onChange={(e) => setRangeStart(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    onChange={setRangeStart}
+                    placeholder="dd/mm/yyyy"
                   />
                 </div>
                 <div className="flex-1">
                   <span className="text-xs text-muted-foreground block mb-1">
                     To
                   </span>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={rangeEnd}
-                    onChange={(e) => setRangeEnd(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    onChange={setRangeEnd}
+                    placeholder="dd/mm/yyyy"
                   />
                 </div>
                 <Button
@@ -268,7 +282,7 @@ export function BulkFreeModal({
                   disabled={!rangeStart || !rangeEnd}
                   className="shrink-0"
                 >
-                  Add Range
+                  <CircleFadingPlus className="w-4 h-4" />
                 </Button>
               </div>
             )}
