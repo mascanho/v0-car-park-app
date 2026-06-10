@@ -74,7 +74,7 @@ export function AppHeader({
                 className="hidden sm:flex items-center gap-3"
                 onClick={() => (window.location.href = "/")}
               >
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center cursor-pointer">
                   <Car className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div className="min-w-0">

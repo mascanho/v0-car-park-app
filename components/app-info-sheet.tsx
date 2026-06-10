@@ -4,13 +4,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "./ui/sheet";
-import {
-  Car,
-  MapPin,
-  History,
-  StickyNote,
-  Users,
-} from "lucide-react";
+import { Car, MapPin, History, StickyNote, Users } from "lucide-react";
 import { SheetMenuItem } from "./sheet-menu-item";
 import { EmployeeOfTheDay } from "./employee-of-the-day";
 
@@ -44,9 +38,16 @@ export function AppInfoSheet() {
       <SheetHeader>
         <SheetTitle>Navigation</SheetTitle>
         <SheetDescription>Quick access to app sections</SheetDescription>
+        <hr className="border-t border-border mt-2 -mb-4" />
       </SheetHeader>
       <div className="flex-1 overflow-y-auto px-2 space-y-4 py-4 flex flex-col">
         <NavSection label="Main">
+          <SheetMenuItem
+            icon={Users}
+            label="Home"
+            description="Go to the homepage"
+            href="/"
+          />
           <SheetMenuItem
             icon={Users}
             label="Meet The Team"
@@ -67,12 +68,12 @@ export function AppInfoSheet() {
           />
         </NavSection>
         <NavSection label="Information">
-          <SheetMenuItem
-            icon={History}
-            label="History"
-            description="Browse borrow and free activity"
-            onClick={() => scrollTo("history")}
-          />
+          {/* <SheetMenuItem */}
+          {/*   icon={History} */}
+          {/*   label="History" */}
+          {/*   description="Browse borrow and free activity" */}
+          {/*   onClick={() => scrollTo("history")} */}
+          {/* /> */}
           <SheetMenuItem
             icon={StickyNote}
             label="Notes"
@@ -80,6 +81,7 @@ export function AppInfoSheet() {
             onClick={() => scrollTo("notes")}
           />
         </NavSection>
+        <hr className="border-t border-border" />
         <EmployeeOfTheDay />
       </div>
     </SheetContent>
