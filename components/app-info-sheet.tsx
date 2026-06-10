@@ -4,7 +4,14 @@ import {
   SheetTitle,
   SheetDescription,
 } from "./ui/sheet";
-import { Car, MapPin, CalendarDays, History, StickyNote, Info } from "lucide-react";
+import {
+  Car,
+  MapPin,
+  CalendarDays,
+  History,
+  StickyNote,
+  Info,
+} from "lucide-react";
 import { SheetMenuItem } from "./sheet-menu-item";
 
 function scrollTo(id: string) {
@@ -12,7 +19,13 @@ function scrollTo(id: string) {
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function NavSection({ label, children }: { label: string; children: React.ReactNode }) {
+function NavSection({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
       <div className="px-4 py-1">
@@ -51,16 +64,14 @@ export function AppInfoSheet() {
     <SheetContent side="right" className="flex flex-col">
       <SheetHeader>
         <SheetTitle>Navigation</SheetTitle>
-        <SheetDescription>
-          Quick access to app sections
-        </SheetDescription>
+        <SheetDescription>Quick access to app sections</SheetDescription>
       </SheetHeader>
       <div className="flex-1 overflow-y-auto px-2 space-y-4 py-4">
         <NavSection label="Main">
           <SheetMenuItem
             icon={CalendarDays}
-            label="Calendar"
-            description="Browse dates and availability"
+            label="Meet The Team"
+            description="View Slimstock's UK team"
             onClick={() => scrollTo("calendar")}
           />
           <SheetMenuItem
