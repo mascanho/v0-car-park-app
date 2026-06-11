@@ -27,7 +27,7 @@ export function SiteHeader() {
         const { data: userRecord } = await supabase
           .from("users")
           .select("is_regular")
-          .eq("email", email)
+          .ilike("email", email)
           .maybeSingle();
         setIsRegular(userRecord?.is_regular ?? false);
       }

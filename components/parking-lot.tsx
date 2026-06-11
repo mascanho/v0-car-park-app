@@ -15,6 +15,7 @@ interface ParkingLotProps {
   onSelectSpace: (space: ParkingSpace) => void;
   currentUser: string;
   currentUserEmail: string;
+  isRegular?: boolean;
   disabled?: boolean;
   carPark: CarPark;
   date: Date | undefined;
@@ -36,6 +37,7 @@ export function ParkingLot({
   onSelectSpace,
   currentUser,
   currentUserEmail,
+  isRegular,
   disabled,
   date,
   onBook,
@@ -200,6 +202,7 @@ export function ParkingLot({
                         carParkId={carPark.id}
                         currentUser={currentUser}
                         currentUserEmail={currentUserEmail}
+                        isRegular={isRegular}
                       />
                     ))}
                   </div>
