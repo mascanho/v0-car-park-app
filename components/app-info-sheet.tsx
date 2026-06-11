@@ -34,7 +34,10 @@ function NavSection({
 
 export function AppInfoSheet() {
   return (
-    <SheetContent side="right" className="flex flex-col w-full sm:max-w-[26.4rem]">
+    <SheetContent
+      side="right"
+      className="flex flex-col w-full sm:max-w-[26.4rem]"
+    >
       <SheetHeader>
         <SheetTitle>Navigation</SheetTitle>
         <SheetDescription>Quick access to app sections</SheetDescription>
@@ -56,15 +59,17 @@ export function AppInfoSheet() {
           />
           <SheetMenuItem
             icon={Car}
-            label="Parking Lot"
-            description="View and manage parking spaces"
-            onClick={() => scrollTo("parking-lot")}
+            label="Slimstock Website"
+            description="Go to the Slimstock website"
+            // onClick={() => scrollTo("parking-lot")}
+            href="https://www.slimstock.com/"
           />
           <SheetMenuItem
             icon={MapPin}
-            label="Map View"
-            description="See car park locations"
-            onClick={() => scrollTo("map-view")}
+            label="SCP Club"
+            description="Go to the SCP Club"
+            // onClick={() => scrollTo("map-view")}
+            href="https://www.scpclub.com/"
           />
         </NavSection>
         <NavSection label="Information">
