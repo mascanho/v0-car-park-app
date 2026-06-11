@@ -4,8 +4,9 @@ import { useState } from "react";
 import { SiteHeader } from "./site-header";
 import { AppFooter } from "./app-footer";
 import { AppBreadcrumbs } from "./app-breadcrumbs";
+import { VoteModal } from "./vote-modal";
 import { getPhotoUrl } from "@/lib/utils";
-import { Cake, ParkingCircle, Medal, Crown, Clock } from "lucide-react";
+import { Cake, ParkingCircle, Medal, Crown, Clock, ThumbsUp } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 
 const MONTHS = [
@@ -221,6 +222,7 @@ function PendingCard({ month }: { month: number }) {
 }
 
 export function EmployeeOfTheMonthPage() {
+  const [voteModalOpen, setVoteModalOpen] = useState(false);
   const year = new Date().getFullYear();
   const assignedCount = FAKE_DATA.filter((m) => m.assigned).length;
 
@@ -230,7 +232,7 @@ export function EmployeeOfTheMonthPage() {
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
         <AppBreadcrumbs segments={[{ label: "Employee of the Month" }]} />
 
-        <div className="mb-8">
+        <div className="mb-8 flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-orange-500 flex items-center justify-center shrink-0">
               <Medal className="w-5 h-5 text-white" />
@@ -244,7 +246,20 @@ export function EmployeeOfTheMonthPage() {
               </p>
             </div>
           </div>
+
+          <button
+            onClick={() => setVoteModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shrink-0"
+          >
+            <ThumbsUp className="w-4 h-4" />
+            Vote
+          </button>
         </div>
+
+        <VoteModal
+          open={voteModalOpen}
+          onOpenChange={setVoteModalOpen}
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {FAKE_DATA.map((entry) =>
