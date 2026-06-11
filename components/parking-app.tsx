@@ -57,7 +57,7 @@ export function ParkingApp() {
         const { data: userRecord } = await supabase
           .from("users")
           .select("is_regular")
-          .eq("email", email)
+          .ilike("email", email)
           .maybeSingle();
         setIsRegular(userRecord?.is_regular ?? false);
 
@@ -426,6 +426,8 @@ export function ParkingApp() {
               selectedSpace={selectedSpace}
               onSelectSpace={handleSelectSpace}
               currentUser={currentUser}
+              currentUserEmail={userEmail}
+              isRegular={isRegular}
               disabled={isPastDate(selectedDate) || !currentUser}
               carPark={selectedCarPark}
               date={selectedDate}

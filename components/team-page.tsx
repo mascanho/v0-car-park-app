@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { SiteHeader } from "./site-header";
 import { AppFooter } from "./app-footer";
 import { AppBreadcrumbs } from "./app-breadcrumbs";
@@ -128,7 +129,10 @@ function MemberCard({ m }: { m: TeamMember }) {
             <p className="text-xs text-muted-foreground/60 mt-0.5 flex items-center gap-1 truncate">
               <span className="truncate">{m.email.toLowerCase()}</span>
               <button
-                onClick={() => navigator.clipboard.writeText(m.email)}
+                onClick={() => {
+                  navigator.clipboard.writeText(m.email);
+                  toast.success("Email copied to clipboard");
+                }}
                 className="shrink-0 p-0.5 rounded hover:bg-muted/80 transition-colors opacity-0 group-hover:opacity-100"
                 title="Copy email"
               >
