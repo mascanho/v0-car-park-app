@@ -4,7 +4,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "./ui/sheet";
-import { Car, MapPin, History, StickyNote, Users } from "lucide-react";
+import { Car, MapPin, History, StickyNote, Users, Medal } from "lucide-react";
 import { SheetMenuItem } from "./sheet-menu-item";
 import { EmployeeOfTheDay } from "./employee-of-the-day";
 
@@ -72,19 +72,25 @@ export function AppInfoSheet() {
             href="https://www.scpclub.com/"
           />
         </NavSection>
-        <NavSection label="Information">
+        <NavSection label="Roster">
           {/* <SheetMenuItem */}
+          <SheetMenuItem
+            icon={Medal}
+            label="Employee of the Month"
+            description="This year's EOM roll of honour"
+            href="/employee-of-the-month"
+          />
           {/*   icon={History} */}
           {/*   label="History" */}
           {/*   description="Browse borrow and free activity" */}
           {/*   onClick={() => scrollTo("history")} */}
           {/* /> */}
-          <SheetMenuItem
-            icon={StickyNote}
-            label="Notes"
-            description="Daily team notes"
-            onClick={() => scrollTo("notes")}
-          />
+          {/* <SheetMenuItem */}
+          {/*   icon={StickyNote} */}
+          {/*   label="Notes" */}
+          {/*   description="Daily team notes" */}
+          {/*   onClick={() => scrollTo("notes")} */}
+          {/* /> */}
         </NavSection>
         <hr className="border-t border-border" />
         <EmployeeOfTheDay />
