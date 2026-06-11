@@ -8,7 +8,15 @@ import {
   DialogTitle,
   DialogDescription,
 } from "./ui/dialog";
-import { Medal, ThumbsUp, Loader2, Search, Check, Vote, Ban } from "lucide-react";
+import {
+  Medal,
+  ThumbsUp,
+  Loader2,
+  Search,
+  Check,
+  Vote,
+  Ban,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface VoteModalProps {
@@ -17,9 +25,19 @@ interface VoteModalProps {
   onVoteSubmitted?: () => void;
 }
 
-type Step = "loading" | "voting" | "voted" | "already-voted" | "error" | "self-vote";
+type Step =
+  | "loading"
+  | "voting"
+  | "voted"
+  | "already-voted"
+  | "error"
+  | "self-vote";
 
-export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProps) {
+export function VoteModal({
+  open,
+  onOpenChange,
+  onVoteSubmitted,
+}: VoteModalProps) {
   const [step, setStep] = useState<Step>("loading");
   const [candidates, setCandidates] = useState<string[]>([]);
   const [voterName, setVoterName] = useState<string | null>(null);
@@ -102,16 +120,16 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
             <Medal className="w-5 h-5 text-orange-500" />
             Vote for Employee of the Month
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs text-muted-foreground">
             {step === "already-voted"
-              ? `You voted for ${votedFor}.`
+              ? `Welcome back, ${voterName}.`
               : step === "voted"
                 ? "Your vote has been recorded."
                 : step === "error"
                   ? "Something went wrong."
                   : step === "self-vote"
                     ? "That's a bold strategy, Cotton."
-                    : "Choose your nominee for this month."}
+                    : "Choose your nominee for this month. You only get one vote."}
           </DialogDescription>
         </DialogHeader>
 
@@ -143,8 +161,13 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
               </div>
               <p className="text-sm text-muted-foreground text-center max-w-xs">
                 You already cast your vote for{" "}
-                <span className="font-semibold text-foreground">{votedFor}</span>
+                <span className="font-semibold text-foreground">
+                  {votedFor}
+                </span>
                 .
+              </p>
+              <p className="text-sm text-muted-foreground text-center max-w-xs">
+                Wait until the next month to vote again.
               </p>
             </div>
           )}
@@ -156,7 +179,9 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
               </div>
               <p className="text-sm text-muted-foreground text-center max-w-xs">
                 Your vote for{" "}
-                <span className="font-semibold text-foreground">{selected}</span>{" "}
+                <span className="font-semibold text-foreground">
+                  {selected}
+                </span>{" "}
                 has been submitted.
               </p>
             </div>
@@ -168,8 +193,8 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
                 <Ban className="w-7 h-7 text-amber-600" />
               </div>
               <p className="text-sm text-muted-foreground text-center max-w-xs">
-                Voting for yourself? That&apos;s like giving yourself a high five
-                — nice try though!
+                Voting for yourself? That&apos;s like giving yourself a high
+                five — nice try though!
               </p>
               <button
                 onClick={() => setStep("voting")}
@@ -243,7 +268,10 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
           )}
         </div>
 
-        {(step === "voting" || step === "already-voted" || step === "error" || step === "self-vote") && (
+        {(step === "voting" ||
+          step === "already-voted" ||
+          step === "error" ||
+          step === "self-vote") && (
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
             {step === "voting" && (
               <>
@@ -268,7 +296,9 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
                 </button>
               </>
             )}
-            {(step === "already-voted" || step === "error" || step === "self-vote") && (
+            {(step === "already-voted" ||
+              step === "error" ||
+              step === "self-vote") && (
               <button
                 onClick={() => onOpenChange(false)}
                 className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
