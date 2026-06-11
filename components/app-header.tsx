@@ -92,6 +92,7 @@ export function AppHeader({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
               {[
+                "a.greensmith@slimstock.com",
                 "m.guerreiro@slimstock.com",
                 "j.cooper@slimstock.com",
                 "n.cooper@slimstock.com",
@@ -193,8 +194,12 @@ function AvatarMenu({
       {open && (
         <div className="absolute right-0 top-full mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg py-1 z-50">
           <div className="px-3 py-2 border-b border-border">
-            <p className="text-sm font-medium text-foreground truncate">{currentUser}</p>
-            <p className="text-xs text-muted-foreground truncate mt-0.5">{userEmail}</p>
+            <p className="text-sm font-medium text-foreground truncate">
+              {currentUser}
+            </p>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">
+              {userEmail}
+            </p>
           </div>
           <button
             onClick={() => {

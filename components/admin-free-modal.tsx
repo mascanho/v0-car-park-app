@@ -334,7 +334,7 @@ export function AdminFreeModal({
               <button
                 type="button"
                 onClick={() => setTab("single")}
-                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                className={`px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/20 cursor-pointer rounded-t-md border-b-2 -mb-px ${
                   tab === "single"
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground"
@@ -345,7 +345,7 @@ export function AdminFreeModal({
               <button
                 type="button"
                 onClick={() => setTab("range")}
-                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 hover:bg-accent/20 cursor-pointer rounded-t-md -mb-px ${
                   tab === "range"
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground"
@@ -381,7 +381,7 @@ export function AdminFreeModal({
                           onClick={() => removeDate(d)}
                           className="ml-auto text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
                         >
-                          <X className="w-2.5 h-2.5 text-red-500" />
+                          <X className="w-2.5 h-2.5 text-red-500 cursor-pointer" />
                         </button>
                       </span>
                     ))}
@@ -418,7 +418,7 @@ export function AdminFreeModal({
                     variant="outline"
                     onClick={addRange}
                     disabled={!rangeStart || !rangeEnd}
-                    className="shrink-0"
+                    className="shrink-0 cursor-pointer"
                   >
                     Add Range
                   </Button>
@@ -462,6 +462,7 @@ export function AdminFreeModal({
             variant="outline"
             onClick={handleClose}
             disabled={isSubmitting}
+            className="cursor-pointer"
           >
             Close
           </Button>
@@ -471,6 +472,7 @@ export function AdminFreeModal({
               dates.length === 0 || selectedUsers.length === 0 || isSubmitting
             }
             variant="destructive"
+            className="cursor-pointer"
           >
             {isSubmitting
               ? "Freeing..."
