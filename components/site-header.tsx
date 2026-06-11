@@ -9,11 +9,13 @@ export function SiteHeader() {
   const [currentUser, setCurrentUser] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [isRegular, setIsRegular] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const supabaseRef = useRef(createClient());
 
   useEffect(() => {
-    supabaseRef.current.auth.getUser().then(({ data: { user } }) => {
+    const supabase = supabaseRef.current;
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (user) {
         const email = user.email || user.user_metadata?.email || "";
         setCurrentUser(
@@ -21,6 +23,13 @@ export function SiteHeader() {
         );
         setUserEmail(email);
         setAvatarUrl(user.user_metadata?.avatar_url || "");
+
+        const { data: userRecord } = await supabase
+          .from("users")
+          .select("is_regular")
+          .eq("email", email)
+          .maybeSingle();
+        setIsRegular(userRecord?.is_regular ?? false);
       }
     });
   }, []);
@@ -39,7 +48,7 @@ export function SiteHeader() {
       onToggleAdminMenu={() => setAdminMenuOpen((v) => !v)}
       onCloseAdminMenu={() => setAdminMenuOpen(false)}
       bulkFreeOpen={false}
-      onOpenBulkFree={() => {}}
+      onOpenBulkFree={() => window.location.href = "/"}
       onCloseBulkFree={() => {}}
       adminFreeOpen={false}
       onOpenAdminFree={() => {}}
@@ -49,7 +58,7 @@ export function SiteHeader() {
       onRefreshBookings={() => {}}
       onSignOut={handleSignOut}
       currentYear={new Date().getFullYear()}
-      isRegular={false}
+      isRegular={isRegular}
     />
   );
 }

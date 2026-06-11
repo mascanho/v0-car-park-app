@@ -2,7 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, MapPin, Clock, User } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  MapPin,
+  Clock,
+  User,
+  BoltIcon,
+  BellElectric,
+} from "lucide-react";
 import type { ParkingSpace, Booking } from "@/lib/parking-data";
 import { formatDate, isPastDate } from "@/lib/parking-data";
 
@@ -51,7 +58,7 @@ export function BookingPanel({
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border p-6 shadow-sm mt-4">
+    <div className="bg-card rounded-xl md:border md:border-border md:p-6 md:shadow-sm mt-4">
       <h3 className="font-semibold text-lg text-foreground mb-4">
         Booking Details
       </h3>
@@ -146,6 +153,14 @@ export function BookingPanel({
               Currently allocated to{" "}
               <span className="font-medium">{selectedSpaceBookedBy}</span>
             </p>
+          )}
+
+          {selectedSpace.id === "26" && (
+            <span>
+              <p className="text-xs text-muted-foreground mt-1">
+                This space allows EV charging{" "}
+              </p>
+            </span>
           )}
         </div>
       )}

@@ -4,7 +4,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "./ui/sheet";
-import { Car, MapPin, History, StickyNote, Users } from "lucide-react";
+import { Car, MapPin, History, StickyNote, Users, Medal } from "lucide-react";
 import { SheetMenuItem } from "./sheet-menu-item";
 import { EmployeeOfTheDay } from "./employee-of-the-day";
 
@@ -34,7 +34,10 @@ function NavSection({
 
 export function AppInfoSheet() {
   return (
-    <SheetContent side="right" className="flex flex-col">
+    <SheetContent
+      side="right"
+      className="flex flex-col w-full sm:max-w-[26.4rem]"
+    >
       <SheetHeader>
         <SheetTitle>Navigation</SheetTitle>
         <SheetDescription>Quick access to app sections</SheetDescription>
@@ -56,30 +59,38 @@ export function AppInfoSheet() {
           />
           <SheetMenuItem
             icon={Car}
-            label="Parking Lot"
-            description="View and manage parking spaces"
-            onClick={() => scrollTo("parking-lot")}
+            label="Slimstock Website"
+            description="Go to the Slimstock website"
+            // onClick={() => scrollTo("parking-lot")}
+            href="https://www.slimstock.com/"
           />
           <SheetMenuItem
             icon={MapPin}
-            label="Map View"
-            description="See car park locations"
-            onClick={() => scrollTo("map-view")}
+            label="SCP Club"
+            description="Go to the SCP Club"
+            // onClick={() => scrollTo("map-view")}
+            href="https://www.scpclub.com/"
           />
         </NavSection>
-        <NavSection label="Information">
+        <NavSection label="Roster">
           {/* <SheetMenuItem */}
+          <SheetMenuItem
+            icon={Medal}
+            label="Employee of the Month"
+            description="This year's EOM roll of honour"
+            href="/employee-of-the-month"
+          />
           {/*   icon={History} */}
           {/*   label="History" */}
           {/*   description="Browse borrow and free activity" */}
           {/*   onClick={() => scrollTo("history")} */}
           {/* /> */}
-          <SheetMenuItem
-            icon={StickyNote}
-            label="Notes"
-            description="Daily team notes"
-            onClick={() => scrollTo("notes")}
-          />
+          {/* <SheetMenuItem */}
+          {/*   icon={StickyNote} */}
+          {/*   label="Notes" */}
+          {/*   description="Daily team notes" */}
+          {/*   onClick={() => scrollTo("notes")} */}
+          {/* /> */}
         </NavSection>
         <hr className="border-t border-border" />
         <EmployeeOfTheDay />

@@ -15,6 +15,7 @@ export interface ParkingSpace {
   row: string;
   number: number;
   carParkId: string;
+  electrified?: boolean;
 }
 
 export interface Booking {
@@ -87,6 +88,7 @@ export function generateParkingSpaces(carPark: CarPark): ParkingSpace[] {
         row,
         number: num,
         carParkId: carPark.id,
+        electrified: carPark.id === 'grosvenor' && num === 26,
       });
     });
   });

@@ -12,6 +12,18 @@ interface BirthdayBannerProps {
 
 export function BirthdayBanner({ name, email, imageUrl }: BirthdayBannerProps) {
   useEffect(() => {
+    const COOKIE = "confetti_last_shown";
+    const lastShown = document.cookie
+      .split("; ")
+      .find((r) => r.startsWith(`${COOKIE}=`))
+      ?.split("=")[1];
+
+    if (lastShown && Date.now() - Number(lastShown) < 6 * 60 * 60 * 1000) {
+      return;
+    }
+
+    document.cookie = `${COOKIE}=${Date.now()}; path=/; max-age=${6 * 60 * 60}`;
+
     const duration = 2000;
     const end = Date.now() + duration;
 

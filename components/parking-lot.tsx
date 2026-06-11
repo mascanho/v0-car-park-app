@@ -67,11 +67,17 @@ export function ParkingLot({
     [bookings, carPark.id, formattedDate],
   );
 
-  const defaultSpaceId = (findUserSpace(currentUser, currentUserEmail, carPark.id))?.spaceId || null;
+  const defaultSpaceId =
+    findUserSpace(currentUser, currentUserEmail, carPark.id)?.spaceId || null;
   const defaultSpaceBooked = defaultSpaceId
     ? bookings.some((b) => b.spaceId === defaultSpaceId)
     : false;
-  const canQuickBook = !disabled && !existingBooking && !!defaultSpaceId && !defaultSpaceBooked && !!onQuickBook;
+  const canQuickBook =
+    !disabled &&
+    !existingBooking &&
+    !!defaultSpaceId &&
+    !defaultSpaceBooked &&
+    !!onQuickBook;
 
   const isSpaceBooked = useCallback(
     (spaceId: string) => {
@@ -98,138 +104,144 @@ export function ParkingLot({
 
   return (
     <TooltipProvider>
-    <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-      {/* Car Park Title */}
-      <div className="mb-4 pb-4 border-b border-border">
-        <h2 className="text-lg font-semibold text-foreground">
-          {carPark.name}
-        </h2>
-        <p className="text-sm text-muted-foreground">{carPark.location}</p>
-      </div>
+      <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+        {/* Car Park Title */}
+        <div className="mb-4 pb-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">
+            {carPark.name}
+          </h2>
+          <p className="text-sm text-muted-foreground">{carPark.location}</p>
+        </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 mb-6 pb-4 border-b border-border">
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-green-500/20 border-2 border-green-500/50" />
-          <span className="text-muted-foreground">Available</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/50" />
-          <span className="text-muted-foreground">Occupied</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-blue-500/20 border-2 border-blue-500" />
-          <span className="text-muted-foreground">Your Booking</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-violet-500/20 border-2 border-violet-500 ring-2 ring-violet-500 ring-offset-1" />
-          <span className="text-muted-foreground">Selected</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-4 h-4 rounded bg-neutral-800 border-2 border-neutral-600" />
-          <span className="text-muted-foreground">Visitor</span>
-        </div>
-      </div>
-
-      {/* Quick actions */}
-      {canQuickBook && (
-        <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
-          <button
-            onClick={onQuickBook}
-            disabled={isLoading}
-            className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-          >
-            {isLoading ? "Booking..." : "Book my space"}
-          </button>
-        </div>
-      )}
-
-      {/* Parking lot layout */}
-      <div className="relative">
-        {carPark.id === "grosvenor" ? (
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
-            Entry / Exit
+        {/* Legend */}
+        <div className="flex flex-wrap gap-4 mb-6 pb-4 border-b border-border">
+          <div className="flex items-center gap-2 text-sm">
+            <div className="w-4 h-4 rounded bg-green-500/20 border-2 border-green-500/50" />
+            <span className="text-muted-foreground">Available</span>
           </div>
-        ) : (
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-muted/50 rounded-full px-4 py-2 ">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="w-20 h-0.5 bg-muted-foreground/30" />
-              <span className="text-center w-full">Driving Lane</span>
-              <div className="w-20 h-0.5 bg-muted-foreground/30" />
-            </div>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/50" />
+            <span className="text-muted-foreground">Occupied</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="w-4 h-4 rounded bg-blue-500/20 border-2 border-blue-500" />
+            <span className="text-muted-foreground">Your Booking</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="w-4 h-4 rounded bg-violet-500/20 border-2 border-violet-500 ring-2 ring-violet-500 ring-offset-1" />
+            <span className="text-muted-foreground">Selected</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="w-4 h-4 rounded bg-neutral-800 border-2 border-neutral-600" />
+            <span className="text-muted-foreground">Visitor</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <span>⚡</span>
+            <span className="text-muted-foreground">EV Charger</span>
+          </div>
+        </div>
+
+        {/* Quick actions */}
+        {canQuickBook && (
+          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
+            <button
+              onClick={onQuickBook}
+              disabled={isLoading}
+              className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isLoading ? "Booking..." : "Book my space"}
+            </button>
           </div>
         )}
 
-        {/* Parking grid */}
-        <div className="pt-6 space-y-3">
-          {rows.map((row) => {
-            const rowSpaces = spaces.filter((s) => s.row === row);
-            return (
-              <div key={row} className="flex items-center gap-2">
-                <span className="w-6 text-sm font-semibold text-muted-foreground">
-                  {row}
-                </span>
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {rowSpaces.map((space) => (
-                    <ParkingSpaceCard
-                      key={space.id}
-                      space={space}
-                      isBooked={isSpaceBooked(space.id)}
-                      isSelected={selectedSpace?.id === space.id}
-                      isCurrentUserBooking={isCurrentUserBooking(space.id)}
-                      isVisitor={isVisitor(space.id)}
-                      bookedBy={getBookingForSpace(space.id)?.userName}
-                      initials={getBookingForSpace(space.id)?.initials}
-                      originalUser={getBookingForSpace(space.id)?.originalUser}
-                      onSelect={onSelectSpace}
-                      disabled={disabled}
-                      onFreeSpace={onFreeSpace}
-                      onReallocate={onReallocate}
-                      carParkId={carPark.id}
-                      currentUser={currentUser}
-                      currentUserEmail={currentUserEmail}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Driving lanes indicator / Entry */}
-        {carPark.id === "grosvenor" ? (
-          <div className="mt-4 flex justify-center">
-            <div className="bg-muted/50 rounded-lg px-4 py-2">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <div className="w-8 h-0.5 bg-muted-foreground/30" />
-                <span>Driving Lane</span>
-                <div className="w-8 h-0.5 bg-muted-foreground/30" />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-4 flex justify-center">
-            <div className="bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
+        {/* Parking lot layout */}
+        <div className="relative">
+          {carPark.id === "grosvenor" ? (
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
               Entry / Exit
             </div>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-muted/50 rounded-full px-4 py-2 ">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="w-20 h-0.5 bg-muted-foreground/30" />
+                <span className="text-center w-full">Driving Lane</span>
+                <div className="w-20 h-0.5 bg-muted-foreground/30" />
+              </div>
+            </div>
+          )}
 
-      {/* Booking details */}
-      <div className="mt-6 pt-2 border-t border-border">
-        <BookingPanel
-          selectedDate={date || new Date()}
-          selectedSpace={selectedSpace}
-          currentUser={currentUser}
-          onBook={onBook}
-          onCancel={onCancel}
-          existingBooking={existingBooking}
-          selectedSpaceBookedBy={selectedSpaceBookedBy}
-          isLoading={isLoading}
-        />
+          {/* Parking grid */}
+          <div className="pt-6 space-y-3">
+            {rows.map((row) => {
+              const rowSpaces = spaces.filter((s) => s.row === row);
+              return (
+                <div key={row} className="flex items-center gap-2">
+                  <span className="w-6 text-sm font-semibold text-muted-foreground">
+                    {row}
+                  </span>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {rowSpaces.map((space) => (
+                      <ParkingSpaceCard
+                        key={space.id}
+                        space={space}
+                        isBooked={isSpaceBooked(space.id)}
+                        isSelected={selectedSpace?.id === space.id}
+                        isCurrentUserBooking={isCurrentUserBooking(space.id)}
+                        isVisitor={isVisitor(space.id)}
+                        bookedBy={getBookingForSpace(space.id)?.userName}
+                        initials={getBookingForSpace(space.id)?.initials}
+                        originalUser={
+                          getBookingForSpace(space.id)?.originalUser
+                        }
+                        onSelect={onSelectSpace}
+                        disabled={disabled}
+                        onFreeSpace={onFreeSpace}
+                        onReallocate={onReallocate}
+                        carParkId={carPark.id}
+                        currentUser={currentUser}
+                        currentUserEmail={currentUserEmail}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Driving lanes indicator / Entry */}
+          {carPark.id === "grosvenor" ? (
+            <div className="mt-4 flex justify-center">
+              <div className="bg-muted/50 rounded-lg px-4 py-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="w-8 h-0.5 bg-muted-foreground/30" />
+                  <span>Driving Lane</span>
+                  <div className="w-8 h-0.5 bg-muted-foreground/30" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 flex justify-center">
+              <div className="bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
+                Entry / Exit
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Booking details */}
+        <div className="mt-6 pt-2 border-t border-border">
+          <BookingPanel
+            selectedDate={date || new Date()}
+            selectedSpace={selectedSpace}
+            currentUser={currentUser}
+            onBook={onBook}
+            onCancel={onCancel}
+            existingBooking={existingBooking}
+            selectedSpaceBookedBy={selectedSpaceBookedBy}
+            isLoading={isLoading}
+          />
+        </div>
       </div>
-    </div>
     </TooltipProvider>
   );
 }
