@@ -104,7 +104,7 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
           </DialogTitle>
           <DialogDescription>
             {step === "already-voted"
-              ? `You voted for ${votedFor} this month.`
+              ? `You voted for ${votedFor}.`
               : step === "voted"
                 ? "Your vote has been recorded."
                 : step === "error"
@@ -143,8 +143,8 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
               </div>
               <p className="text-sm text-muted-foreground text-center max-w-xs">
                 You already cast your vote for{" "}
-                <span className="font-semibold text-foreground">{votedFor}</span>{" "}
-                this month.
+                <span className="font-semibold text-foreground">{votedFor}</span>
+                .
               </p>
             </div>
           )}

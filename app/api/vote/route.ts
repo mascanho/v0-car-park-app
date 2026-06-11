@@ -39,7 +39,7 @@ export async function GET() {
     }
   }
 
-  const alreadyVoted = userHasVoted === CURRENT_MONTH;
+  const alreadyVoted = userHasVoted != null;
 
   return NextResponse.json({
     candidates,
@@ -96,8 +96,8 @@ export async function POST(request: Request) {
 
   const existingRow = existing as { has_voted: number | null } | null;
 
-  if (existingRow?.has_voted === CURRENT_MONTH) {
-    return NextResponse.json({ error: "Already voted this month" }, { status: 409 });
+  if (existingRow?.has_voted != null) {
+    return NextResponse.json({ error: "You have already cast your vote" }, { status: 409 });
   }
 
   const { error: updateError, data: updated } = await supabase
