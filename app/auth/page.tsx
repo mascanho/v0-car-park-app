@@ -34,16 +34,25 @@ export default function AuthPage() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-600/15 via-transparent to-transparent" />
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl animate-pulse" style={{ animationDuration: "4s" }} />
-        <div className="absolute bottom-1/4 -right-32 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl animate-pulse" style={{ animationDuration: "5s" }} />
+        <div
+          className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl animate-pulse"
+          style={{ animationDuration: "4s" }}
+        />
+        <div
+          className="absolute bottom-1/4 -right-32 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl animate-pulse"
+          style={{ animationDuration: "5s" }}
+        />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-blue-400/5 blur-3xl" />
       </div>
 
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
-        <div className="w-full h-full" style={{
-          backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
-          backgroundSize: '60px 60px'
-        }} />
+        <div
+          className="w-full h-full"
+          style={{
+            backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
+            backgroundSize: "60px 60px",
+          }}
+        />
       </div>
 
       <div className="w-full max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -91,10 +100,10 @@ export default function AuthPage() {
                 <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-amber-300">
-                    SlimStock email required
+                    Gmail account required
                   </p>
                   <p className="text-[10px] text-amber-400/70 leading-relaxed">
-                    Sign in with your{" "}
+                    You must have Gmail linked with{" "}
                     <span className="font-medium text-amber-300">
                       @slimstock.com
                     </span>{" "}
@@ -138,8 +147,7 @@ export default function AuthPage() {
             </button>
 
             <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-              </div>
+              <div className="absolute inset-0 flex items-center"></div>
               <div className="relative flex justify-center text-xs">
                 <span className="px-3 bg-transparent text-white/30 tracking-wider uppercase">
                   Authorised Access Only
