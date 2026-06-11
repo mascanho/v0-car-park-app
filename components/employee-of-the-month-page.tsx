@@ -12,9 +12,7 @@ import {
   Medal,
   Crown,
   Clock,
-  ThumbsUp,
   Loader2,
-  Vote,
 } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 
@@ -190,19 +188,38 @@ function AssignedCard({ user, month }: { user: EomUser; month: number }) {
 
 function PendingCard({ month }: { month: number }) {
   return (
-    <div className="relative rounded-2xl border border-dashed border-muted-foreground/25 bg-card/50 overflow-hidden transition-all duration-300 hover:border-muted-foreground/40 group flex flex-col">
-      <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-muted/10 blur-2xl pointer-events-none" />
+    <div className="relative rounded-2xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group flex flex-col min-h-[260px]">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500/40 via-blue-600/30 to-orange-500/40" />
+      <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-blue-500/[0.04] blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-12 -left-12 w-32 h-32 rounded-full bg-orange-500/[0.04] blur-3xl pointer-events-none" />
 
-      <div className="relative p-5 flex flex-col h-full items-center justify-center min-h-[220px]">
-        <div className="w-16 h-16 rounded-full bg-muted/60 flex items-center justify-center ring-2 ring-muted-foreground/10 group-hover:ring-muted-foreground/20 transition-all mb-3">
-          <Clock className="w-6 h-6 text-muted-foreground/40" />
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: `radial-gradient(circle at 8px 8px, hsl(var(--foreground)) 1px, transparent 1px)`,
+          backgroundSize: "24px 24px",
+        }}
+      />
+
+      <div className="relative p-5 flex flex-col h-full">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-blue-600/60">
+            {MONTHS[month - 1]}
+          </span>
+          <span className="text-[10px] font-medium text-muted-foreground/30 uppercase tracking-wider">
+            Upcoming
+          </span>
         </div>
-        <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-1">
-          {MONTHS[month - 1]}
-        </span>
-        <span className="text-xs font-medium text-muted-foreground/40">
-          Pending
-        </span>
+
+        <div className="flex-1 flex flex-col items-center justify-center py-4">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500/10 to-orange-500/10 flex items-center justify-center ring-2 ring-blue-500/10 mb-4">
+            <Medal className="w-6 h-6 text-blue-500/40" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground/50 text-center leading-snug max-w-[140px]">
+            No winner yet
+          </p>
+        </div>
+
+        {/* Vote button hidden for now */}
       </div>
     </div>
   );
@@ -231,28 +248,18 @@ export function EmployeeOfTheMonthPage() {
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
         <AppBreadcrumbs segments={[{ label: "Employee of the Month" }]} />
 
-        <div className="mb-8 flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-orange-500 flex items-center justify-center shrink-0">
-              <Medal className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                Employee of the Month
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {assignedCount} of 12 months assigned for {year}
-              </p>
-            </div>
+        <div className="mb-8 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-orange-500 flex items-center justify-center shrink-0">
+            <Medal className="w-5 h-5 text-white" />
           </div>
-
-          <button
-            onClick={() => setVoteModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shrink-0"
-          >
-            <ThumbsUp className="w-4 h-4" />
-            Vote
-          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              Employee of the Month
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {assignedCount} of 12 months assigned for {year}
+            </p>
+          </div>
         </div>
 
         <VoteModal open={voteModalOpen} onOpenChange={setVoteModalOpen} />

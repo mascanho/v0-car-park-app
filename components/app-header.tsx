@@ -132,6 +132,7 @@ export function AppHeader({
               <AvatarMenu
                 currentUser={currentUser}
                 avatarUrl={avatarUrl}
+                userEmail={userEmail}
                 onSignOut={onSignOut}
               />
             </div>
@@ -145,10 +146,12 @@ export function AppHeader({
 function AvatarMenu({
   currentUser,
   avatarUrl,
+  userEmail,
   onSignOut,
 }: {
   currentUser: string;
   avatarUrl: string;
+  userEmail: string;
   onSignOut: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -188,15 +191,19 @@ function AvatarMenu({
         </span>
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-lg shadow-lg py-1 z-50">
+        <div className="absolute right-0 top-full mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg py-1 z-50">
+          <div className="px-3 py-2 border-b border-border">
+            <p className="text-sm font-medium text-foreground truncate">{currentUser}</p>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">{userEmail}</p>
+          </div>
           <button
             onClick={() => {
               setOpen(false);
               onSignOut();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left hover:text-white"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
           >
-            <LogOut className="w-4 h-4 text-black hover:text-white active:text-white" />
+            <LogOut className="w-4 h-4 text-muted-foreground" />
             Sign out
           </button>
         </div>
