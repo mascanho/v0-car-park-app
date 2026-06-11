@@ -70,16 +70,22 @@ export function EmployeeOfTheDay() {
   const [user, setUser] = useState<EotdUser | null>(null);
 
   useEffect(() => {
-    fetch("/api/eom")
+    const currentMonth = new Date().getMonth() + 1;
+    fetch("/api/employee-of-month")
       .then((r) => r.json())
-      .then((d) => setUser(d))
+      .then((d) => {
+        const entry = d.months?.find(
+          (m: { month: number; assigned: boolean; user?: EotdUser }) =>
+            m.month === currentMonth && m.assigned,
+        );
+        if (entry?.user) setUser(entry.user);
+      })
       .catch(() => {});
   }, []);
 
   if (!user) return null;
 
   const photoUrl = getPhotoUrl(user.email, user.photo);
-  console.log("EOTD photo URL:", photoUrl, "email:", user.email, "raw photo:", user.photo);
 
   return (
     <div className="px-4 pb-4 flex-1 flex flex-col">
