@@ -1,9 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Crown, Medal, ParkingCircle, ExternalLink, Cake } from "lucide-react";
+import {
+  Crown,
+  Medal,
+  ParkingCircle,
+  ExternalLink,
+  Cake,
+  MessageCircle,
+} from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 import { getPhotoUrl } from "@/lib/utils";
+
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 interface EotdUser {
   name: string;
@@ -100,6 +122,9 @@ export function EmployeeOfTheDay() {
             <span className="text-[11px] font-bold uppercase tracking-widest text-blue-600">
               Employee of the Month
             </span>
+            <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-orange-500">
+              {MONTHS[new Date().getMonth()]}
+            </span>
           </div>
 
           <div className="flex items-center gap-4 mb-4">
@@ -145,44 +170,59 @@ export function EmployeeOfTheDay() {
             </div>
           )}
 
-          <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3 border-t border-blue-500/10">
-            {(user.car_park || user.car_space) && (
-              <span className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full bg-muted/50 text-[10px] font-medium leading-none text-muted-foreground/60">
-                <ParkingCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
-                {user.car_space && (
-                  <span className="tabular-nums">#{user.car_space}</span>
-                )}
-                {user.car_park && (
-                  <span className="truncate max-w-24 capitalize">
-                    {user.car_park}
-                  </span>
-                )}
-              </span>
-            )}
-            <BirthdayBadge
-              birthday={user.birthday}
-              name={user.name}
-              email={user.email}
-            />
-            {user.website && (
-              <a
-                href={
-                  user.website.startsWith("http")
-                    ? user.website
-                    : `https://${user.website}`
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full text-[10px] font-medium leading-none text-primary hover:bg-primary/10 transition-colors"
-              >
-                <ExternalLink className="w-2.5 h-2.5" />
-                {new URL(
-                  user.website.startsWith("http")
-                    ? user.website
-                    : `https://${user.website}`,
-                ).hostname.replace("www.", "")}
-              </a>
-            )}
+          <div className="mt-auto flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-blue-500/10">
+              {(user.car_park || user.car_space) && (
+                <span className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full bg-muted/50 text-[10px] font-medium leading-none text-muted-foreground/60">
+                  <ParkingCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
+                  {user.car_space && (
+                    <span className="tabular-nums">#{user.car_space}</span>
+                  )}
+                  {user.car_park && (
+                    <span className="truncate max-w-24 capitalize">
+                      {user.car_park}
+                    </span>
+                  )}
+                </span>
+              )}
+              <BirthdayBadge
+                birthday={user.birthday}
+                name={user.name}
+                email={user.email}
+              />
+              {user.website && (
+                <a
+                  href={
+                    user.website.startsWith("http")
+                      ? user.website
+                      : `https://${user.website}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full text-[10px] font-medium leading-none text-primary hover:bg-primary/10 transition-colors"
+                >
+                  <ExternalLink className="w-2.5 h-2.5" />
+                  {new URL(
+                    user.website.startsWith("http")
+                      ? user.website
+                      : `https://${user.website}`,
+                  ).hostname.replace("www.", "")}
+                </a>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                window.open(
+                  `https://teams.microsoft.com/l/chat/0/0?users=${user.email}`,
+                  "_blank",
+                )
+              }
+              className="inline-flex items-center justify-center gap-2 w-full h-9 mt-2 rounded-xl bg-gradient-to-r from-blue-600 to-orange-500 text-white text-xs font-bold hover:opacity-90 transition-all cursor-pointer"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              Congratulate {user.name.split(" ")[0]}
+            </button>
           </div>
         </div>
       </div>
