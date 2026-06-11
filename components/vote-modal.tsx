@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "./ui/dialog";
-import { Medal, ThumbsUp, Loader2, Search, Check, Vote } from "lucide-react";
+import { Medal, ThumbsUp, Loader2, Search, Check, Vote, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface VoteModalProps {
@@ -17,11 +17,12 @@ interface VoteModalProps {
   onVoteSubmitted?: () => void;
 }
 
-type Step = "loading" | "voting" | "voted" | "already-voted" | "error";
+type Step = "loading" | "voting" | "voted" | "already-voted" | "error" | "self-vote";
 
 export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProps) {
   const [step, setStep] = useState<Step>("loading");
   const [candidates, setCandidates] = useState<string[]>([]);
+  const [voterName, setVoterName] = useState<string | null>(null);
   const [votedFor, setVotedFor] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,6 +34,7 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
       setCandidates(data.candidates ?? []);
+      setVoterName(data.voterName ?? null);
       if (data.alreadyVoted) {
         setVotedFor(data.votedFor);
         setStep("already-voted");
@@ -52,6 +54,14 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
     }
   }, [open, fetchState]);
 
+  function handleSelect(name: string) {
+    if (name === voterName) {
+      setStep("self-vote");
+      return;
+    }
+    setSelected(name);
+  }
+
   async function handleSubmit() {
     if (!selected) return;
     try {
@@ -65,6 +75,10 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
         if (res.status === 409) {
           setVotedFor(err.votedFor ?? selected);
           setStep("already-voted");
+          return;
+        }
+        if (res.status === 422) {
+          setStep("self-vote");
           return;
         }
         throw new Error(err.error || "Failed");
@@ -95,7 +109,9 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
                 ? "Your vote has been recorded."
                 : step === "error"
                   ? "Something went wrong."
-                  : "Choose your nominee for this month."}
+                  : step === "self-vote"
+                    ? "That's a bold strategy, Cotton."
+                    : "Choose your nominee for this month."}
           </DialogDescription>
         </DialogHeader>
 
@@ -146,6 +162,24 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
             </div>
           )}
 
+          {step === "self-vote" && (
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
+                <Ban className="w-7 h-7 text-amber-600" />
+              </div>
+              <p className="text-sm text-muted-foreground text-center max-w-xs">
+                Voting for yourself? That&apos;s like giving yourself a high five
+                — nice try though!
+              </p>
+              <button
+                onClick={() => setStep("voting")}
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
+              >
+                Pick someone else
+              </button>
+            </div>
+          )}
+
           {step === "voting" && (
             <div className="space-y-3">
               <div className="relative">
@@ -163,40 +197,53 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
                     No matches found.
                   </p>
                 ) : (
-                  filteredCandidates.map((name) => (
-                    <button
-                      key={name}
-                      onClick={() => setSelected(name)}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition-all cursor-pointer",
-                        selected === name
-                          ? "bg-primary/10 text-primary ring-1 ring-primary/30"
-                          : "hover:bg-muted text-foreground",
-                      )}
-                    >
-                      <div
+                  filteredCandidates.map((name) => {
+                    const isSelf = name === voterName;
+                    return (
+                      <button
+                        key={name}
+                        onClick={() => handleSelect(name)}
                         className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
-                          selected === name
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted-foreground/10 text-muted-foreground",
+                          "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition-all cursor-pointer",
+                          selected === name && !isSelf
+                            ? "bg-primary/10 text-primary ring-1 ring-primary/30"
+                            : isSelf
+                              ? "opacity-50 cursor-not-allowed"
+                              : "hover:bg-muted text-foreground",
                         )}
+                        disabled={isSelf}
                       >
-                        {name.charAt(0)}
-                      </div>
-                      <span className="truncate">{name}</span>
-                      {selected === name && (
-                        <Vote className="w-4 h-4 ml-auto shrink-0 text-primary" />
-                      )}
-                    </button>
-                  ))
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+                            selected === name && !isSelf
+                              ? "bg-primary text-primary-foreground"
+                              : isSelf
+                                ? "bg-muted text-muted-foreground"
+                                : "bg-muted-foreground/10 text-muted-foreground",
+                          )}
+                        >
+                          {name.charAt(0)}
+                        </div>
+                        <span className="truncate">{name}</span>
+                        {isSelf && (
+                          <span className="ml-auto text-[10px] font-medium text-muted-foreground/50 shrink-0">
+                            That&apos;s you
+                          </span>
+                        )}
+                        {selected === name && !isSelf && (
+                          <Vote className="w-4 h-4 ml-auto shrink-0 text-primary" />
+                        )}
+                      </button>
+                    );
+                  })
                 )}
               </div>
             </div>
           )}
         </div>
 
-        {(step === "voting" || step === "already-voted" || step === "error") && (
+        {(step === "voting" || step === "already-voted" || step === "error" || step === "self-vote") && (
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
             {step === "voting" && (
               <>
@@ -221,7 +268,7 @@ export function VoteModal({ open, onOpenChange, onVoteSubmitted }: VoteModalProp
                 </button>
               </>
             )}
-            {(step === "already-voted" || step === "error") && (
+            {(step === "already-voted" || step === "error" || step === "self-vote") && (
               <button
                 onClick={() => onOpenChange(false)}
                 className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"

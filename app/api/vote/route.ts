@@ -69,6 +69,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No email on account" }, { status: 400 });
   }
 
+  const { data: voterData } = await supabase
+    .from("users")
+    .select("name")
+    .ilike("email", email)
+    .maybeSingle();
+
+  const voterRow = voterData as { name: string } | null;
+
+  if (!voterRow) {
+    return NextResponse.json({ error: "Voter not found" }, { status: 400 });
+  }
+
+  if (voterRow.name === votedFor) {
+    return NextResponse.json(
+      { error: "Voting for yourself? That's like giving yourself a high five — nice try though!" },
+      { status: 422 },
+    );
+  }
+
   const { data: existing } = await supabase
     .from("users")
     .select("has_voted")
