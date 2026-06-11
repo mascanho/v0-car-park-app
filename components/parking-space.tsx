@@ -26,6 +26,7 @@ interface ParkingSpaceProps {
   carParkId?: string;
   currentUser?: string;
   currentUserEmail?: string;
+  isRegular?: boolean;
 }
 
 export function ParkingSpaceCard({
@@ -44,6 +45,7 @@ export function ParkingSpaceCard({
   carParkId,
   currentUser,
   currentUserEmail,
+  isRegular,
 }: ParkingSpaceProps) {
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
   const [showUsers, setShowUsers] = useState(false);
@@ -70,6 +72,7 @@ export function ParkingSpaceCard({
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
+    if (!isRegular) return;
     e.preventDefault();
     setMenuPos({ x: e.clientX, y: e.clientY });
     setShowUsers(false);
