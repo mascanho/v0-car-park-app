@@ -10,6 +10,12 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      const { data: { user } } = await supabase.auth.getUser()
+      const email = user?.email ?? ''
+      if (!email.endsWith('@slimstock.com')) {
+        await supabase.auth.signOut()
+        return NextResponse.redirect(`${origin}/auth?error=invalid_domain`)
+      }
       const forwarded = request.headers.get('x-forwarded-host')
       const isLocalEnv = process.env.NODE_ENV === 'development'
       const allowedOrigin = isLocalEnv

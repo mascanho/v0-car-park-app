@@ -1,12 +1,21 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { Car, AlertTriangle, Info } from "lucide-react";
-import { useState } from "react";
+import { Car, AlertTriangle, Info, XCircle } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
+    if (err === "invalid_domain") {
+      setError("Access denied. Only @slimstock.com accounts are allowed.");
+    }
+  }, []);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -40,6 +49,21 @@ export default function AuthPage() {
             </p>
           </div>
 
+          {error && (
+            <div className="bg-red-50 dark:bg-red-950/40 border border-red-200/70 dark:border-red-800/50 rounded-xl p-4 mb-4">
+              <div className="flex gap-3">
+                <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-red-800 dark:text-red-300">
+                    Access denied
+                  </p>
+                  <p className="text-xs text-red-700/80 dark:text-red-400/80 leading-relaxed">
+                    {error}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-800/50 rounded-xl p-4 mb-6">
             <div className="flex gap-3">
               <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
