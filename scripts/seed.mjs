@@ -27,15 +27,16 @@ const grosvenorSpaces = [
 const smallwoodSpaces = [
   ['31', 'smallwood', 'Lisa Berry', 'LB'],
   ['32', 'smallwood', 'Jason Haller', 'JH'],
-  ['33', 'smallwood', 'Samual Round', 'SR'],
+  ['33', 'smallwood', 'Samuel Round', 'SR'],
   ['34', 'smallwood', 'Andrew Brush', 'AB'],
   ['35', 'smallwood', 'Chris Robertson', 'CR'],
   ['36', 'smallwood', 'Joshua Taiwo', 'JT'],
   ['37', 'smallwood', 'Rob Hutton', 'RH'],
   ['38', 'smallwood', 'Zu Ali', 'ZA'],
-  ['39', 'smallwood', 'Marco Guerreirco', 'MG'],
+  ['39', 'smallwood', 'Marco Guerreiro', 'MG'],
   ['40', 'smallwood', 'Victoria Lima', 'VL'],
   ['56', 'smallwood', 'Rob Crellin', 'RC'],
+  ['57', 'smallwood', 'Viv Keech', 'VK'],
   ['58', 'smallwood', 'Javier Garcia', 'JG'],
   ['59', 'smallwood', 'Mark Wheeler', 'MW'],
 ];

@@ -1,0 +1,64 @@
+"use client";
+
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { AppHeader } from "./app-header";
+import type { CarPark } from "@/lib/parking-data";
+
+export function SiteHeader() {
+  const [currentUser, setCurrentUser] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [isRegular, setIsRegular] = useState(false);
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const supabaseRef = useRef(createClient());
+
+  useEffect(() => {
+    const supabase = supabaseRef.current;
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (user) {
+        const email = user.email || user.user_metadata?.email || "";
+        setCurrentUser(
+          user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+        );
+        setUserEmail(email);
+        setAvatarUrl(user.user_metadata?.avatar_url || "");
+
+        const { data: userRecord } = await supabase
+          .from("users")
+          .select("is_regular")
+          .eq("email", email)
+          .maybeSingle();
+        setIsRegular(userRecord?.is_regular ?? false);
+      }
+    });
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    await supabaseRef.current.auth.signOut();
+    window.location.href = "/auth";
+  }, []);
+
+  return (
+    <AppHeader
+      currentUser={currentUser}
+      avatarUrl={avatarUrl}
+      userEmail={userEmail}
+      adminMenuOpen={adminMenuOpen}
+      onToggleAdminMenu={() => setAdminMenuOpen((v) => !v)}
+      onCloseAdminMenu={() => setAdminMenuOpen(false)}
+      bulkFreeOpen={false}
+      onOpenBulkFree={() => window.location.href = "/"}
+      onCloseBulkFree={() => {}}
+      adminFreeOpen={false}
+      onOpenAdminFree={() => {}}
+      onCloseAdminFree={() => {}}
+      carParks={[]}
+      selectedCarPark={{} as CarPark}
+      onRefreshBookings={() => {}}
+      onSignOut={handleSignOut}
+      currentYear={new Date().getFullYear()}
+      isRegular={isRegular}
+    />
+  );
+}

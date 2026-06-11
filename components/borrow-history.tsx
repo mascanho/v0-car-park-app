@@ -14,11 +14,7 @@ interface BorrowHistoryProps {
   selectedDate: Date;
 }
 
-export function BorrowHistory({
-  carParkId,
-  carParkName,
-  selectedDate,
-}: BorrowHistoryProps) {
+export function BorrowHistory({ carParkId, selectedDate }: BorrowHistoryProps) {
   const { data: allHistory = [], isLoading } = useSWR<BorrowRecord[]>(
     "/api/history",
     fetcher,
@@ -57,14 +53,14 @@ export function BorrowHistory({
                 <span className="font-mono text-[9px] font-semibold text-muted-foreground min-w-[40px]">
                   #{e.spaceId}
                 </span>
-                <span className="text-destructive text-[9px]">
+                <span className="text-destructive text-[11px]">
                   {e.borrowedBy.replace(" [FREED]", "")} freed
                 </span>
               </>
             ) : e.originalOwner === "[NEW]" ? (
               <>
                 <CirclePlus className="w-3 h-3 text-accent shrink-0" />
-                <span className="font-mono text-[9px] font-semibold text-muted-foreground min-w-[40px]">
+                <span className="font-mono text-[11px] font-semibold text-muted-foreground min-w-[40px]">
                   #{e.spaceId}
                 </span>
                 {e.allocatedBy ? (
@@ -81,7 +77,7 @@ export function BorrowHistory({
                     </span>
                   </span>
                 ) : (
-                  <span className="text-accent text-[9px]">
+                  <span className="text-accent text-[11px]">
                     {e.borrowedBy} booked
                   </span>
                 )}

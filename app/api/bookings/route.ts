@@ -165,7 +165,91 @@ export async function DELETE(request: Request) {
   
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
-  
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
+  const carParkId = searchParams.get('carParkId');
+  const userName = searchParams.get('userName');
+  const userNames = searchParams.getAll('userNames');
+  const dates = searchParams.getAll('dates');
+  const targetUsers = userNames.length > 0 ? userNames : (userName ? [userName] : []);
+
+  // Bulk delete by specific dates (non-sequential) for users
+  if (dates.length > 0 && carParkId && targetUsers.length > 0) {
+    const { data: bookings, error: fetchErr } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('car_park_id', carParkId)
+      .in('user_name', targetUsers)
+      .in('booking_date', dates);
+
+    if (fetchErr) {
+      return NextResponse.json({ error: fetchErr.message }, { status: 500 });
+    }
+
+    for (const booking of bookings || []) {
+      await supabase.from('borrow_history').insert({
+        space_id: booking.space_id,
+        car_park_id: booking.car_park_id,
+        booking_date: booking.booking_date,
+        original_owner: booking.user_name,
+        borrowed_by: '[BULK FREED]',
+      });
+    }
+
+    const { error: deleteErr } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('car_park_id', carParkId)
+      .in('user_name', targetUsers)
+      .in('booking_date', dates);
+
+    if (deleteErr) {
+      return NextResponse.json({ error: deleteErr.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, freedCount: bookings?.length || 0 });
+  }
+
+  // Bulk delete by date range for users
+  if (startDate && endDate && carParkId && targetUsers.length > 0) {
+    const { data: bookings, error: fetchErr } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('car_park_id', carParkId)
+      .in('user_name', targetUsers)
+      .gte('booking_date', startDate)
+      .lte('booking_date', endDate);
+
+    if (fetchErr) {
+      return NextResponse.json({ error: fetchErr.message }, { status: 500 });
+    }
+
+    for (const booking of bookings || []) {
+      await supabase.from('borrow_history').insert({
+        space_id: booking.space_id,
+        car_park_id: booking.car_park_id,
+        booking_date: booking.booking_date,
+        original_owner: booking.user_name,
+        borrowed_by: '[BULK FREED]',
+      });
+    }
+
+    const { error: deleteErr } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('car_park_id', carParkId)
+      .in('user_name', targetUsers)
+      .gte('booking_date', startDate)
+      .lte('booking_date', endDate);
+
+    if (deleteErr) {
+      return NextResponse.json({ error: deleteErr.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, freedCount: bookings?.length || 0 });
+  }
+
+  // Single delete by id
   if (!id) {
     return NextResponse.json({ error: 'Missing booking id' }, { status: 400 });
   }

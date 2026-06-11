@@ -2,7 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, MapPin, Clock, User } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  MapPin,
+  Clock,
+  User,
+  BoltIcon,
+  BellElectric,
+} from "lucide-react";
 import type { ParkingSpace, Booking } from "@/lib/parking-data";
 import { formatDate, isPastDate } from "@/lib/parking-data";
 
@@ -51,7 +58,7 @@ export function BookingPanel({
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border p-6 shadow-sm mt-4">
+    <div className="bg-card rounded-xl md:border md:border-border md:p-6 md:shadow-sm mt-4">
       <h3 className="font-semibold text-lg text-foreground mb-4">
         Booking Details
       </h3>
@@ -75,10 +82,10 @@ export function BookingPanel({
       {/* Existing booking (only when not switching) */}
       {existingBooking &&
         (!selectedSpace || selectedSpace.id === existingBooking.spaceId) && (
-          <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-4">
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <MapPin className="w-4 h-4 text-accent" />
-              <span className="font-medium text-accent-foreground text-black">
+              <MapPin className="w-4 h-4 text-blue-500" />
+              <span className="font-medium text-blue-700 dark:text-blue-400">
                 Your booking
               </span>
             </div>
@@ -146,6 +153,14 @@ export function BookingPanel({
               Currently allocated to{" "}
               <span className="font-medium">{selectedSpaceBookedBy}</span>
             </p>
+          )}
+
+          {selectedSpace.id === "26" && (
+            <span>
+              <p className="text-xs text-muted-foreground mt-1">
+                This space allows EV charging{" "}
+              </p>
+            </span>
           )}
         </div>
       )}

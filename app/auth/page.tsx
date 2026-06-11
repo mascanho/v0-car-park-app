@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { Car } from "lucide-react";
+import { Car, AlertTriangle, Info } from "lucide-react";
 import { useState } from "react";
 
 export default function AuthPage() {
@@ -19,28 +19,53 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="bg-card border border-border rounded-xl p-8 text-center">
-          <div className="w-14 h-14 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-            <Car className="w-8 h-8 text-primary-foreground" />
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-gradient-to-br from-blue-100 via-blue-400 to-blue-900 dark:from-blue-950 dark:via-background dark:to-blue-900">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-primary/5 blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="bg-white/80 dark:bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-8 shadow-lg shadow-primary/5">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/70 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-primary/20">
+              <Car className="w-9 h-9 text-primary-foreground" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              SlimSpot
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1.5">
+              Sign in to book your parking space
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">SlimSpot</h1>
-          <p className="text-sm text-muted-foreground mb-8">
-            Sign in to book your parking space
-          </p>
+
+          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-800/50 rounded-xl p-4 mb-6">
+            <div className="flex gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                  SlimStock email required
+                </p>
+                <p className="text-xs text-amber-700/80 dark:text-amber-400/80 leading-relaxed">
+                  You must sign in with your{" "}
+                  <span className="font-medium text-amber-800 dark:text-amber-300">
+                    @slimstock.com
+                  </span>{" "}
+                  Google account. Make sure your SlimStock email is connected to
+                  Gmail before signing in.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-2.5
-              bg-background border border-border rounded-lg hover:bg-muted/50
-              transition-colors text-foreground font-medium disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-background  border border-border hover:border-primary/30 rounded-xl transition-all duration-200 text-foreground font-medium disabled:opacity-50 shadow-sm hover:shadow-md hover:cursor-pointer  active:scale-[0.98] hover:bg-orange-400 hover:text-white"
           >
             {isLoading ? (
-              <span
-                className="w-5 h-5 border-2 border-muted-foreground/30 border-t-foreground
-                rounded-full animate-spin"
-              />
+              <span className="w-5 h-5 border-2 border-muted-foreground/30 border-t-foreground rounded-full animate-spin" />
             ) : (
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -63,6 +88,11 @@ export default function AuthPage() {
             )}
             {isLoading ? "Signing in..." : "Continue with Google"}
           </button>
+
+          <div className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground/70">
+            <Info className="w-3.5 h-3.5" />
+            <span>Only @slimstock.com accounts are allowed</span>
+          </div>
         </div>
       </div>
     </div>
