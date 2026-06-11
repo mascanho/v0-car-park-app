@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { Car, AlertTriangle, Info, XCircle } from "lucide-react";
+import { Car, AlertTriangle, Info, XCircle, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function AuthPage() {
@@ -34,16 +34,25 @@ export default function AuthPage() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-600/15 via-transparent to-transparent" />
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl animate-pulse" style={{ animationDuration: "4s" }} />
-        <div className="absolute bottom-1/4 -right-32 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl animate-pulse" style={{ animationDuration: "5s" }} />
+        <div
+          className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl animate-pulse"
+          style={{ animationDuration: "4s" }}
+        />
+        <div
+          className="absolute bottom-1/4 -right-32 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl animate-pulse"
+          style={{ animationDuration: "5s" }}
+        />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-blue-400/5 blur-3xl" />
       </div>
 
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
-        <div className="w-full h-full" style={{
-          backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
-          backgroundSize: '60px 60px'
-        }} />
+        <div
+          className="w-full h-full"
+          style={{
+            backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
+            backgroundSize: "60px 60px",
+          }}
+        />
       </div>
 
       <div className="w-full max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -58,7 +67,7 @@ export default function AuthPage() {
                 </div>
               </div>
               <h1 className="text-3xl font-bold tracking-tight text-white">
-                SlimSpot
+                Slimspot
               </h1>
               <p className="text-sm text-blue-200/70 mt-2 font-light tracking-wide">
                 Car Park Manager. And more...
@@ -90,15 +99,22 @@ export default function AuthPage() {
               <div className="flex gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-amber-300">
-                    SlimStock email required
-                  </p>
+                  <a
+                    href="https://support.google.com/mail/answer/6304825?hl=en-GB&co=GENIE.Platform%3DDesktop"
+                    target="_blank"
+                    className="flex"
+                  >
+                    <p className="text-sm font-semibold text-amber-300 underline">
+                      Gmail account required
+                    </p>
+                    <ExternalLink className="w-3.5 h-3.5 ml-1 text-amber-400 shrink-0 mt-0.5" />
+                  </a>
                   <p className="text-[10px] text-amber-400/70 leading-relaxed">
-                    Sign in with your{" "}
+                    You must have Gmail linked with your{" "}
                     <span className="font-medium text-amber-300">
                       @slimstock.com
                     </span>{" "}
-                    Google account to manage your parking.
+                    account to manage your parking spots.
                   </p>
                 </div>
               </div>
@@ -138,8 +154,7 @@ export default function AuthPage() {
             </button>
 
             <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-              </div>
+              <div className="absolute inset-0 flex items-center"></div>
               <div className="relative flex justify-center text-xs">
                 <span className="px-3 bg-transparent text-white/30 tracking-wider uppercase">
                   Authorised Access Only
@@ -155,7 +170,7 @@ export default function AuthPage() {
         </div>
 
         <p className="text-center text-xs text-white/15 mt-6 tracking-wide">
-          &copy; {new Date().getFullYear()} SlimSpot. All rights reserved.
+          &copy; {new Date().getFullYear()} Slimstock. All rights reserved.
         </p>
       </div>
     </div>

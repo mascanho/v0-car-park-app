@@ -8,7 +8,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SlimSpot - Car Park Booking",
+  title: "Slimspot - Car Park Booking",
   description: "Book your parking space daily with ease",
   generator: "v0.app",
   robots: {
@@ -30,6 +30,10 @@ export const metadata: Metadata = {
       {
         url: "/icon-dark-32x32.png",
         media: "(prefers-color-scheme: dark)",
+      },
+      {
+        url: "/favicon.ico",
+        sizes: "any",
       },
       {
         url: "/icon.svg",
