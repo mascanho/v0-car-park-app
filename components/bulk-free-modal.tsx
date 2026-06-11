@@ -219,7 +219,7 @@ export function BulkFreeModal({
               <button
                 type="button"
                 onClick={() => setTab("single")}
-                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                className={`px-3 py-2 text-sm cursor-pointer font-medium hover:bg-accent/20 rounded-t-md transition-colors border-b-2 -mb-px ${
                   tab === "single"
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground"
@@ -230,7 +230,7 @@ export function BulkFreeModal({
               <button
                 type="button"
                 onClick={() => setTab("range")}
-                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                className={`px-3 py-2 text-sm font-medium cursor-pointer hover:bg-accent/20 rounded-t-md transition-colors border-b-2 -mb-px ${
                   tab === "range"
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground"
@@ -282,7 +282,7 @@ export function BulkFreeModal({
                   disabled={!rangeStart || !rangeEnd}
                   className="shrink-0 cursor-pointer"
                 >
-                  <CircleFadingPlus className="w-4 h-4" />
+                  <CircleFadingPlus className="w-4 h-4 cursor-pointer" />
                 </Button>
               </div>
             )}
@@ -297,7 +297,7 @@ export function BulkFreeModal({
                 <button
                   type="button"
                   onClick={() => setDates([])}
-                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                  className="text-xs text-muted-foreground hover:text-foreground underline cursor-pointer"
                 >
                   Clear all
                 </button>
@@ -316,7 +316,7 @@ export function BulkFreeModal({
                       onClick={() => removeDate(d)}
                       className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
                     >
-                      <X className="w-2 h-2 text-red-500" />
+                      <X className="w-2 h-2 text-red-500 cursor-pointer" />
                     </button>
                   </span>
                 ))}
@@ -337,6 +337,7 @@ export function BulkFreeModal({
             variant="outline"
             onClick={handleClose}
             disabled={isSubmitting}
+            className="cursor-pointer"
           >
             Close
           </Button>
@@ -346,6 +347,7 @@ export function BulkFreeModal({
               dates.length === 0 || isSubmitting || userCarParks.length === 0
             }
             variant="destructive"
+            className="cursor-pointer"
           >
             {isSubmitting
               ? "Freeing..."
