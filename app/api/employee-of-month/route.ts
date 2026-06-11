@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 const USER_SELECT =
   "name, email, photo, role, bio, car_park, car_space, birthday, website";
 
-export interface UserData {
+interface UserData {
   name: string;
   email: string;
   photo: string | null;
@@ -16,9 +16,10 @@ export interface UserData {
   website: string | null;
 }
 
-export interface MonthEntry {
+interface MonthEntry {
   month: number;
   assigned: boolean;
+  votes?: number;
   user?: UserData;
 }
 
@@ -26,45 +27,41 @@ export async function GET() {
   const supabase = await createClient();
   const year = new Date().getFullYear();
 
-  const { data: records, error } = await supabase
-    .from("employee_of_month")
-    .select("user_name, month, year")
-    .eq("year", year);
+  const { data: eomRecords } = await supabase
+    .from("eom")
+    .select("month, email, votes")
+    .gte("year", `${year}-01-01`)
+    .lt("year", `${year + 1}-01-01`);
 
-  if (error) {
-    return NextResponse.json({ year, months: [] });
-  }
+  const emails = [...new Set(eomRecords?.map((r) => r.email) ?? [])];
 
-  const names = [...new Set(records?.map((r) => r.user_name) ?? [])];
   let users: UserData[] = [];
-
-  if (names.length > 0) {
+  if (emails.length > 0) {
     const { data } = await supabase
       .from("users")
       .select(USER_SELECT)
-      .in("name", names);
+      .in("email", emails);
     users = (data ?? []) as UserData[];
   }
 
   const userMap = new Map<string, UserData>(
-    users.map((u) => [u.name, u]),
+    users.map((u) => [u.email, u]),
   );
 
-  const recordMap = new Map<number, string>(
-    records?.map((r) => [r.month, r.user_name]) ?? [],
-  );
+  const eomByMonth = new Map(eomRecords?.map((r) => [Number(r.month), r]) ?? []);
 
   const months: MonthEntry[] = [];
 
   for (let m = 1; m <= 12; m++) {
-    const userName = recordMap.get(m);
-    if (userName) {
-      const user = userMap.get(userName);
-      if (user) {
-        months.push({ month: m, assigned: true, user });
-      } else {
-        months.push({ month: m, assigned: false });
-      }
+    const record = eomByMonth.get(m);
+    if (record) {
+      const user = userMap.get(record.email);
+      months.push({
+        month: m,
+        assigned: true,
+        votes: record.votes,
+        ...(user ? { user } : {}),
+      });
     } else {
       months.push({ month: m, assigned: false });
     }

@@ -51,6 +51,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const supabase = await createClient();
+  const year = new Date().getFullYear();
 
   const { data: authUser, error: authError } = await supabase.auth.getUser();
   if (authError || !authUser?.user) {
@@ -131,6 +132,19 @@ export async function POST(request: Request) {
 
   if (incError) {
     return NextResponse.json({ error: incError.message }, { status: 500 });
+  }
+
+  const { error: voteInsertError } = await supabase
+    .from("votes")
+    .insert({
+      voter_name: voterRow.name,
+      voted_for: votedFor,
+      month: CURRENT_MONTH,
+      year,
+    });
+
+  if (voteInsertError) {
+    return NextResponse.json({ error: voteInsertError.message }, { status: 500 });
   }
 
   return NextResponse.json({ success: true, votedFor, votes: currentVotes + 1 });

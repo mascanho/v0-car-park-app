@@ -1,17 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SiteHeader } from "./site-header";
 import { AppFooter } from "./app-footer";
 import { AppBreadcrumbs } from "./app-breadcrumbs";
 import { VoteModal } from "./vote-modal";
 import { getPhotoUrl } from "@/lib/utils";
-import { Cake, ParkingCircle, Medal, Crown, Clock, ThumbsUp } from "lucide-react";
+import {
+  Cake,
+  ParkingCircle,
+  Medal,
+  Crown,
+  Clock,
+  ThumbsUp,
+  Loader2,
+  Vote,
+} from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 interface EomUser {
@@ -29,44 +48,9 @@ interface EomUser {
 interface MonthEntry {
   month: number;
   assigned: boolean;
+  votes?: number;
   user?: EomUser;
 }
-
-const FAKE_DATA: MonthEntry[] = [
-  {
-    month: 1, assigned: true,
-    user: { name: "Emily Berry", email: "e.berry@slimstock.com", photo: null, role: "Supply Chain Analyst", bio: "Always early, always organised. Sets the standard for the year ahead.", car_park: "grosvenor", car_space: "15", birthday: "15/03/1990", website: null },
-  },
-  {
-    month: 2, assigned: true,
-    user: { name: "Marco Guerreiro", email: "m.guerreiro@slimstock.com", photo: null, role: "Operations Lead", bio: "Keeps the wheels turning even in the shortest month.", car_park: "smallwood", car_space: "39", birthday: "22/07/1988", website: null },
-  },
-  {
-    month: 3, assigned: true,
-    user: { name: "Jessie Cooper", email: "j.cooper@slimstock.com", photo: null, role: "Customer Success", bio: "Spring energy all year round. The person everyone wants on their team.", car_park: "grosvenor", car_space: "8", birthday: "10/11/1992", website: null },
-  },
-  {
-    month: 4, assigned: true,
-    user: { name: "Natasha Cooper", email: "n.cooper@slimstock.com", photo: null, role: "Project Manager", bio: "April showers bring May flowers — and Natasha brings results.", car_park: "grosvenor", car_space: "7", birthday: "05/05/1991", website: null },
-  },
-  {
-    month: 5, assigned: true,
-    user: { name: "Lisa Berry", email: "l.berry@slimstock.com", photo: null, role: "Finance Manager", bio: "Numbers never lie, and Lisa's work speaks volumes.", car_park: "smallwood", car_space: "31", birthday: "18/09/1987", website: null },
-  },
-  { month: 6, assigned: false },
-  {
-    month: 7, assigned: true,
-    user: { name: "Sam Phipps", email: "s.phipps@slimstock.com", photo: null, role: "Business Developer", bio: "Mid-year momentum builder. Always brings the energy.", car_park: "grosvenor", car_space: "16", birthday: "30/01/1993", website: null },
-  },
-  { month: 8, assigned: false },
-  { month: 9, assigned: false },
-  {
-    month: 10, assigned: true,
-    user: { name: "Mike Donnelly", email: "m.donnelly@slimstock.com", photo: null, role: "Senior Developer", bio: "Wrapped up the year strong. The definition of consistent excellence.", car_park: "grosvenor", car_space: "26", birthday: "12/12/1989", website: null },
-  },
-  { month: 11, assigned: false },
-  { month: 12, assigned: false },
-];
 
 function BirthdayBadge({
   birthday,
@@ -120,8 +104,7 @@ function BirthdayBadge({
 function AssignedCard({ user, month }: { user: EomUser; month: number }) {
   const [imgErr, setImgErr] = useState(false);
   const photoUrl = getPhotoUrl(user.email, user.photo);
-  const isCurrent =
-    month === new Date().getMonth() + 1;
+  const isCurrent = month === new Date().getMonth() + 1;
 
   return (
     <div className="relative rounded-2xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group flex flex-col">
@@ -163,7 +146,7 @@ function AssignedCard({ user, month }: { user: EomUser; month: number }) {
             </div>
           </div>
           <div className="min-w-0 flex-1 pt-0.5">
-            <h3 className="text-sm font-bold text-foreground truncate leading-tight">
+            <h3 className="text-sm font-bold text-foreground leading-tight">
               {user.name}
             </h3>
             {user.role && (
@@ -175,7 +158,7 @@ function AssignedCard({ user, month }: { user: EomUser; month: number }) {
         </div>
 
         {user.bio && (
-          <p className="text-xs text-muted-foreground/70 leading-relaxed line-clamp-2 mb-3 border-t border-border/40 pt-3">
+          <p className="text-xs text-muted-foreground/70 leading-relaxed line-clamp-4 mb-3 border-t border-border/40 pt-3">
             &ldquo;{user.bio}&rdquo;
           </p>
         )}
@@ -194,7 +177,11 @@ function AssignedCard({ user, month }: { user: EomUser; month: number }) {
               )}
             </span>
           )}
-          <BirthdayBadge birthday={user.birthday} name={user.name} email={user.email} />
+          <BirthdayBadge
+            birthday={user.birthday}
+            name={user.name}
+            email={user.email}
+          />
         </div>
       </div>
     </div>
@@ -223,8 +210,20 @@ function PendingCard({ month }: { month: number }) {
 
 export function EmployeeOfTheMonthPage() {
   const [voteModalOpen, setVoteModalOpen] = useState(false);
+  const [data, setData] = useState<{
+    year: number;
+    months: MonthEntry[];
+  } | null>(null);
   const year = new Date().getFullYear();
-  const assignedCount = FAKE_DATA.filter((m) => m.assigned).length;
+
+  useEffect(() => {
+    fetch("/api/employee-of-month")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then(setData)
+      .catch(() => setData({ year, months: [] }));
+  }, [year]);
+
+  const assignedCount = data?.months?.filter((m) => m.assigned).length ?? 0;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -256,24 +255,27 @@ export function EmployeeOfTheMonthPage() {
           </button>
         </div>
 
-        <VoteModal
-          open={voteModalOpen}
-          onOpenChange={setVoteModalOpen}
-        />
+        <VoteModal open={voteModalOpen} onOpenChange={setVoteModalOpen} />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {FAKE_DATA.map((entry) =>
-            entry.assigned && entry.user ? (
-              <AssignedCard
-                key={entry.month}
-                user={entry.user}
-                month={entry.month}
-              />
-            ) : (
-              <PendingCard key={entry.month} month={entry.month} />
-            ),
-          )}
-        </div>
+        {!data ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {(data.months ?? []).map((entry) =>
+              entry.assigned && entry.user ? (
+                <AssignedCard
+                  key={entry.month}
+                  user={entry.user}
+                  month={entry.month}
+                />
+              ) : (
+                <PendingCard key={entry.month} month={entry.month} />
+              ),
+            )}
+          </div>
+        )}
       </main>
       <AppFooter />
     </div>
