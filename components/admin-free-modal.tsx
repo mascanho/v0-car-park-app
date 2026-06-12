@@ -71,6 +71,8 @@ interface AdminFreeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   carParks: CarPark[];
+  selectedCarPark: CarPark | null;
+  onSelectCarPark: (carPark: CarPark) => void;
   onFreed: () => void;
 }
 
@@ -78,9 +80,11 @@ export function AdminFreeModal({
   open,
   onOpenChange,
   carParks,
+  selectedCarPark,
+  onSelectCarPark,
   onFreed,
 }: AdminFreeModalProps) {
-  const [carParkId, setCarParkId] = useState(carParks[0]?.id || "");
+  const [carParkId, setCarParkId] = useState(selectedCarPark?.id || carParks[0]?.id || "");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [dates, setDates] = useState<string[]>([]);
   const [tab, setTab] = useState<"single" | "range">("single");
@@ -110,7 +114,7 @@ export function AdminFreeModal({
 
   useEffect(() => {
     if (open) {
-      setCarParkId(carParks[0]?.id || "");
+      setCarParkId(selectedCarPark?.id || carParks[0]?.id || "");
       setSelectedUsers([]);
       setDates([]);
       setDateInput("");
@@ -118,7 +122,7 @@ export function AdminFreeModal({
       setRangeEnd("");
       setResult(null);
     }
-  }, [open]);
+  }, [open, selectedCarPark, carParks]);
 
   const toggleUser = (u: string) => {
     setSelectedUsers((prev) =>
@@ -211,6 +215,8 @@ export function AdminFreeModal({
             <select
               value={carParkId}
               onChange={(e) => {
+                const cp = carParks.find((p) => p.id === e.target.value);
+                if (cp) onSelectCarPark(cp);
                 setCarParkId(e.target.value);
                 setSelectedUsers([]);
                 setUsersOpen(false);

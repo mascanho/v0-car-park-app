@@ -190,6 +190,11 @@ export function ParkingApp() {
     setBulkFreeOpen(true);
   }, [carParks, currentUser, userEmail]);
 
+  const handleOpenAdminFree = useCallback(() => {
+    setAdminFreeOpen(true);
+    setSelectedSpace(null);
+  }, []);
+
   const handleSelectDate = useCallback((date: Date) => {
     setSelectedDate(date);
     setSelectedSpace(null);
@@ -376,10 +381,11 @@ export function ParkingApp() {
         onOpenBulkFree={handleOpenBulkFree}
         onCloseBulkFree={() => setBulkFreeOpen(false)}
         adminFreeOpen={adminFreeOpen}
-        onOpenAdminFree={() => setAdminFreeOpen(true)}
+        onOpenAdminFree={handleOpenAdminFree}
         onCloseAdminFree={() => setAdminFreeOpen(false)}
         carParks={carParks}
         selectedCarPark={selectedCarPark}
+        onSelectCarPark={handleSelectCarPark}
         onRefreshBookings={() => refreshBookings()}
         onSignOut={handleSignOut}
         currentYear={currentYear}

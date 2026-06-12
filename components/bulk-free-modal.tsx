@@ -286,9 +286,13 @@ export function BulkFreeModal({
                   variant="outline"
                   onClick={addRange}
                   disabled={!rangeStart || !rangeEnd}
-                  className="shrink-0 cursor-pointer"
+                  className={`shrink-0 cursor-pointer ${rangeStart && rangeEnd ? "bg-accent" : ""}`}
                 >
-                  <CircleFadingPlus className="w-4 h-4 cursor-pointer" />
+                  <CircleFadingPlus
+                    className={`w-4 h-4 cursor-pointer text-gray-500 ${
+                      rangeStart && rangeEnd ? "text-white " : ""
+                    }`}
+                  />
                 </Button>
               </div>
             )}

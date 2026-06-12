@@ -33,6 +33,7 @@ interface AppHeaderProps {
   onCloseAdminFree: () => void;
   carParks: CarPark[];
   selectedCarPark: CarPark;
+  onSelectCarPark: (carPark: CarPark) => void;
   onRefreshBookings: () => void;
   onSignOut: () => void;
   currentYear: number;
@@ -54,6 +55,7 @@ export function AppHeader({
   onCloseAdminFree,
   carParks,
   selectedCarPark,
+  onSelectCarPark,
   onRefreshBookings,
   onSignOut,
   currentYear,
@@ -128,6 +130,8 @@ export function AppHeader({
                 open={adminFreeOpen}
                 onOpenChange={onCloseAdminFree}
                 carParks={carParks}
+                selectedCarPark={selectedCarPark}
+                onSelectCarPark={onSelectCarPark}
                 onFreed={onRefreshBookings}
               />
               <AvatarMenu
