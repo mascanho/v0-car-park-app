@@ -179,6 +179,17 @@ export function ParkingApp() {
     setSelectedSpace(null);
   }, []);
 
+  const handleOpenBulkFree = useCallback(() => {
+    const userCp = carParks.find(
+      (cp) => findUserSpace(currentUser, userEmail, cp.id) !== null,
+    );
+    if (userCp) {
+      setSelectedCarPark(userCp);
+      setSelectedSpace(null);
+    }
+    setBulkFreeOpen(true);
+  }, [carParks, currentUser, userEmail]);
+
   const handleSelectDate = useCallback((date: Date) => {
     setSelectedDate(date);
     setSelectedSpace(null);
@@ -362,7 +373,7 @@ export function ParkingApp() {
         onToggleAdminMenu={() => setAdminMenuOpen((v) => !v)}
         onCloseAdminMenu={() => setAdminMenuOpen(false)}
         bulkFreeOpen={bulkFreeOpen}
-        onOpenBulkFree={() => setBulkFreeOpen(true)}
+        onOpenBulkFree={handleOpenBulkFree}
         onCloseBulkFree={() => setBulkFreeOpen(false)}
         adminFreeOpen={adminFreeOpen}
         onOpenAdminFree={() => setAdminFreeOpen(true)}
