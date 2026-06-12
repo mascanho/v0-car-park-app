@@ -47,7 +47,7 @@ function DatePicker({
         placeholder={placeholder}
         readOnly
         onClick={() => dateRef.current?.showPicker()}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
+        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm cursor-pointer"
       />
       <input
         ref={dateRef}
@@ -208,7 +208,7 @@ export function BulkFreeModal({
               <select
                 value={carParkId}
                 onChange={(e) => setCarParkId(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
                 {userCarParks.map((cp) => (
                   <option key={cp.id} value={cp.id}>
