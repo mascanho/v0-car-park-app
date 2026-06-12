@@ -23,7 +23,8 @@ const fetcher = async (url: string) => {
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function weekday(dateStr: string) {
-  const day = new Date(dateStr + "T00:00:00").getDay();
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const day = new Date(y, m - 1, d).getDay();
   return WEEKDAYS[day];
 }
 
@@ -140,10 +141,15 @@ export function AdminFreeModal({
     if (!rangeStart || !rangeEnd) return;
     if (rangeStart > rangeEnd) return;
     const newDates: string[] = [];
-    const cur = new Date(rangeStart + "T00:00:00");
-    const endDate = new Date(rangeEnd + "T00:00:00");
-    while (cur <= endDate) {
-      newDates.push(cur.toISOString().slice(0, 10));
+    const [sy, sm, sd] = rangeStart.split("-").map(Number);
+    const [ey, em, ed] = rangeEnd.split("-").map(Number);
+    const cur = new Date(sy, sm - 1, sd);
+    const end = new Date(ey, em - 1, ed);
+    while (cur <= end) {
+      const y = cur.getFullYear();
+      const m = String(cur.getMonth() + 1).padStart(2, "0");
+      const day = String(cur.getDate()).padStart(2, "0");
+      newDates.push(`${y}-${m}-${day}`);
       cur.setDate(cur.getDate() + 1);
     }
     setDates((prev) => {
