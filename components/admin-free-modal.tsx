@@ -60,7 +60,7 @@ function DatePicker({
         placeholder={placeholder}
         readOnly
         onClick={() => dateRef.current?.showPicker()}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm cursor-pointer"
+        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
       />
       <input
         ref={dateRef}
@@ -388,7 +388,7 @@ export function AdminFreeModal({
                 <button
                   type="button"
                   onClick={() => setUsersOpen(!usersOpen)}
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span
                     className={
@@ -526,7 +526,7 @@ export function AdminFreeModal({
                 setShowConflictWarning(false);
                 setPendingConflicts([]);
               }}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {carParks.map((cp) => (
                 <option key={cp.id} value={cp.id}>
@@ -543,7 +543,7 @@ export function AdminFreeModal({
                   <button
                     type="button"
                     onClick={() => setUsersOpen(!usersOpen)}
-                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <span
                       className={
@@ -678,7 +678,7 @@ export function AdminFreeModal({
                   setShowConflictWarning(false);
                   setPendingConflicts([]);
                 }}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option value="">Select a space...</option>
                 {parkingSpaces.map((s) => (
