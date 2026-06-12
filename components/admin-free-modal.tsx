@@ -95,7 +95,9 @@ export function AdminFreeModal({
   const [carParkId, setCarParkId] = useState(
     selectedCarPark?.id || carParks[0]?.id || "",
   );
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [freeUsers, setFreeUsers] = useState<string[]>([]);
+  const [bookUsers, setBookUsers] = useState<string[]>([]);
+  const selectedUsers = mode === "free" ? freeUsers : bookUsers;
   const [dates, setDates] = useState<string[]>([]);
   const [tab, setTab] = useState<"single" | "range">("single");
   const [dateInput, setDateInput] = useState("");
@@ -147,7 +149,8 @@ export function AdminFreeModal({
   useEffect(() => {
     if (open) {
       setCarParkId(selectedCarPark?.id || carParks[0]?.id || "");
-      setSelectedUsers([]);
+      setFreeUsers([]);
+      setBookUsers([]);
       setDates([]);
       setDateInput("");
       setRangeStart("");
@@ -165,15 +168,20 @@ export function AdminFreeModal({
   }, [selectedSpace, dates]);
 
   const toggleUser = (u: string) => {
-    setSelectedUsers((prev) =>
+    const setter = mode === "free" ? setFreeUsers : setBookUsers;
+    setter((prev) =>
       prev.includes(u) ? prev.filter((x) => x !== u) : [...prev, u],
     );
   };
 
   const selectAll = () => {
-    if (Array.isArray(allUsers)) setSelectedUsers([...allUsers]);
+    const setter = mode === "free" ? setFreeUsers : setBookUsers;
+    if (Array.isArray(allUsers)) setter([...allUsers]);
   };
-  const deselectAll = () => setSelectedUsers([]);
+  const deselectAll = () => {
+    const setter = mode === "free" ? setFreeUsers : setBookUsers;
+    setter([]);
+  };
 
   const addDate = (iso: string) => {
     if (!iso || dates.includes(iso)) return;
@@ -312,7 +320,8 @@ export function AdminFreeModal({
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setSelectedUsers([]);
+      setFreeUsers([]);
+      setBookUsers([]);
       setDates([]);
       setDateInput("");
       setRangeStart("");
@@ -339,14 +348,14 @@ export function AdminFreeModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex border-b border-border">
+        <div className="flex w-full border-b border-border">
           <button
             type="button"
             onClick={() => {
               setMode("free");
               setResultMessage(null);
             }}
-            className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer rounded-t-md ${
+            className={`flex-1 px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer rounded-t-md ${
               mode === "free"
                 ? "border-primary text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -362,7 +371,7 @@ export function AdminFreeModal({
               setShowConflictWarning(false);
               setPendingConflicts([]);
             }}
-            className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer rounded-t-md ${
+            className={`flex-1 px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer rounded-t-md ${
               mode === "book"
                 ? "border-primary text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -373,6 +382,137 @@ export function AdminFreeModal({
         </div>
 
         <div className="space-y-4 py-2">
+          {mode === "book" && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Users</label>
+              <div className="relative" ref={usersRef}>
+                <button
+                  type="button"
+                  onClick={() => setUsersOpen(!usersOpen)}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <span
+                    className={
+                      selectedUsers.length === 0 ? "text-muted-foreground" : ""
+                    }
+                  >
+                    {selectedUsers.length === 0
+                      ? "Select users..."
+                      : `${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""} selected`}
+                  </span>
+                  <svg
+                    className={`h-4 w-4 text-muted-foreground transition-transform ${usersOpen ? "rotate-180" : ""}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+                {usersOpen && (
+                  <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md">
+                    <div className="flex items-center justify-between px-3 py-1.5 border-b border-border">
+                      <span className="text-xs text-muted-foreground">
+                        {allUsers.length} users
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={selectAll}
+                          className="text-xs text-muted-foreground hover:text-foreground underline"
+                        >
+                          All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={deselectAll}
+                          className="text-xs text-muted-foreground hover:text-foreground underline"
+                        >
+                          None
+                        </button>
+                      </div>
+                    </div>
+                    <div className="max-h-40 overflow-y-auto p-1">
+                      {allUsers.length === 0 ? (
+                        <p className="text-xs text-muted-foreground py-4 text-center">
+                          No users found for this car park.
+                        </p>
+                      ) : (
+                        allUsers.map((u) => {
+                          const active = selectedUsers.includes(u);
+                          return (
+                            <label
+                              key={u}
+                              className="flex items-center gap-2 px-2.5 py-1.5 rounded text-sm hover:bg-accent cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={active}
+                                onChange={() => toggleUser(u)}
+                                className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+                              />
+                              <span
+                                className={
+                                  active
+                                    ? "font-medium text-foreground"
+                                    : "text-muted-foreground"
+                                }
+                              >
+                                {u}
+                              </span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+                    {selectedUsers.length > 0 && (
+                      <div className="flex flex-wrap gap-1 border-t border-border p-2 max-h-20 overflow-y-auto">
+                        {selectedUsers.map((u) => (
+                          <span
+                            key={u}
+                            className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
+                          >
+                            {u}
+                            <button
+                              type="button"
+                              onClick={() => toggleUser(u)}
+                              className="hover:bg-primary/20 rounded-sm p-0.5"
+                            >
+                              <X className="w-2.5 h-2.5 text-red-500" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {selectedUsers.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {selectedUsers.map((u) => (
+                    <span
+                      key={u}
+                      className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
+                    >
+                      {u}
+                      <button
+                        type="button"
+                        onClick={() => toggleUser(u)}
+                        className="hover:bg-primary/20 rounded-sm p-0.5"
+                      >
+                        <X className="w-2.5 h-2.5 text-red-500" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Car Park</label>
             <select
@@ -381,7 +521,8 @@ export function AdminFreeModal({
                 const cp = carParks.find((p) => p.id === e.target.value);
                 if (cp) onSelectCarPark(cp);
                 setCarParkId(e.target.value);
-                setSelectedUsers([]);
+                setFreeUsers([]);
+                setBookUsers([]);
                 setUsersOpen(false);
                 setSelectedSpace("");
                 setShowConflictWarning(false);
@@ -397,134 +538,138 @@ export function AdminFreeModal({
             </select>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Users</label>
-            <div className="relative" ref={usersRef}>
-              <button
-                type="button"
-                onClick={() => setUsersOpen(!usersOpen)}
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <span
-                  className={
-                    selectedUsers.length === 0 ? "text-muted-foreground" : ""
-                  }
-                >
-                  {selectedUsers.length === 0
-                    ? "Select users..."
-                    : `${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""} selected`}
-                </span>
-                <svg
-                  className={`h-4 w-4 text-muted-foreground transition-transform ${usersOpen ? "rotate-180" : ""}`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-              {usersOpen && (
-                <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md">
-                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-border">
-                    <span className="text-xs text-muted-foreground">
-                      {allUsers.length} users
+          {mode !== "book" && (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Users</label>
+                <div className="relative" ref={usersRef}>
+                  <button
+                    type="button"
+                    onClick={() => setUsersOpen(!usersOpen)}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span
+                      className={
+                        selectedUsers.length === 0 ? "text-muted-foreground" : ""
+                      }
+                    >
+                      {selectedUsers.length === 0
+                        ? "Select users..."
+                        : `${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""} selected`}
                     </span>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={selectAll}
-                        className="text-xs text-muted-foreground hover:text-foreground underline"
-                      >
-                        All
-                      </button>
-                      <button
-                        type="button"
-                        onClick={deselectAll}
-                        className="text-xs text-muted-foreground hover:text-foreground underline"
-                      >
-                        None
-                      </button>
-                    </div>
-                  </div>
-                  <div className="max-h-40 overflow-y-auto p-1">
-                    {allUsers.length === 0 ? (
-                      <p className="text-xs text-muted-foreground py-4 text-center">
-                        No users found for this car park.
-                      </p>
-                    ) : (
-                      allUsers.map((u) => {
-                        const active = selectedUsers.includes(u);
-                        return (
-                          <label
-                            key={u}
-                            className="flex items-center gap-2 px-2.5 py-1.5 rounded text-sm hover:bg-accent cursor-pointer"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={active}
-                              onChange={() => toggleUser(u)}
-                              className="rounded border-border text-primary focus:ring-primary h-4 w-4"
-                            />
-                            <span
-                              className={
-                                active
-                                  ? "font-medium text-foreground"
-                                  : "text-muted-foreground"
-                              }
-                            >
-                              {u}
-                            </span>
-                          </label>
-                        );
-                      })
-                    )}
-                  </div>
-                  {selectedUsers.length > 0 && (
-                    <div className="flex flex-wrap gap-1 border-t border-border p-2 max-h-20 overflow-y-auto">
-                      {selectedUsers.map((u) => (
-                        <span
-                          key={u}
-                          className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
-                        >
-                          {u}
+                    <svg
+                      className={`h-4 w-4 text-muted-foreground transition-transform ${usersOpen ? "rotate-180" : ""}`}
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  {usersOpen && (
+                    <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md">
+                      <div className="flex items-center justify-between px-3 py-1.5 border-b border-border">
+                        <span className="text-xs text-muted-foreground">
+                          {allUsers.length} users
+                        </span>
+                        <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => toggleUser(u)}
-                            className="hover:bg-primary/20 rounded-sm p-0.5"
+                            onClick={selectAll}
+                            className="text-xs text-muted-foreground hover:text-foreground underline"
                           >
-                            <X className="w-2.5 h-2.5 text-red-500" />
+                            All
                           </button>
-                        </span>
-                      ))}
+                          <button
+                            type="button"
+                            onClick={deselectAll}
+                            className="text-xs text-muted-foreground hover:text-foreground underline"
+                          >
+                            None
+                          </button>
+                        </div>
+                      </div>
+                      <div className="max-h-40 overflow-y-auto p-1">
+                        {allUsers.length === 0 ? (
+                          <p className="text-xs text-muted-foreground py-4 text-center">
+                            No users found for this car park.
+                          </p>
+                        ) : (
+                          allUsers.map((u) => {
+                            const active = selectedUsers.includes(u);
+                            return (
+                              <label
+                                key={u}
+                                className="flex items-center gap-2 px-2.5 py-1.5 rounded text-sm hover:bg-accent cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={active}
+                                  onChange={() => toggleUser(u)}
+                                  className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+                                />
+                                <span
+                                  className={
+                                    active
+                                      ? "font-medium text-foreground"
+                                      : "text-muted-foreground"
+                                  }
+                                >
+                                  {u}
+                                </span>
+                              </label>
+                            );
+                          })
+                        )}
+                      </div>
+                      {selectedUsers.length > 0 && (
+                        <div className="flex flex-wrap gap-1 border-t border-border p-2 max-h-20 overflow-y-auto">
+                          {selectedUsers.map((u) => (
+                            <span
+                              key={u}
+                              className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
+                            >
+                              {u}
+                              <button
+                                type="button"
+                                onClick={() => toggleUser(u)}
+                                className="hover:bg-primary/20 rounded-sm p-0.5"
+                              >
+                                <X className="w-2.5 h-2.5 text-red-500" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-          {selectedUsers.length > 0 && (
-            <div className="-mt-2 flex flex-wrap gap-1">
-              {selectedUsers.map((u) => (
-                <span
-                  key={u}
-                  className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
-                >
-                  {u}
-                  <button
-                    type="button"
-                    onClick={() => toggleUser(u)}
-                    className="hover:bg-primary/20 rounded-sm p-0.5"
-                  >
-                    <X className="w-2.5 h-2.5 text-red-500" />
-                  </button>
-                </span>
-              ))}
-            </div>
+              {selectedUsers.length > 0 && (
+                <div className="-mt-2 flex flex-wrap gap-1">
+                  {selectedUsers.map((u) => (
+                    <span
+                      key={u}
+                      className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
+                    >
+                      {u}
+                      <button
+                        type="button"
+                        onClick={() => toggleUser(u)}
+                        className="hover:bg-primary/20 rounded-sm p-0.5"
+                      >
+                        <X className="w-2.5 h-2.5 text-red-500" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
           {mode === "book" && (
@@ -551,11 +696,11 @@ export function AdminFreeModal({
           )}
 
           <div className="space-y-1.5 bg-muted p-2 rounded-md">
-            <div className="flex border-b border-border">
+            <div className="flex w-full border-b border-border">
               <button
                 type="button"
                 onClick={() => setTab("single")}
-                className={`px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/20 cursor-pointer rounded-t-md border-b-2 -mb-px ${
+                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/20 cursor-pointer rounded-t-md border-b-2 -mb-px ${
                   tab === "single"
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground"
@@ -566,7 +711,7 @@ export function AdminFreeModal({
               <button
                 type="button"
                 onClick={() => setTab("range")}
-                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 hover:bg-accent/20 cursor-pointer rounded-t-md -mb-px ${
+                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors border-b-2 hover:bg-accent/20 cursor-pointer rounded-t-md -mb-px ${
                   tab === "range"
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground"
