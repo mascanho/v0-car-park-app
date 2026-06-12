@@ -143,19 +143,6 @@ export function ParkingLot({
           </div>
         </div>
 
-        {/* Quick actions */}
-        {canQuickBook && (
-          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
-            <button
-              onClick={onQuickBook}
-              disabled={isLoading}
-              className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? "Booking..." : "Book my space"}
-            </button>
-          </div>
-        )}
-
         {/* Parking lot layout */}
         <div className="relative">
           {carPark.id === "grosvenor" ? (

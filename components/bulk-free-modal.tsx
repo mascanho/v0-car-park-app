@@ -86,6 +86,7 @@ export function BulkFreeModal({
   const [dateInput, setDateInput] = useState("");
   const [rangeStart, setRangeStart] = useState("");
   const [rangeEnd, setRangeEnd] = useState("");
+  const [bouncing, setBouncing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{ freedCount: number } | null>(null);
   const userMatch = findUserSpace(currentUser, userEmail, carParkId);
@@ -107,6 +108,13 @@ export function BulkFreeModal({
       setResult(null);
     }
   }, [open, selectedCarPark.id, currentUser, userEmail]);
+
+  useEffect(() => {
+    if (rangeStart && rangeEnd) {
+      setBouncing(true);
+      setTimeout(() => setBouncing(false), 400);
+    }
+  }, [rangeStart, rangeEnd]);
 
   const addDate = (iso: string) => {
     if (!iso) return;
@@ -174,6 +182,16 @@ export function BulkFreeModal({
   };
 
   return (
+    <>
+      <style>{`
+@keyframes bounce-once {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-bounce-once {
+  animation: bounce-once 0.35s ease-in-out;
+}
+`}</style>
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
@@ -286,7 +304,7 @@ export function BulkFreeModal({
                   variant="outline"
                   onClick={addRange}
                   disabled={!rangeStart || !rangeEnd}
-                  className={`shrink-0 cursor-pointer ${rangeStart && rangeEnd ? "bg-accent" : ""}`}
+                  className={`shrink-0 cursor-pointer ${rangeStart && rangeEnd ? "bg-accent" : ""} ${bouncing ? "animate-bounce-once" : ""}`}
                 >
                   <CircleFadingPlus
                     className={`w-4 h-4 cursor-pointer text-gray-500 ${
@@ -366,5 +384,6 @@ export function BulkFreeModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   );
 }

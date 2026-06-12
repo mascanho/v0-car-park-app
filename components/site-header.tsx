@@ -55,6 +55,7 @@ export function SiteHeader() {
       onCloseAdminFree={() => {}}
       carParks={[]}
       selectedCarPark={{} as CarPark}
+      onSelectCarPark={() => {}}
       onRefreshBookings={() => {}}
       onSignOut={handleSignOut}
       currentYear={new Date().getFullYear()}
