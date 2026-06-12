@@ -108,11 +108,17 @@ export function ParkingSpaceCard({
 
   const isAdmin =
     currentUserEmail === "m.guerreiro@slimstock.com" ||
+    currentUserEmail === "n.cooper@slimstock.com" ||
+    currentUserEmail === "j.cooper@slimstock.com" ||
+    currentUserEmail === "a.greensmith@slimstock.com" ||
+    currentUserEmail === "h.thorton@slimstock.com" ||
     currentUser === "Marco Guerreiro";
 
   const tooltip = isBooked
     ? isCurrentUserBooking
-      ? space.electrified ? "Your booking — Electrified" : "Your booking"
+      ? space.electrified
+        ? "Your booking — Electrified"
+        : "Your booking"
       : isVisitor
         ? "Visitor"
         : originalUser
@@ -140,7 +146,8 @@ export function ParkingSpaceCard({
                 !isVisitor &&
                 "border-destructive/50 bg-destructive/10 cursor-pointer hover:border-amber-500 hover:bg-amber-500/5",
               isVisitor && "border-neutral-600 bg-black cursor-pointer",
-              isCurrentUserBooking && "border-blue-500 bg-blue-500/20 cursor-default",
+              isCurrentUserBooking &&
+                "border-blue-500 bg-blue-500/20 cursor-default",
               isSelected &&
                 "border-violet-500 bg-violet-500/20 ring-2 ring-violet-500 ring-offset-2",
               disabled && "opacity-50 cursor-not-allowed",
@@ -150,7 +157,9 @@ export function ParkingSpaceCard({
               className={cn(
                 "text-xs font-semibold",
                 isSelected && "text-violet-600 dark:text-violet-400",
-                !isBooked && !isSelected && "text-green-600 dark:text-green-400",
+                !isBooked &&
+                  !isSelected &&
+                  "text-green-600 dark:text-green-400",
                 isBooked &&
                   !isCurrentUserBooking &&
                   !isVisitor &&
@@ -166,7 +175,9 @@ export function ParkingSpaceCard({
               className={cn(
                 "mt-1 text-[10px] font-bold leading-none",
                 isSelected && "text-violet-600 dark:text-violet-400",
-                !isBooked && !isSelected && "text-green-600 dark:text-green-400",
+                !isBooked &&
+                  !isSelected &&
+                  "text-green-600 dark:text-green-400",
                 isBooked &&
                   !isCurrentUserBooking &&
                   !isVisitor &&

@@ -11,8 +11,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import type { CarPark } from "@/lib/parking-data";
-import { getUserDefaultSpace } from "@/lib/parking-data";
+import type { CarPark, Booking } from "@/lib/parking-data";
+import { generateParkingSpaces, getUserDefaultSpace } from "@/lib/parking-data";
 import { X } from "lucide-react";
 
 const fetcher = async (url: string) => {
@@ -22,6 +22,12 @@ const fetcher = async (url: string) => {
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function normalizeUserName(name: string) {
+  const lower = name.toLowerCase();
+  if (lower === "visitor" || lower === "v") return "VISITOR";
+  return name;
+}
 
 function weekday(dateStr: string) {
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -100,6 +106,12 @@ export function AdminFreeModal({
   const [usersOpen, setUsersOpen] = useState(false);
   const usersRef = useRef<HTMLDivElement>(null);
 
+  const [selectedSpace, setSelectedSpace] = useState("");
+  const [showConflictWarning, setShowConflictWarning] = useState(false);
+  const [pendingConflicts, setPendingConflicts] = useState<
+    { date: string; userName: string }[]
+  >([]);
+
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (usersRef.current && !usersRef.current.contains(e.target as Node)) {
@@ -114,7 +126,23 @@ export function AdminFreeModal({
     `/api/users?carParkId=${carParkId}`,
     fetcher,
   );
-  const allUsers = Array.isArray(rawUsers) ? rawUsers : [];
+  const allUsers = [
+    "Visitor",
+    ...(Array.isArray(rawUsers)
+      ? rawUsers.filter((u) => u !== "Visitor")
+      : []),
+  ];
+
+  const { data: rawBookings = [] } = useSWR<Booking[]>(
+    "/api/bookings",
+    fetcher,
+  );
+  const allBookings = Array.isArray(rawBookings) ? rawBookings : [];
+
+  const currentCarPark = carParks.find((cp) => cp.id === carParkId);
+  const parkingSpaces = currentCarPark
+    ? generateParkingSpaces(currentCarPark)
+    : [];
 
   useEffect(() => {
     if (open) {
@@ -125,8 +153,16 @@ export function AdminFreeModal({
       setRangeStart("");
       setRangeEnd("");
       setResultMessage(null);
+      setSelectedSpace("");
+      setShowConflictWarning(false);
+      setPendingConflicts([]);
     }
   }, [open, selectedCarPark, carParks]);
+
+  useEffect(() => {
+    setShowConflictWarning(false);
+    setPendingConflicts([]);
+  }, [selectedSpace, dates]);
 
   const toggleUser = (u: string) => {
     setSelectedUsers((prev) =>
@@ -178,7 +214,7 @@ export function AdminFreeModal({
       const params = new URLSearchParams();
       dates.forEach((d) => params.append("dates", d));
       params.set("carParkId", carParkId);
-      selectedUsers.forEach((u) => params.append("userNames", u));
+      selectedUsers.forEach((u) => params.append("userNames", normalizeUserName(u)));
       const res = await fetch(`/api/bookings?${params}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -194,7 +230,13 @@ export function AdminFreeModal({
   };
 
   const handleBookSubmit = async () => {
-    if (dates.length === 0 || selectedUsers.length === 0 || !carParkId) return;
+    if (
+      dates.length === 0 ||
+      selectedUsers.length === 0 ||
+      !carParkId ||
+      !selectedSpace
+    )
+      return;
     setIsSubmitting(true);
     setResultMessage(null);
     try {
@@ -202,21 +244,16 @@ export function AdminFreeModal({
       const errors: string[] = [];
 
       for (const userName of selectedUsers) {
-        const spaceId = getUserDefaultSpace(userName, carParkId);
-        if (!spaceId) {
-          errors.push(`${userName}: no default space`);
-          continue;
-        }
-
+        const apiUserName = normalizeUserName(userName);
         for (const date of dates) {
           const res = await fetch("/api/bookings", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              spaceId,
+              spaceId: selectedSpace,
               carParkId,
               date,
-              userName,
+              userName: apiUserName,
             }),
           });
           const data = await res.json();
@@ -240,9 +277,37 @@ export function AdminFreeModal({
     }
   };
 
-  const handleSubmit = () => {
-    if (mode === "free") return handleFreeSubmit();
-    return handleBookSubmit();
+  const handleSubmit = async () => {
+    if (mode === "free") {
+      await handleFreeSubmit();
+      return;
+    }
+
+    if (showConflictWarning) {
+      setShowConflictWarning(false);
+      setPendingConflicts([]);
+      await handleBookSubmit();
+      return;
+    }
+
+    if (!selectedSpace) return;
+
+    const conflicts = allBookings.filter(
+      (b) =>
+        b.carParkId === carParkId &&
+        b.spaceId === selectedSpace &&
+        dates.includes(b.date),
+    );
+
+    if (conflicts.length > 0) {
+      setPendingConflicts(
+        conflicts.map((c) => ({ date: c.date, userName: c.userName })),
+      );
+      setShowConflictWarning(true);
+      return;
+    }
+
+    await handleBookSubmit();
   };
 
   const handleClose = () => {
@@ -253,9 +318,14 @@ export function AdminFreeModal({
       setRangeStart("");
       setRangeEnd("");
       setResultMessage(null);
+      setSelectedSpace("");
+      setShowConflictWarning(false);
+      setPendingConflicts([]);
       onOpenChange(false);
     }
   };
+
+  const conflictCount = pendingConflicts.length;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -289,6 +359,8 @@ export function AdminFreeModal({
             onClick={() => {
               setMode("book");
               setResultMessage(null);
+              setShowConflictWarning(false);
+              setPendingConflicts([]);
             }}
             className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer rounded-t-md ${
               mode === "book"
@@ -311,6 +383,9 @@ export function AdminFreeModal({
                 setCarParkId(e.target.value);
                 setSelectedUsers([]);
                 setUsersOpen(false);
+                setSelectedSpace("");
+                setShowConflictWarning(false);
+                setPendingConflicts([]);
               }}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -432,6 +507,29 @@ export function AdminFreeModal({
             </div>
           </div>
 
+          {mode === "book" && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Space</label>
+              <select
+                value={selectedSpace}
+                onChange={(e) => {
+                  setSelectedSpace(e.target.value);
+                  setShowConflictWarning(false);
+                  setPendingConflicts([]);
+                }}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">Select a space...</option>
+                {parkingSpaces.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.row}
+                    {s.number}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="space-y-1.5 bg-muted p-2 rounded-md">
             <div className="flex border-b border-border">
               <button
@@ -552,6 +650,26 @@ export function AdminFreeModal({
             )}
           </div>
 
+          {showConflictWarning && conflictCount > 0 && (
+            <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-3">
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-400 mb-2">
+                Space {selectedSpace} is already booked on:
+              </p>
+              <ul className="text-xs text-amber-600 dark:text-amber-300 space-y-1 mb-3">
+                {pendingConflicts.map((c) => (
+                  <li key={c.date}>
+                    {weekday(c.date)} {formatEuro(c.date)} &mdash;{" "}
+                    <span className="font-medium">{c.userName}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-amber-600 dark:text-amber-300">
+                These existing bookings will be replaced. Click "Continue anyway"
+                to proceed, or select a different space.
+              </p>
+            </div>
+          )}
+
           {resultMessage && (
             <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-700 dark:text-green-400">
               {resultMessage}
@@ -571,16 +689,27 @@ export function AdminFreeModal({
           <Button
             onClick={handleSubmit}
             disabled={
-              dates.length === 0 || selectedUsers.length === 0 || isSubmitting
+              dates.length === 0 ||
+              selectedUsers.length === 0 ||
+              isSubmitting ||
+              (mode === "book" && !selectedSpace && !showConflictWarning)
             }
-            variant={mode === "free" ? "destructive" : "default"}
+            variant={
+              showConflictWarning
+                ? "destructive"
+                : mode === "free"
+                  ? "destructive"
+                  : "default"
+            }
             className="cursor-pointer"
           >
             {isSubmitting
               ? mode === "free"
                 ? "Freeing..."
                 : "Booking..."
-              : `${mode === "free" ? "Free" : "Book"} (${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""}, ${dates.length} date${dates.length !== 1 ? "s" : ""})`}
+              : showConflictWarning
+                ? `Continue anyway (${conflictCount} conflict${conflictCount !== 1 ? "s" : ""})`
+                : `${mode === "free" ? "Free" : "Book"} (${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""}, ${dates.length} date${dates.length !== 1 ? "s" : ""}${mode === "book" && selectedSpace ? `, Space ${selectedSpace}` : ""})`}
           </Button>
         </DialogFooter>
       </DialogContent>

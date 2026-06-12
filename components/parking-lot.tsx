@@ -99,7 +99,11 @@ export function ParkingLot({
   const isVisitor = useCallback(
     (spaceId: string) => {
       const booking = getBookingForSpace(spaceId);
-      return booking?.userName === "VISITOR";
+      const name = booking?.userName ?? "";
+      return (
+        name.toLowerCase() === "visitor" ||
+        name.toLowerCase() === "v"
+      );
     },
     [getBookingForSpace],
   );
