@@ -168,15 +168,18 @@ export function AdminFreeModal({
   }, [selectedSpace, dates]);
 
   const toggleUser = (u: string) => {
-    const setter = mode === "free" ? setFreeUsers : setBookUsers;
-    setter((prev) =>
-      prev.includes(u) ? prev.filter((x) => x !== u) : [...prev, u],
-    );
+    if (mode === "book") {
+      setBookUsers((prev) => (prev.includes(u) ? [] : [u]));
+    } else {
+      setFreeUsers((prev) =>
+        prev.includes(u) ? prev.filter((x) => x !== u) : [...prev, u],
+      );
+    }
   };
 
   const selectAll = () => {
-    const setter = mode === "free" ? setFreeUsers : setBookUsers;
-    if (Array.isArray(allUsers)) setter([...allUsers]);
+    if (mode === "book") return;
+    if (Array.isArray(allUsers)) setFreeUsers([...allUsers]);
   };
   const deselectAll = () => {
     const setter = mode === "free" ? setFreeUsers : setBookUsers;
