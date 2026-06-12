@@ -94,6 +94,7 @@ export function AppHeader({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
               {[
+                "h.thorton@slimstock.com",
                 "a.greensmith@slimstock.com",
                 "m.guerreiro@slimstock.com",
                 "j.cooper@slimstock.com",
