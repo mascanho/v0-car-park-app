@@ -25,7 +25,7 @@ interface ParkingSpaceProps {
   onReallocate?: (spaceId: string, userName: string) => void;
   carParkId?: string;
   currentUser?: string;
-  currentUserEmail?: string;
+  isAdmin?: boolean;
   isRegular?: boolean;
 }
 
@@ -44,7 +44,7 @@ export function ParkingSpaceCard({
   onReallocate,
   carParkId,
   currentUser,
-  currentUserEmail,
+  isAdmin,
   isRegular,
 }: ParkingSpaceProps) {
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
@@ -105,14 +105,6 @@ export function ParkingSpaceCard({
     setMenuPos(null);
     if (onReallocate) onReallocate(space.id, "VISITOR");
   };
-
-  const isAdmin =
-    currentUserEmail === "m.guerreiro@slimstock.com" ||
-    currentUserEmail === "n.cooper@slimstock.com" ||
-    currentUserEmail === "j.cooper@slimstock.com" ||
-    currentUserEmail === "a.greensmith@slimstock.com" ||
-    currentUserEmail === "h.thorton@slimstock.com" ||
-    currentUser === "Marco Guerreiro";
 
   const tooltip = isBooked
     ? isCurrentUserBooking

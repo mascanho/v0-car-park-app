@@ -9,6 +9,7 @@ export function SiteHeader() {
   const [currentUser, setCurrentUser] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isRegular, setIsRegular] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const supabaseRef = useRef(createClient());
@@ -30,6 +31,10 @@ export function SiteHeader() {
           .ilike("email", email)
           .maybeSingle();
         setIsRegular(userRecord?.is_regular ?? false);
+
+        const adminRes = await fetch("/api/admin/check");
+        const adminData = await adminRes.json();
+        setIsAdmin(adminData.isAdmin);
       }
     });
   }, []);
@@ -44,6 +49,7 @@ export function SiteHeader() {
       currentUser={currentUser}
       avatarUrl={avatarUrl}
       userEmail={userEmail}
+      isAdmin={isAdmin}
       adminMenuOpen={adminMenuOpen}
       onToggleAdminMenu={() => setAdminMenuOpen((v) => !v)}
       onCloseAdminMenu={() => setAdminMenuOpen(false)}

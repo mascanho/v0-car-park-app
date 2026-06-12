@@ -29,6 +29,7 @@ export function ParkingApp() {
   const [currentUser, setCurrentUser] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [bulkFreeOpen, setBulkFreeOpen] = useState(false);
   const [adminFreeOpen, setAdminFreeOpen] = useState(false);
@@ -60,6 +61,10 @@ export function ParkingApp() {
           .ilike("email", email)
           .maybeSingle();
         setIsRegular(userRecord?.is_regular ?? false);
+
+        const adminRes = await fetch("/api/admin/check");
+        const adminData = await adminRes.json();
+        setIsAdmin(adminData.isAdmin);
 
         const today = new Date();
         const { data: allUsers } = await supabase
@@ -374,6 +379,7 @@ export function ParkingApp() {
         currentUser={currentUser}
         avatarUrl={avatarUrl}
         userEmail={userEmail}
+        isAdmin={isAdmin}
         adminMenuOpen={adminMenuOpen}
         onToggleAdminMenu={() => setAdminMenuOpen((v) => !v)}
         onCloseAdminMenu={() => setAdminMenuOpen(false)}
@@ -444,6 +450,7 @@ export function ParkingApp() {
               onSelectSpace={handleSelectSpace}
               currentUser={currentUser}
               currentUserEmail={userEmail}
+              isAdmin={isAdmin}
               isRegular={isRegular}
               disabled={isPastDate(selectedDate) || !currentUser}
               carPark={selectedCarPark}

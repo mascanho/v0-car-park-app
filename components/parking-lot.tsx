@@ -15,6 +15,7 @@ interface ParkingLotProps {
   onSelectSpace: (space: ParkingSpace) => void;
   currentUser: string;
   currentUserEmail: string;
+  isAdmin?: boolean;
   isRegular?: boolean;
   disabled?: boolean;
   carPark: CarPark;
@@ -37,6 +38,7 @@ export function ParkingLot({
   onSelectSpace,
   currentUser,
   currentUserEmail,
+  isAdmin,
   isRegular,
   disabled,
   date,
@@ -192,7 +194,7 @@ export function ParkingLot({
                         onReallocate={onReallocate}
                         carParkId={carPark.id}
                         currentUser={currentUser}
-                        currentUserEmail={currentUserEmail}
+                        isAdmin={isAdmin}
                         isRegular={isRegular}
                       />
                     ))}

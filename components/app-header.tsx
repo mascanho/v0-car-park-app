@@ -22,6 +22,7 @@ interface AppHeaderProps {
   currentUser: string;
   avatarUrl: string;
   userEmail: string;
+  isAdmin: boolean;
   adminMenuOpen: boolean;
   onToggleAdminMenu: () => void;
   onCloseAdminMenu: () => void;
@@ -44,6 +45,7 @@ export function AppHeader({
   currentUser,
   avatarUrl,
   userEmail,
+  isAdmin,
   adminMenuOpen,
   onToggleAdminMenu,
   onCloseAdminMenu,
@@ -93,13 +95,7 @@ export function AppHeader({
           </Sheet>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              {[
-                "h.thorton@slimstock.com",
-                "a.greensmith@slimstock.com",
-                "m.guerreiro@slimstock.com",
-                "j.cooper@slimstock.com",
-                "n.cooper@slimstock.com",
-              ].includes(userEmail.toLowerCase().trim()) && (
+              {isAdmin && (
                 <AdminDropdown
                   open={adminMenuOpen}
                   onToggle={onToggleAdminMenu}
