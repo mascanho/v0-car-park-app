@@ -507,6 +507,26 @@ export function AdminFreeModal({
             </div>
           </div>
 
+          {selectedUsers.length > 0 && (
+            <div className="-mt-2 flex flex-wrap gap-1">
+              {selectedUsers.map((u) => (
+                <span
+                  key={u}
+                  className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
+                >
+                  {u}
+                  <button
+                    type="button"
+                    onClick={() => toggleUser(u)}
+                    className="hover:bg-primary/20 rounded-sm p-0.5"
+                  >
+                    <X className="w-2.5 h-2.5 text-red-500" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
           {mode === "book" && (
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Space</label>
