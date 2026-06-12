@@ -51,12 +51,12 @@ export function AppInfoSheet() {
             description="Go to the homepage"
             href="/"
           />
-          <SheetMenuItem
-            icon={Users}
-            label="Meet The Team"
-            description="View Slimstock's UK team"
-            href="/team"
-          />
+          {/* <SheetMenuItem */}
+          {/*   icon={Users} */}
+          {/*   label="Meet The Team" */}
+          {/*   description="View Slimstock's UK team" */}
+          {/*   href="/team" */}
+          {/* /> */}
           <SheetMenuItem
             icon={Car}
             label="Slimstock Website"

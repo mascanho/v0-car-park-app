@@ -17,7 +17,8 @@ import { X, CalendarDays, FilePlus, CircleFadingPlus } from "lucide-react";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function weekday(dateStr: string) {
-  const day = new Date(dateStr + "T00:00:00").getDay();
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const day = new Date(y, m - 1, d).getDay();
   return WEEKDAYS[day];
 }
 
@@ -85,6 +86,7 @@ export function BulkFreeModal({
   const [dateInput, setDateInput] = useState("");
   const [rangeStart, setRangeStart] = useState("");
   const [rangeEnd, setRangeEnd] = useState("");
+  const [bouncing, setBouncing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{ freedCount: number } | null>(null);
   const userMatch = findUserSpace(currentUser, userEmail, carParkId);
@@ -107,6 +109,13 @@ export function BulkFreeModal({
     }
   }, [open, selectedCarPark.id, currentUser, userEmail]);
 
+  useEffect(() => {
+    if (rangeStart && rangeEnd) {
+      setBouncing(true);
+      setTimeout(() => setBouncing(false), 400);
+    }
+  }, [rangeStart, rangeEnd]);
+
   const addDate = (iso: string) => {
     if (!iso) return;
     if (dates.includes(iso)) return;
@@ -118,10 +127,15 @@ export function BulkFreeModal({
     if (!rangeStart || !rangeEnd) return;
     if (rangeStart > rangeEnd) return;
     const newDates: string[] = [];
-    const cur = new Date(rangeStart + "T00:00:00");
-    const endDate = new Date(rangeEnd + "T00:00:00");
-    while (cur <= endDate) {
-      newDates.push(cur.toISOString().slice(0, 10));
+    const [sy, sm, sd] = rangeStart.split("-").map(Number);
+    const [ey, em, ed] = rangeEnd.split("-").map(Number);
+    const cur = new Date(sy, sm - 1, sd);
+    const end = new Date(ey, em - 1, ed);
+    while (cur <= end) {
+      const y = cur.getFullYear();
+      const m = String(cur.getMonth() + 1).padStart(2, "0");
+      const day = String(cur.getDate()).padStart(2, "0");
+      newDates.push(`${y}-${m}-${day}`);
       cur.setDate(cur.getDate() + 1);
     }
     setDates((prev) => {
@@ -168,6 +182,16 @@ export function BulkFreeModal({
   };
 
   return (
+    <>
+      <style>{`
+@keyframes bounce-once {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-bounce-once {
+  animation: bounce-once 0.35s ease-in-out;
+}
+`}</style>
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
@@ -280,9 +304,13 @@ export function BulkFreeModal({
                   variant="outline"
                   onClick={addRange}
                   disabled={!rangeStart || !rangeEnd}
-                  className="shrink-0 cursor-pointer"
+                  className={`shrink-0 cursor-pointer ${rangeStart && rangeEnd ? "bg-accent" : ""} ${bouncing ? "animate-bounce-once" : ""}`}
                 >
-                  <CircleFadingPlus className="w-4 h-4 cursor-pointer" />
+                  <CircleFadingPlus
+                    className={`w-4 h-4 cursor-pointer text-gray-500 ${
+                      rangeStart && rangeEnd ? "text-white " : ""
+                    }`}
+                  />
                 </Button>
               </div>
             )}
@@ -356,5 +384,6 @@ export function BulkFreeModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   );
 }

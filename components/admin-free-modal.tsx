@@ -23,7 +23,8 @@ const fetcher = async (url: string) => {
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function weekday(dateStr: string) {
-  const day = new Date(dateStr + "T00:00:00").getDay();
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const day = new Date(y, m - 1, d).getDay();
   return WEEKDAYS[day];
 }
 
@@ -70,6 +71,8 @@ interface AdminFreeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   carParks: CarPark[];
+  selectedCarPark: CarPark | null;
+  onSelectCarPark: (carPark: CarPark) => void;
   onFreed: () => void;
 }
 
@@ -77,9 +80,11 @@ export function AdminFreeModal({
   open,
   onOpenChange,
   carParks,
+  selectedCarPark,
+  onSelectCarPark,
   onFreed,
 }: AdminFreeModalProps) {
-  const [carParkId, setCarParkId] = useState(carParks[0]?.id || "");
+  const [carParkId, setCarParkId] = useState(selectedCarPark?.id || carParks[0]?.id || "");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [dates, setDates] = useState<string[]>([]);
   const [tab, setTab] = useState<"single" | "range">("single");
@@ -109,7 +114,7 @@ export function AdminFreeModal({
 
   useEffect(() => {
     if (open) {
-      setCarParkId(carParks[0]?.id || "");
+      setCarParkId(selectedCarPark?.id || carParks[0]?.id || "");
       setSelectedUsers([]);
       setDates([]);
       setDateInput("");
@@ -117,7 +122,7 @@ export function AdminFreeModal({
       setRangeEnd("");
       setResult(null);
     }
-  }, [open]);
+  }, [open, selectedCarPark, carParks]);
 
   const toggleUser = (u: string) => {
     setSelectedUsers((prev) =>
@@ -140,10 +145,15 @@ export function AdminFreeModal({
     if (!rangeStart || !rangeEnd) return;
     if (rangeStart > rangeEnd) return;
     const newDates: string[] = [];
-    const cur = new Date(rangeStart + "T00:00:00");
-    const endDate = new Date(rangeEnd + "T00:00:00");
-    while (cur <= endDate) {
-      newDates.push(cur.toISOString().slice(0, 10));
+    const [sy, sm, sd] = rangeStart.split("-").map(Number);
+    const [ey, em, ed] = rangeEnd.split("-").map(Number);
+    const cur = new Date(sy, sm - 1, sd);
+    const end = new Date(ey, em - 1, ed);
+    while (cur <= end) {
+      const y = cur.getFullYear();
+      const m = String(cur.getMonth() + 1).padStart(2, "0");
+      const day = String(cur.getDate()).padStart(2, "0");
+      newDates.push(`${y}-${m}-${day}`);
       cur.setDate(cur.getDate() + 1);
     }
     setDates((prev) => {
@@ -205,6 +215,8 @@ export function AdminFreeModal({
             <select
               value={carParkId}
               onChange={(e) => {
+                const cp = carParks.find((p) => p.id === e.target.value);
+                if (cp) onSelectCarPark(cp);
                 setCarParkId(e.target.value);
                 setSelectedUsers([]);
                 setUsersOpen(false);
