@@ -384,7 +384,6 @@ export function AdminFreeModal({
         <div className="space-y-4 py-2">
           {mode === "book" && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Users</label>
               <div className="relative" ref={usersRef}>
                 <button
                   type="button"
@@ -514,7 +513,6 @@ export function AdminFreeModal({
           )}
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Car Park</label>
             <select
               value={carParkId}
               onChange={(e) => {
@@ -541,7 +539,6 @@ export function AdminFreeModal({
           {mode !== "book" && (
             <>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Users</label>
                 <div className="relative" ref={usersRef}>
                   <button
                     type="button"
@@ -674,7 +671,6 @@ export function AdminFreeModal({
 
           {mode === "book" && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Space</label>
               <select
                 value={selectedSpace}
                 onChange={(e) => {

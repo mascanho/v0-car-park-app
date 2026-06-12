@@ -203,7 +203,6 @@ export function BulkFreeModal({
 
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Car Park</label>
             {userCarParks.length > 0 ? (
               <select
                 value={carParkId}
