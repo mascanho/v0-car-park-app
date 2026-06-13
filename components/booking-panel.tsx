@@ -8,6 +8,7 @@ import {
   Clock,
   User,
   ExternalLink,
+  LucideCircleParking,
 } from "lucide-react";
 import type { ParkingSpace, Booking } from "@/lib/parking-data";
 import { isPastDate } from "@/lib/parking-data";
@@ -80,7 +81,7 @@ export function BookingPanel({
         )}
         {selectedSpace && (
           <div className="flex items-center gap-3 text-sm">
-            <MapPin className="w-4 h-4 text-muted-foreground" />
+            <LucideCircleParking className="w-4 h-4 text-muted-foreground" />
             <span className="text-foreground">
               Space <span className="font-semibold">{selectedSpace.id}</span>
             </span>

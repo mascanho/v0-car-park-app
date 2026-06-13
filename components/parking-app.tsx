@@ -21,6 +21,7 @@ import {
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
 import { Loader2 } from "lucide-react";
 import { BirthdayBanner } from "./birthday-banner";
+import { NotificationBanner } from "./notification-banner";
 import { getPhotoUrl } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -415,6 +416,8 @@ export function ParkingApp() {
         currentYear={currentYear}
         isRegular={isRegular}
       />
+
+      <NotificationBanner />
 
       <CarParkSelector
         carParks={carParks}
