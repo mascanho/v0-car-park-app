@@ -165,22 +165,11 @@ export function BookingPanel({
             <span className="text-muted-foreground ml-2"></span>
           </p>
           {isBorrowing && (
-            <div className="flex items-center gap-2 mt-1">
+            <div className="sm:flex items-center gap-2 mt-1">
               <p className="text-xs text-muted-foreground">
                 Currently allocated to{" "}
                 <span className="font-medium">{selectedSpaceBookedBy}</span>
               </p>
-              {selectedSpaceBookedByEmail && (
-                <a
-                  href={`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(selectedSpaceBookedByEmail)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 underline"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  Request to book
-                </a>
-              )}
             </div>
           )}
 
@@ -226,6 +215,18 @@ export function BookingPanel({
         >
           {getButtonLabel()}
         </Button>
+      )}
+
+      {selectedSpaceBookedByEmail && (
+        <a
+          href={`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(selectedSpaceBookedByEmail)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1 text-[10px] text-primary/50 hover:text-primary/80 underline w-full mx-auto text-center mt-2"
+        >
+          <ExternalLink className="w-3 h-3" />
+          Speak to {selectedSpaceBookedBy}
+        </a>
       )}
 
       {/* Daily renewal notice */}

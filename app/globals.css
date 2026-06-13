@@ -132,3 +132,7 @@
     touch-action: manipulation;
   }
 }
+
+@utility touch-callout-none {
+  -webkit-touch-callout: none;
+}
