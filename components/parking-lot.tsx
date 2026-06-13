@@ -24,6 +24,7 @@ interface ParkingLotProps {
   onCancel: () => void;
   existingBooking: Booking | null;
   selectedSpaceBookedBy?: string | null;
+  selectedSpaceBookedByEmail?: string | null;
   isLoading?: boolean;
   onFreeSpace?: (spaceId: string) => void;
   onReallocate?: (spaceId: string, userName: string) => void;
@@ -46,6 +47,7 @@ export function ParkingLot({
   onCancel,
   existingBooking,
   selectedSpaceBookedBy,
+  selectedSpaceBookedByEmail,
   isLoading,
   onFreeSpace,
   onReallocate,
@@ -231,6 +233,7 @@ export function ParkingLot({
             onCancel={onCancel}
             existingBooking={existingBooking}
             selectedSpaceBookedBy={selectedSpaceBookedBy}
+            selectedSpaceBookedByEmail={selectedSpaceBookedByEmail}
             isLoading={isLoading}
             carParkName={carPark.name}
           />

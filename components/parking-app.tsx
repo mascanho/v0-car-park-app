@@ -117,6 +117,19 @@ export function ParkingApp() {
     mutate: refreshBookings,
   } = useSWR<Booking[]>("/api/bookings", fetcher);
 
+  const { data: usersWithEmail = [] } = useSWR<{ name: string; email: string }[]>(
+    "/api/users?includeEmail=true",
+    fetcher,
+  );
+
+  const userEmailMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    usersWithEmail.forEach((u) => {
+      map[u.name] = u.email;
+    });
+    return map;
+  }, [usersWithEmail]);
+
   const parkingSpaces = useMemo(() => {
     if (!selectedCarPark) return [];
     return generateParkingSpaces(selectedCarPark);
@@ -150,6 +163,11 @@ export function ParkingApp() {
       ? booking.userName
       : null;
   }, [selectedSpace, dateBookings, currentUser]);
+
+  const selectedSpaceBookedByEmail = useMemo(() => {
+    if (!selectedSpaceBookedBy) return null;
+    return userEmailMap[selectedSpaceBookedBy] || null;
+  }, [selectedSpaceBookedBy, userEmailMap]);
 
   const carParkBookingCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -459,6 +477,7 @@ export function ParkingApp() {
               onCancel={handleCancelBooking}
               existingBooking={existingBooking}
               selectedSpaceBookedBy={selectedSpaceBookedBy}
+              selectedSpaceBookedByEmail={selectedSpaceBookedByEmail}
               isLoading={isLoading}
               onFreeSpace={handleFreeSpace}
               onReallocate={handleReallocate}

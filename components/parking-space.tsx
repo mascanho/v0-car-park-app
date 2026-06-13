@@ -228,7 +228,7 @@ export function ParkingSpaceCard({
             {isBooked && onFreeSpace && (
               <button
                 onClick={handleFree}
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-destructive hover:bg-destructive/10 text-left"
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-destructive hover:bg-destructive/10 text-left cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Free this space
@@ -238,7 +238,7 @@ export function ParkingSpaceCard({
               <div className="relative">
                 <button
                   onClick={handleReallocateClick}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 text-left"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 text-left cursor-pointer"
                 >
                   <UserRoundPlus className="w-3.5 h-3.5" />
                   {isBooked ? "Re-allocate" : "Allocate to..."}
@@ -267,7 +267,7 @@ export function ParkingSpaceCard({
             {isAdmin && onReallocate && (
               <button
                 onClick={handleVisitorAllocate}
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm  hover:bg-neutral-800/50 text-left"
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm  hover:bg-neutral-800 hover:text-white text-left cursor-pointer"
               >
                 <UserRoundPlus className="w-3.5 h-3.5" />
                 Allocate to VISITOR

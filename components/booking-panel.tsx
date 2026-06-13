@@ -7,7 +7,7 @@ import {
   MapPin,
   Clock,
   User,
-  LucideCircleParking,
+  ExternalLink,
 } from "lucide-react";
 import type { ParkingSpace, Booking } from "@/lib/parking-data";
 import { isPastDate } from "@/lib/parking-data";
@@ -20,6 +20,7 @@ interface BookingPanelProps {
   onCancel: () => void;
   existingBooking: Booking | null;
   selectedSpaceBookedBy?: string | null;
+  selectedSpaceBookedByEmail?: string | null;
   isLoading?: boolean;
   carParkName?: string;
 }
@@ -32,6 +33,7 @@ export function BookingPanel({
   onCancel,
   existingBooking,
   selectedSpaceBookedBy,
+  selectedSpaceBookedByEmail,
   isLoading,
   carParkName,
 }: BookingPanelProps) {
@@ -78,7 +80,7 @@ export function BookingPanel({
         )}
         {selectedSpace && (
           <div className="flex items-center gap-3 text-sm">
-            <LucideCircleParking className="w-4 h-4 text-muted-foreground" />
+            <MapPin className="w-4 h-4 text-muted-foreground" />
             <span className="text-foreground">
               Space <span className="font-semibold">{selectedSpace.id}</span>
             </span>
@@ -160,10 +162,23 @@ export function BookingPanel({
             <span className="text-muted-foreground ml-2"></span>
           </p>
           {isBorrowing && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Currently allocated to{" "}
-              <span className="font-medium">{selectedSpaceBookedBy}</span>
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs text-muted-foreground">
+                Currently allocated to{" "}
+                <span className="font-medium">{selectedSpaceBookedBy}</span>
+              </p>
+              {selectedSpaceBookedByEmail && (
+                <a
+                  href={`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(selectedSpaceBookedByEmail)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 underline"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Request to book
+                </a>
+              )}
+            </div>
           )}
 
           {selectedSpace.id === "26" && (
