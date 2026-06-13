@@ -15,6 +15,7 @@ interface ParkingLotProps {
   onSelectSpace: (space: ParkingSpace) => void;
   currentUser: string;
   currentUserEmail: string;
+  isAdmin?: boolean;
   isRegular?: boolean;
   disabled?: boolean;
   carPark: CarPark;
@@ -23,6 +24,7 @@ interface ParkingLotProps {
   onCancel: () => void;
   existingBooking: Booking | null;
   selectedSpaceBookedBy?: string | null;
+  selectedSpaceBookedByEmail?: string | null;
   isLoading?: boolean;
   onFreeSpace?: (spaceId: string) => void;
   onReallocate?: (spaceId: string, userName: string) => void;
@@ -37,6 +39,7 @@ export function ParkingLot({
   onSelectSpace,
   currentUser,
   currentUserEmail,
+  isAdmin,
   isRegular,
   disabled,
   date,
@@ -44,6 +47,7 @@ export function ParkingLot({
   onCancel,
   existingBooking,
   selectedSpaceBookedBy,
+  selectedSpaceBookedByEmail,
   isLoading,
   onFreeSpace,
   onReallocate,
@@ -99,7 +103,8 @@ export function ParkingLot({
   const isVisitor = useCallback(
     (spaceId: string) => {
       const booking = getBookingForSpace(spaceId);
-      return booking?.userName === "VISITOR";
+      const name = booking?.userName ?? "";
+      return name.toLowerCase() === "visitor" || name.toLowerCase() === "v";
     },
     [getBookingForSpace],
   );
@@ -188,7 +193,7 @@ export function ParkingLot({
                         onReallocate={onReallocate}
                         carParkId={carPark.id}
                         currentUser={currentUser}
-                        currentUserEmail={currentUserEmail}
+                        isAdmin={isAdmin}
                         isRegular={isRegular}
                       />
                     ))}
@@ -228,7 +233,9 @@ export function ParkingLot({
             onCancel={onCancel}
             existingBooking={existingBooking}
             selectedSpaceBookedBy={selectedSpaceBookedBy}
+            selectedSpaceBookedByEmail={selectedSpaceBookedByEmail}
             isLoading={isLoading}
+            carParkName={carPark.name}
           />
         </div>
       </div>

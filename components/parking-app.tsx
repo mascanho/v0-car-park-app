@@ -21,6 +21,8 @@ import {
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
 import { Loader2 } from "lucide-react";
 import { BirthdayBanner } from "./birthday-banner";
+import { NotificationBanner } from "./notification-banner";
+import { NotificationModal } from "./notification-modal";
 import { getPhotoUrl } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -29,9 +31,11 @@ export function ParkingApp() {
   const [currentUser, setCurrentUser] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [bulkFreeOpen, setBulkFreeOpen] = useState(false);
   const [adminFreeOpen, setAdminFreeOpen] = useState(false);
+  const [notificationModalOpen, setNotificationModalOpen] = useState(false);
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
@@ -60,6 +64,10 @@ export function ParkingApp() {
           .ilike("email", email)
           .maybeSingle();
         setIsRegular(userRecord?.is_regular ?? false);
+
+        const adminRes = await fetch("/api/admin/check");
+        const adminData = await adminRes.json();
+        setIsAdmin(adminData.isAdmin);
 
         const today = new Date();
         const { data: allUsers } = await supabase
@@ -112,6 +120,19 @@ export function ParkingApp() {
     mutate: refreshBookings,
   } = useSWR<Booking[]>("/api/bookings", fetcher);
 
+  const { data: usersWithEmail = [] } = useSWR<{ name: string; email: string }[]>(
+    "/api/users?includeEmail=true",
+    fetcher,
+  );
+
+  const userEmailMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    usersWithEmail.forEach((u) => {
+      map[u.name] = u.email;
+    });
+    return map;
+  }, [usersWithEmail]);
+
   const parkingSpaces = useMemo(() => {
     if (!selectedCarPark) return [];
     return generateParkingSpaces(selectedCarPark);
@@ -145,6 +166,11 @@ export function ParkingApp() {
       ? booking.userName
       : null;
   }, [selectedSpace, dateBookings, currentUser]);
+
+  const selectedSpaceBookedByEmail = useMemo(() => {
+    if (!selectedSpaceBookedBy) return null;
+    return userEmailMap[selectedSpaceBookedBy] || null;
+  }, [selectedSpaceBookedBy, userEmailMap]);
 
   const carParkBookingCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -193,6 +219,19 @@ export function ParkingApp() {
   const handleOpenAdminFree = useCallback(() => {
     setAdminFreeOpen(true);
     setSelectedSpace(null);
+  }, []);
+
+  const handleOpenNotificationModal = useCallback(() => {
+    setNotificationModalOpen(true);
+  }, []);
+
+  const handleCloseNotificationModal = useCallback(() => {
+    setNotificationModalOpen(false);
+  }, []);
+
+  const [notifVersion, setNotifVersion] = useState(0);
+  const handleRefreshNotification = useCallback(() => {
+    setNotifVersion((v) => v + 1);
   }, []);
 
   const handleSelectDate = useCallback((date: Date) => {
@@ -374,6 +413,7 @@ export function ParkingApp() {
         currentUser={currentUser}
         avatarUrl={avatarUrl}
         userEmail={userEmail}
+        isAdmin={isAdmin}
         adminMenuOpen={adminMenuOpen}
         onToggleAdminMenu={() => setAdminMenuOpen((v) => !v)}
         onCloseAdminMenu={() => setAdminMenuOpen(false)}
@@ -383,6 +423,7 @@ export function ParkingApp() {
         adminFreeOpen={adminFreeOpen}
         onOpenAdminFree={handleOpenAdminFree}
         onCloseAdminFree={() => setAdminFreeOpen(false)}
+        onOpenNotificationModal={handleOpenNotificationModal}
         carParks={carParks}
         selectedCarPark={selectedCarPark}
         onSelectCarPark={handleSelectCarPark}
@@ -407,13 +448,12 @@ export function ParkingApp() {
       />
 
       <main className="max-w-8xl mx-auto px-4 py-6">
-        {birthdays.length > 0 && (
-          <div className="mb-4 space-y-3 lg:hidden">
-            {birthdays.map((b) => (
-              <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
-            ))}
-          </div>
-        )}
+        <div className="mb-4 space-y-3 lg:hidden empty:hidden">
+          <NotificationBanner key={notifVersion} />
+          {birthdays.length > 0 && birthdays.map((b) => (
+            <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
+          ))}
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div id="calendar" className="lg:col-span-3 space-y-4 scroll-mt-20">
             <Calendar
@@ -444,6 +484,7 @@ export function ParkingApp() {
               onSelectSpace={handleSelectSpace}
               currentUser={currentUser}
               currentUserEmail={userEmail}
+              isAdmin={isAdmin}
               isRegular={isRegular}
               disabled={isPastDate(selectedDate) || !currentUser}
               carPark={selectedCarPark}
@@ -452,6 +493,7 @@ export function ParkingApp() {
               onCancel={handleCancelBooking}
               existingBooking={existingBooking}
               selectedSpaceBookedBy={selectedSpaceBookedBy}
+              selectedSpaceBookedByEmail={selectedSpaceBookedByEmail}
               isLoading={isLoading}
               onFreeSpace={handleFreeSpace}
               onReallocate={handleReallocate}
@@ -467,13 +509,12 @@ export function ParkingApp() {
                 selectedDate={selectedDate}
               />
             </div>
-            {birthdays.length > 0 && (
-              <div className="hidden lg:block lg:space-y-3">
-                {birthdays.map((b) => (
-                  <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
-                ))}
-              </div>
-            )}
+            <div className="hidden lg:block lg:space-y-3 empty:hidden">
+              <NotificationBanner key={notifVersion} />
+              {birthdays.length > 0 && birthdays.map((b) => (
+                <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
+              ))}
+            </div>
             <MapPanel
               address={selectedCarPark.address || selectedCarPark.location}
               name={selectedCarPark.name}
@@ -491,6 +532,12 @@ export function ParkingApp() {
           </div>
         </div>
       </main>
+
+      <NotificationModal
+        open={notificationModalOpen}
+        onOpenChange={handleCloseNotificationModal}
+        onRefresh={handleRefreshNotification}
+      />
 
       <AppFooter />
     </div>

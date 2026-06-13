@@ -125,4 +125,10 @@
   body {
     @apply bg-background text-foreground;
   }
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    touch-action: manipulation;
+  }
 }

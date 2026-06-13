@@ -11,7 +11,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import type { CarPark } from "@/lib/parking-data";
+import type { CarPark, Booking } from "@/lib/parking-data";
+import { generateParkingSpaces, getUserDefaultSpace } from "@/lib/parking-data";
 import { X } from "lucide-react";
 
 const fetcher = async (url: string) => {
@@ -21,6 +22,12 @@ const fetcher = async (url: string) => {
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function normalizeUserName(name: string) {
+  const lower = name.toLowerCase();
+  if (lower === "visitor" || lower === "v") return "VISITOR";
+  return name;
+}
 
 function weekday(dateStr: string) {
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -52,6 +59,7 @@ function DatePicker({
         value={display}
         placeholder={placeholder}
         readOnly
+        autoComplete="off"
         onClick={() => dateRef.current?.showPicker()}
         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
       />
@@ -62,6 +70,7 @@ function DatePicker({
         onChange={(e) => onChange(e.target.value)}
         className="absolute inset-0 opacity-0 pointer-events-none"
         tabIndex={-1}
+        autoComplete="off"
       />
     </div>
   );
@@ -84,17 +93,28 @@ export function AdminFreeModal({
   onSelectCarPark,
   onFreed,
 }: AdminFreeModalProps) {
-  const [carParkId, setCarParkId] = useState(selectedCarPark?.id || carParks[0]?.id || "");
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [mode, setMode] = useState<"free" | "book">("free");
+  const [carParkId, setCarParkId] = useState(
+    selectedCarPark?.id || carParks[0]?.id || "",
+  );
+  const [freeUsers, setFreeUsers] = useState<string[]>([]);
+  const [bookUsers, setBookUsers] = useState<string[]>([]);
+  const selectedUsers = mode === "free" ? freeUsers : bookUsers;
   const [dates, setDates] = useState<string[]>([]);
   const [tab, setTab] = useState<"single" | "range">("single");
   const [dateInput, setDateInput] = useState("");
   const [rangeStart, setRangeStart] = useState("");
   const [rangeEnd, setRangeEnd] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<{ freedCount: number } | null>(null);
+  const [resultMessage, setResultMessage] = useState<string | null>(null);
   const [usersOpen, setUsersOpen] = useState(false);
   const usersRef = useRef<HTMLDivElement>(null);
+
+  const [selectedSpace, setSelectedSpace] = useState("");
+  const [showConflictWarning, setShowConflictWarning] = useState(false);
+  const [pendingConflicts, setPendingConflicts] = useState<
+    { date: string; userName: string }[]
+  >([]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -110,30 +130,63 @@ export function AdminFreeModal({
     `/api/users?carParkId=${carParkId}`,
     fetcher,
   );
-  const allUsers = Array.isArray(rawUsers) ? rawUsers : [];
+  const allUsers = [
+    "Visitor",
+    ...(Array.isArray(rawUsers)
+      ? rawUsers.filter((u) => u !== "Visitor")
+      : []),
+  ];
+
+  const { data: rawBookings = [] } = useSWR<Booking[]>(
+    "/api/bookings",
+    fetcher,
+  );
+  const allBookings = Array.isArray(rawBookings) ? rawBookings : [];
+
+  const currentCarPark = carParks.find((cp) => cp.id === carParkId);
+  const parkingSpaces = currentCarPark
+    ? generateParkingSpaces(currentCarPark)
+    : [];
 
   useEffect(() => {
     if (open) {
       setCarParkId(selectedCarPark?.id || carParks[0]?.id || "");
-      setSelectedUsers([]);
+      setFreeUsers([]);
+      setBookUsers([]);
       setDates([]);
       setDateInput("");
       setRangeStart("");
       setRangeEnd("");
-      setResult(null);
+      setResultMessage(null);
+      setSelectedSpace("");
+      setShowConflictWarning(false);
+      setPendingConflicts([]);
     }
   }, [open, selectedCarPark, carParks]);
 
+  useEffect(() => {
+    setShowConflictWarning(false);
+    setPendingConflicts([]);
+  }, [selectedSpace, dates]);
+
   const toggleUser = (u: string) => {
-    setSelectedUsers((prev) =>
-      prev.includes(u) ? prev.filter((x) => x !== u) : [...prev, u],
-    );
+    if (mode === "book") {
+      setBookUsers((prev) => (prev.includes(u) ? [] : [u]));
+    } else {
+      setFreeUsers((prev) =>
+        prev.includes(u) ? prev.filter((x) => x !== u) : [...prev, u],
+      );
+    }
   };
 
   const selectAll = () => {
-    if (Array.isArray(allUsers)) setSelectedUsers([...allUsers]);
+    if (mode === "book") return;
+    if (Array.isArray(allUsers)) setFreeUsers([...allUsers]);
   };
-  const deselectAll = () => setSelectedUsers([]);
+  const deselectAll = () => {
+    const setter = mode === "free" ? setFreeUsers : setBookUsers;
+    setter([]);
+  };
 
   const addDate = (iso: string) => {
     if (!iso || dates.includes(iso)) return;
@@ -166,19 +219,21 @@ export function AdminFreeModal({
     setDates((prev) => prev.filter((date) => date !== d));
   };
 
-  const handleSubmit = async () => {
+  const handleFreeSubmit = async () => {
     if (dates.length === 0 || selectedUsers.length === 0 || !carParkId) return;
     setIsSubmitting(true);
-    setResult(null);
+    setResultMessage(null);
     try {
       const params = new URLSearchParams();
       dates.forEach((d) => params.append("dates", d));
       params.set("carParkId", carParkId);
-      selectedUsers.forEach((u) => params.append("userNames", u));
+      selectedUsers.forEach((u) => params.append("userNames", normalizeUserName(u)));
       const res = await fetch(`/api/bookings?${params}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setResult(data);
+      setResultMessage(
+        `Freed ${data.freedCount} booking${data.freedCount !== 1 ? "s" : ""}.`,
+      );
       onFreed();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to free bookings");
@@ -187,39 +242,294 @@ export function AdminFreeModal({
     }
   };
 
+  const handleBookSubmit = async () => {
+    if (
+      dates.length === 0 ||
+      selectedUsers.length === 0 ||
+      !carParkId ||
+      !selectedSpace
+    )
+      return;
+    setIsSubmitting(true);
+    setResultMessage(null);
+    try {
+      let bookedCount = 0;
+      const errors: string[] = [];
+
+      for (const userName of selectedUsers) {
+        const apiUserName = normalizeUserName(userName);
+        for (const date of dates) {
+          const res = await fetch("/api/bookings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              spaceId: selectedSpace,
+              carParkId,
+              date,
+              userName: apiUserName,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          bookedCount++;
+        }
+      }
+
+      const parts = [
+        `Booked ${bookedCount} booking${bookedCount !== 1 ? "s" : ""}.`,
+      ];
+      if (errors.length > 0) {
+        parts.push(`Skipped ${errors.length}: ${errors.join(", ")}`);
+      }
+      setResultMessage(parts.join(" "));
+      onFreed();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to book");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (mode === "free") {
+      await handleFreeSubmit();
+      return;
+    }
+
+    if (showConflictWarning) {
+      setShowConflictWarning(false);
+      setPendingConflicts([]);
+      await handleBookSubmit();
+      return;
+    }
+
+    if (!selectedSpace) return;
+
+    const conflicts = allBookings.filter(
+      (b) =>
+        b.carParkId === carParkId &&
+        b.spaceId === selectedSpace &&
+        dates.includes(b.date),
+    );
+
+    if (conflicts.length > 0) {
+      setPendingConflicts(
+        conflicts.map((c) => ({ date: c.date, userName: c.userName })),
+      );
+      setShowConflictWarning(true);
+      return;
+    }
+
+    await handleBookSubmit();
+  };
+
   const handleClose = () => {
     if (!isSubmitting) {
-      setSelectedUsers([]);
+      setFreeUsers([]);
+      setBookUsers([]);
       setDates([]);
       setDateInput("");
       setRangeStart("");
       setRangeEnd("");
-      setResult(null);
+      setResultMessage(null);
+      setSelectedSpace("");
+      setShowConflictWarning(false);
+      setPendingConflicts([]);
       onOpenChange(false);
     }
   };
+
+  const conflictCount = pendingConflicts.length;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Admin Free</DialogTitle>
+          <DialogTitle>Manage car park bookings</DialogTitle>
           <DialogDescription>
-            Free any user's booking from any car park.
+            {mode === "free"
+              ? "Free any user's booking from any car park."
+              : "Book a space for any user in any car park."}
           </DialogDescription>
         </DialogHeader>
 
+        <div className="flex w-full border-b border-border">
+          <button
+            type="button"
+            onClick={() => {
+              setMode("free");
+              setResultMessage(null);
+            }}
+            className={`flex-1 px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer rounded-t-md ${
+              mode === "free"
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Free
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode("book");
+              setResultMessage(null);
+              setShowConflictWarning(false);
+              setPendingConflicts([]);
+            }}
+            className={`flex-1 px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer rounded-t-md ${
+              mode === "book"
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Book
+          </button>
+        </div>
+
         <div className="space-y-4 py-2">
+          {mode === "book" && (
+            <div className="space-y-1.5">
+              <div className="relative" ref={usersRef}>
+                <button
+                  type="button"
+                  onClick={() => setUsersOpen(!usersOpen)}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <span
+                    className={
+                      selectedUsers.length === 0 ? "text-muted-foreground" : ""
+                    }
+                  >
+                    {selectedUsers.length === 0
+                      ? "Select users..."
+                      : `${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""} selected`}
+                  </span>
+                  <svg
+                    className={`h-4 w-4 text-muted-foreground transition-transform ${usersOpen ? "rotate-180" : ""}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+                {usersOpen && (
+                  <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md">
+                    <div className="flex items-center justify-between px-3 py-1.5 border-b border-border">
+                      <span className="text-xs text-muted-foreground">
+                        {allUsers.length} users
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={selectAll}
+                          className="text-xs text-muted-foreground hover:text-foreground underline"
+                        >
+                          All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={deselectAll}
+                          className="text-xs text-muted-foreground hover:text-foreground underline"
+                        >
+                          None
+                        </button>
+                      </div>
+                    </div>
+                    <div className="max-h-40 overflow-y-auto p-1">
+                      {allUsers.length === 0 ? (
+                        <p className="text-xs text-muted-foreground py-4 text-center">
+                          No users found for this car park.
+                        </p>
+                      ) : (
+                        allUsers.map((u) => {
+                          const active = selectedUsers.includes(u);
+                          return (
+                            <label
+                              key={u}
+                              className="flex items-center gap-2 px-2.5 py-1.5 rounded text-sm hover:bg-accent cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={active}
+                                onChange={() => toggleUser(u)}
+                                className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+                              />
+                              <span
+                                className={
+                                  active
+                                    ? "font-medium text-foreground"
+                                    : "text-muted-foreground"
+                                }
+                              >
+                                {u}
+                              </span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+                    {selectedUsers.length > 0 && (
+                      <div className="flex flex-wrap gap-1 border-t border-border p-2 max-h-20 overflow-y-auto">
+                        {selectedUsers.map((u) => (
+                          <span
+                            key={u}
+                            className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
+                          >
+                            {u}
+                            <button
+                              type="button"
+                              onClick={() => toggleUser(u)}
+                              className="hover:bg-primary/20 rounded-sm p-0.5"
+                            >
+                              <X className="w-2.5 h-2.5 text-red-500" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {selectedUsers.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {selectedUsers.map((u) => (
+                    <span
+                      key={u}
+                      className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
+                    >
+                      {u}
+                      <button
+                        type="button"
+                        onClick={() => toggleUser(u)}
+                        className="hover:bg-primary/20 rounded-sm p-0.5"
+                      >
+                        <X className="w-2.5 h-2.5 text-red-500" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Car Park</label>
             <select
               value={carParkId}
               onChange={(e) => {
                 const cp = carParks.find((p) => p.id === e.target.value);
                 if (cp) onSelectCarPark(cp);
                 setCarParkId(e.target.value);
-                setSelectedUsers([]);
+                setFreeUsers([]);
+                setBookUsers([]);
                 setUsersOpen(false);
+                setSelectedSpace("");
+                setShowConflictWarning(false);
+                setPendingConflicts([]);
               }}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -231,122 +541,167 @@ export function AdminFreeModal({
             </select>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Users</label>
-            <div className="relative" ref={usersRef}>
-              <button
-                type="button"
-                onClick={() => setUsersOpen(!usersOpen)}
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <span
-                  className={
-                    selectedUsers.length === 0 ? "text-muted-foreground" : ""
-                  }
-                >
-                  {selectedUsers.length === 0
-                    ? "Select users..."
-                    : `${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""} selected`}
-                </span>
-                <svg
-                  className={`h-4 w-4 text-muted-foreground transition-transform ${usersOpen ? "rotate-180" : ""}`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-              {usersOpen && (
-                <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md">
-                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-border">
-                    <span className="text-xs text-muted-foreground">
-                      {allUsers.length} users
+          {mode !== "book" && (
+            <>
+              <div className="space-y-1.5">
+                <div className="relative" ref={usersRef}>
+                  <button
+                    type="button"
+                    onClick={() => setUsersOpen(!usersOpen)}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span
+                      className={
+                        selectedUsers.length === 0 ? "text-muted-foreground" : ""
+                      }
+                    >
+                      {selectedUsers.length === 0
+                        ? "Select users..."
+                        : `${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""} selected`}
                     </span>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={selectAll}
-                        className="text-xs text-muted-foreground hover:text-foreground underline"
-                      >
-                        All
-                      </button>
-                      <button
-                        type="button"
-                        onClick={deselectAll}
-                        className="text-xs text-muted-foreground hover:text-foreground underline"
-                      >
-                        None
-                      </button>
-                    </div>
-                  </div>
-                  <div className="max-h-40 overflow-y-auto p-1">
-                    {allUsers.length === 0 ? (
-                      <p className="text-xs text-muted-foreground py-4 text-center">
-                        No users found for this car park.
-                      </p>
-                    ) : (
-                      allUsers.map((u) => {
-                        const active = selectedUsers.includes(u);
-                        return (
-                          <label
-                            key={u}
-                            className="flex items-center gap-2 px-2.5 py-1.5 rounded text-sm hover:bg-accent cursor-pointer"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={active}
-                              onChange={() => toggleUser(u)}
-                              className="rounded border-border text-primary focus:ring-primary h-4 w-4"
-                            />
-                            <span
-                              className={
-                                active
-                                  ? "font-medium text-foreground"
-                                  : "text-muted-foreground"
-                              }
-                            >
-                              {u}
-                            </span>
-                          </label>
-                        );
-                      })
-                    )}
-                  </div>
-                  {selectedUsers.length > 0 && (
-                    <div className="flex flex-wrap gap-1 border-t border-border p-2 max-h-20 overflow-y-auto">
-                      {selectedUsers.map((u) => (
-                        <span
-                          key={u}
-                          className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
-                        >
-                          {u}
+                    <svg
+                      className={`h-4 w-4 text-muted-foreground transition-transform ${usersOpen ? "rotate-180" : ""}`}
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  {usersOpen && (
+                    <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md">
+                      <div className="flex items-center justify-between px-3 py-1.5 border-b border-border">
+                        <span className="text-xs text-muted-foreground">
+                          {allUsers.length} users
+                        </span>
+                        <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => toggleUser(u)}
-                            className="hover:bg-primary/20 rounded-sm p-0.5"
+                            onClick={selectAll}
+                            className="text-xs text-muted-foreground hover:text-foreground underline"
                           >
-                            <X className="w-2.5 h-2.5 text-red-500" />
+                            All
                           </button>
-                        </span>
-                      ))}
+                          <button
+                            type="button"
+                            onClick={deselectAll}
+                            className="text-xs text-muted-foreground hover:text-foreground underline"
+                          >
+                            None
+                          </button>
+                        </div>
+                      </div>
+                      <div className="max-h-40 overflow-y-auto p-1">
+                        {allUsers.length === 0 ? (
+                          <p className="text-xs text-muted-foreground py-4 text-center">
+                            No users found for this car park.
+                          </p>
+                        ) : (
+                          allUsers.map((u) => {
+                            const active = selectedUsers.includes(u);
+                            return (
+                              <label
+                                key={u}
+                                className="flex items-center gap-2 px-2.5 py-1.5 rounded text-sm hover:bg-accent cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={active}
+                                  onChange={() => toggleUser(u)}
+                                  className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+                                />
+                                <span
+                                  className={
+                                    active
+                                      ? "font-medium text-foreground"
+                                      : "text-muted-foreground"
+                                  }
+                                >
+                                  {u}
+                                </span>
+                              </label>
+                            );
+                          })
+                        )}
+                      </div>
+                      {selectedUsers.length > 0 && (
+                        <div className="flex flex-wrap gap-1 border-t border-border p-2 max-h-20 overflow-y-auto">
+                          {selectedUsers.map((u) => (
+                            <span
+                              key={u}
+                              className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
+                            >
+                              {u}
+                              <button
+                                type="button"
+                                onClick={() => toggleUser(u)}
+                                className="hover:bg-primary/20 rounded-sm p-0.5"
+                              >
+                                <X className="w-2.5 h-2.5 text-red-500" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
+              </div>
+
+              {selectedUsers.length > 0 && (
+                <div className="-mt-2 flex flex-wrap gap-1">
+                  {selectedUsers.map((u) => (
+                    <span
+                      key={u}
+                      className="inline-flex items-center gap-1 rounded-md bg-primary/10 pl-2 pr-1 py-0.5 text-xs font-medium text-foreground"
+                    >
+                      {u}
+                      <button
+                        type="button"
+                        onClick={() => toggleUser(u)}
+                        className="hover:bg-primary/20 rounded-sm p-0.5"
+                      >
+                        <X className="w-2.5 h-2.5 text-red-500" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               )}
+            </>
+          )}
+
+          {mode === "book" && (
+            <div className="space-y-1.5">
+              <select
+                value={selectedSpace}
+                onChange={(e) => {
+                  setSelectedSpace(e.target.value);
+                  setShowConflictWarning(false);
+                  setPendingConflicts([]);
+                }}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">Select a space...</option>
+                {parkingSpaces.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.row}
+                    {s.number}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
+          )}
 
           <div className="space-y-1.5 bg-muted p-2 rounded-md">
-            <div className="flex border-b border-border">
+            <div className="flex w-full border-b border-border">
               <button
                 type="button"
                 onClick={() => setTab("single")}
-                className={`px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/20 cursor-pointer rounded-t-md border-b-2 -mb-px ${
+                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/20 cursor-pointer rounded-t-md border-b-2 -mb-px ${
                   tab === "single"
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground"
@@ -357,7 +712,7 @@ export function AdminFreeModal({
               <button
                 type="button"
                 onClick={() => setTab("range")}
-                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 hover:bg-accent/20 cursor-pointer rounded-t-md -mb-px ${
+                className={`flex-1 px-3 py-2 text-sm font-medium transition-colors border-b-2 hover:bg-accent/20 cursor-pointer rounded-t-md -mb-px ${
                   tab === "range"
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground"
@@ -461,10 +816,29 @@ export function AdminFreeModal({
             )}
           </div>
 
-          {result && (
+          {showConflictWarning && conflictCount > 0 && (
+            <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-3">
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-400 mb-2">
+                Space {selectedSpace} is already booked on:
+              </p>
+              <ul className="text-xs text-amber-600 dark:text-amber-300 space-y-1 mb-3">
+                {pendingConflicts.map((c) => (
+                  <li key={c.date}>
+                    {weekday(c.date)} {formatEuro(c.date)} &mdash;{" "}
+                    <span className="font-medium">{c.userName}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-amber-600 dark:text-amber-300">
+                These existing bookings will be replaced. Click "Continue anyway"
+                to proceed, or select a different space.
+              </p>
+            </div>
+          )}
+
+          {resultMessage && (
             <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-700 dark:text-green-400">
-              Freed {result.freedCount} booking
-              {result.freedCount !== 1 ? "s" : ""}.
+              {resultMessage}
             </div>
           )}
         </div>
@@ -481,14 +855,27 @@ export function AdminFreeModal({
           <Button
             onClick={handleSubmit}
             disabled={
-              dates.length === 0 || selectedUsers.length === 0 || isSubmitting
+              dates.length === 0 ||
+              selectedUsers.length === 0 ||
+              isSubmitting ||
+              (mode === "book" && !selectedSpace && !showConflictWarning)
             }
-            variant="destructive"
+            variant={
+              showConflictWarning
+                ? "destructive"
+                : mode === "free"
+                  ? "destructive"
+                  : "default"
+            }
             className="cursor-pointer"
           >
             {isSubmitting
-              ? "Freeing..."
-              : `Free (${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""}, ${dates.length} date${dates.length !== 1 ? "s" : ""})`}
+              ? mode === "free"
+                ? "Freeing..."
+                : "Booking..."
+              : showConflictWarning
+                ? `Continue anyway (${conflictCount} conflict${conflictCount !== 1 ? "s" : ""})`
+                : `${mode === "free" ? "Free" : "Book"} (${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""}, ${dates.length} date${dates.length !== 1 ? "s" : ""}${mode === "book" && selectedSpace ? `, Space ${selectedSpace}` : ""})`}
           </Button>
         </DialogFooter>
       </DialogContent>
