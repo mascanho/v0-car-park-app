@@ -105,7 +105,11 @@ export function NotificationModal({
       const res = await fetch("/api/notification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title.trim(), description: description.trim(), end }),
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          end,
+        }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
@@ -192,9 +196,7 @@ export function NotificationModal({
             </p>
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         <DialogFooter className="gap-2">
@@ -204,7 +206,7 @@ export function NotificationModal({
               size="sm"
               onClick={handleDelete}
               disabled={saving || deleting}
-              className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
             >
               {deleting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -213,12 +215,13 @@ export function NotificationModal({
               )}
             </Button>
           )}
-          <Button onClick={handleSave} disabled={saving || deleting} size="sm">
-            {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              "Save"
-            )}
+          <Button
+            onClick={handleSave}
+            disabled={saving || deleting}
+            size="sm"
+            className="cursor-pointer"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>

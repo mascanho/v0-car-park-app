@@ -74,15 +74,16 @@ export function AppHeader({
             <div className="flex items-center gap-3">
               <SheetTrigger asChild>
                 <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-                  <Menu className="w-6 h-6 cursor-pointer" />
+                  <Menu className="w-6 h-6 cursor-pointer sm:-ml-2 -ml-1.5" />
                 </button>
               </SheetTrigger>
               <div
                 className="hidden sm:flex items-center gap-3"
                 onClick={() => (window.location.href = "/")}
               >
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center cursor-pointer">
-                  <Car className="w-6 h-6 text-primary-foreground" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center cursor-pointer sm:-ml-2">
+                  {/* <Car className="w-6 h-6 text-primary-foreground" /> */}
+                  <img src="/apple-icon.png" />
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">
