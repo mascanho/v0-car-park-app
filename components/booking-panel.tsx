@@ -7,11 +7,10 @@ import {
   MapPin,
   Clock,
   User,
-  BoltIcon,
-  BellElectric,
+  LucideCircleParking,
 } from "lucide-react";
 import type { ParkingSpace, Booking } from "@/lib/parking-data";
-import { formatDate, isPastDate } from "@/lib/parking-data";
+import { isPastDate } from "@/lib/parking-data";
 
 interface BookingPanelProps {
   selectedDate: Date;
@@ -22,6 +21,7 @@ interface BookingPanelProps {
   existingBooking: Booking | null;
   selectedSpaceBookedBy?: string | null;
   isLoading?: boolean;
+  carParkName?: string;
 }
 
 export function BookingPanel({
@@ -33,6 +33,7 @@ export function BookingPanel({
   existingBooking,
   selectedSpaceBookedBy,
   isLoading,
+  carParkName,
 }: BookingPanelProps) {
   const isPast = isPastDate(selectedDate);
 
@@ -69,10 +70,20 @@ export function BookingPanel({
           <CalendarIcon className="w-4 h-4 text-muted-foreground" />
           <span className="text-foreground">{formattedDate}</span>
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          <Clock className="w-4 h-4 text-muted-foreground" />
-          <span className="text-foreground">Full day access (24h)</span>
-        </div>
+        {carParkName && (
+          <div className="flex items-center gap-3 text-sm">
+            <MapPin className="w-4 h-4 text-muted-foreground" />
+            <span className="text-foreground">{carParkName}</span>
+          </div>
+        )}
+        {selectedSpace && (
+          <div className="flex items-center gap-3 text-sm">
+            <LucideCircleParking className="w-4 h-4 text-muted-foreground" />
+            <span className="text-foreground">
+              Space <span className="font-semibold">{selectedSpace.id}</span>
+            </span>
+          </div>
+        )}
         <div className="flex items-center gap-3 text-sm">
           <User className="w-4 h-4 text-muted-foreground" />
           <span className="text-foreground">{currentUser}</span>
@@ -100,7 +111,7 @@ export function BookingPanel({
                 size="sm"
                 onClick={onCancel}
                 disabled={isLoading}
-                className="mt-3 w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                className="mt-3 w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
               >
                 Cancel Booking
               </Button>
@@ -202,7 +213,7 @@ export function BookingPanel({
       {/* Daily renewal notice */}
       <div className="mt-4 pt-4 border-t border-border">
         <p className="text-xs text-muted-foreground text-center">
-          Bookings are valid for one day only and must be renewed daily.
+          Bookings are the user's responsibility
         </p>
       </div>
     </div>

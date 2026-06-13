@@ -66,7 +66,7 @@ export function ParkingSpaceCard({
   }, [menuPos]);
 
   const handleClick = () => {
-    if (!disabled && !isCurrentUserBooking) {
+    if (!disabled) {
       onSelect(space);
     }
   };
@@ -127,7 +127,7 @@ export function ParkingSpaceCard({
           <button
             onClick={handleClick}
             onContextMenu={handleContextMenu}
-            disabled={disabled || isCurrentUserBooking}
+            disabled={disabled}
             className={cn(
               "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px]",
               !isBooked &&
@@ -139,7 +139,7 @@ export function ParkingSpaceCard({
                 "border-destructive/50 bg-destructive/10 cursor-pointer hover:border-amber-500 hover:bg-amber-500/5",
               isVisitor && "border-neutral-600 bg-black cursor-pointer",
               isCurrentUserBooking &&
-                "border-blue-500 bg-blue-500/20 cursor-default",
+                "border-blue-500 bg-blue-500/20 cursor-pointer",
               isSelected &&
                 "border-violet-500 bg-violet-500/20 ring-2 ring-violet-500 ring-offset-2",
               disabled && "opacity-50 cursor-not-allowed",

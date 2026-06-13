@@ -102,10 +102,7 @@ export function ParkingLot({
     (spaceId: string) => {
       const booking = getBookingForSpace(spaceId);
       const name = booking?.userName ?? "";
-      return (
-        name.toLowerCase() === "visitor" ||
-        name.toLowerCase() === "v"
-      );
+      return name.toLowerCase() === "visitor" || name.toLowerCase() === "v";
     },
     [getBookingForSpace],
   );
@@ -235,6 +232,7 @@ export function ParkingLot({
             existingBooking={existingBooking}
             selectedSpaceBookedBy={selectedSpaceBookedBy}
             isLoading={isLoading}
+            carParkName={carPark.name}
           />
         </div>
       </div>
