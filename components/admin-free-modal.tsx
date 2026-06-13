@@ -328,7 +328,7 @@ export function AdminFreeModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent>
+      <DialogContent className="max-h-[700px]">
         <DialogHeader>
           <DialogTitle>Manage car park bookings</DialogTitle>
           <DialogDescription>
@@ -744,7 +744,7 @@ export function AdminFreeModal({
 
             {tab === "range" && (
               <div className="pt-1 space-y-2">
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-end gap-2">
                   <div className="flex-1 min-w-0">
                     <span className="text-xs text-muted-foreground block mb-1">
                       From
@@ -765,16 +765,16 @@ export function AdminFreeModal({
                       placeholder="dd/mm/yyyy"
                     />
                   </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addRange}
+                    disabled={!rangeStart || !rangeEnd}
+                    className="shrink-0 cursor-pointer"
+                  >
+                    Add Range
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addRange}
-                  disabled={!rangeStart || !rangeEnd}
-                  className="w-full sm:w-auto cursor-pointer"
-                >
-                  Add Range
-                </Button>
                 {dates.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-32 overflow-y-auto">
                     {dates.map((d) => (

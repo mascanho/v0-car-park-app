@@ -42,7 +42,7 @@ function DatePicker({
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
+        className="h-10 w-full sm:max-w-40 min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
       />
     </div>
   );
@@ -179,200 +179,198 @@ export function BulkFreeModal({
   animation: bounce-once 0.35s ease-in-out;
 }
 `}</style>
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Free your car space</DialogTitle>
-          <DialogDescription>
-            Not going to be in? Let someone else use your spot.
-          </DialogDescription>
-        </DialogHeader>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Free your car space</DialogTitle>
+            <DialogDescription className="hidden sm:inline-block">
+              Not going to be in? Let someone else use your spot.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <div className="space-y-1.5">
-            {userCarParks.length > 0 ? (
-              <select
-                value={carParkId}
-                onChange={(e) => setCarParkId(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {userCarParks.map((cp) => (
-                  <option key={cp.id} value={cp.id}>
-                    {cp.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p className="text-sm text-muted-foreground py-2">
-                No car park spot assigned to your account.
-              </p>
-            )}
-          </div>
-
-          {userMatch && (
-            <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 p-4 text-center">
-              <p className="text-xs text-muted-foreground mb-1">
-                You will free
-              </p>
-              <p className="text-2xl font-bold text-destructive">
-                Space {userMatch.spaceId}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {userMatch.dbUserName}
-              </p>
-            </div>
-          )}
-
-          {/* Tabbed date input */}
-          <div className="space-y-1.5">
-            <div className="flex border-b border-border">
-              <button
-                type="button"
-                onClick={() => setTab("single")}
-                className={`px-3 py-2 text-sm cursor-pointer font-medium hover:bg-accent/20 rounded-t-md transition-colors border-b-2 -mb-px ${
-                  tab === "single"
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Specific dates
-              </button>
-              <button
-                type="button"
-                onClick={() => setTab("range")}
-                className={`px-3 py-2 text-sm font-medium cursor-pointer hover:bg-accent/20 rounded-t-md transition-colors border-b-2 -mb-px ${
-                  tab === "range"
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Range
-              </button>
-            </div>
-
-            {tab === "single" && (
-              <div className="pt-1">
-                <DatePicker
-                  value={dateInput}
-                  onChange={(val) => {
-                    setDateInput(val);
-                    if (val) addDate(val);
-                  }}
-                  placeholder="Click to select days"
-                />
-              </div>
-            )}
-
-            {tab === "range" && (
-              <div className="space-y-2 pt-1">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="flex-1 min-w-0">
-                    <span className="text-xs text-muted-foreground block mb-1">
-                      From
-                    </span>
-                    <DatePicker
-                      value={rangeStart}
-                      onChange={setRangeStart}
-                      placeholder="dd/mm/yyyy"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-xs text-muted-foreground block mb-1">
-                      To
-                    </span>
-                    <DatePicker
-                      value={rangeEnd}
-                      onChange={setRangeEnd}
-                      placeholder="dd/mm/yyyy"
-                    />
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addRange}
-                  disabled={!rangeStart || !rangeEnd}
-                  className={`w-full sm:w-auto cursor-pointer ${rangeStart && rangeEnd ? "bg-accent" : ""} ${bouncing ? "animate-bounce-once" : ""}`}
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5 hidden">
+              {userCarParks.length > 0 ? (
+                <select
+                  value={carParkId}
+                  onChange={(e) => setCarParkId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <CircleFadingPlus
-                    className={`w-4 h-4 cursor-pointer text-gray-500 ${
-                      rangeStart && rangeEnd ? "text-white " : ""
-                    }`}
-                  />
-                  Add Range
-                </Button>
+                  {userCarParks.map((cp) => (
+                    <option key={cp.id} value={cp.id}>
+                      {cp.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="text-sm text-muted-foreground py-2">
+                  No car park spot assigned to your account.
+                </p>
+              )}
+            </div>
+
+            {userMatch && (
+              <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 sm:p-4 text-center">
+                <p className="text-xs text-muted-foreground sm:mb-1 mt-1 sm:mt-0">
+                  You will free
+                </p>
+                <p className="text-2xl font-bold text-destructive">
+                  Space {userMatch.spaceId}
+                </p>
+                <p className="text-xs text-muted-foreground sm:inline-block sm:mt-1 mb-1 sm:mb-0 font-semibold">
+                  {carParkId.charAt(0).toUpperCase() + carParkId.slice(1)}
+                </p>
               </div>
             )}
-          </div>
 
-          {dates.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium">
-                  Selected Dates ({dates.length})
-                </p>
+            {/* Tabbed date input */}
+            <div className="space-y-1.5">
+              <div className="flex border-b border-border">
                 <button
                   type="button"
-                  onClick={() => setDates([])}
-                  className="text-xs text-muted-foreground hover:text-foreground underline cursor-pointer"
+                  onClick={() => setTab("single")}
+                  className={`px-3 py-2 text-sm cursor-pointer font-medium hover:bg-accent/20 rounded-t-md transition-colors border-b-2 -mb-px ${
+                    tab === "single"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
                 >
-                  Clear all
+                  Specific dates
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTab("range")}
+                  className={`px-3 py-2 text-sm font-medium cursor-pointer hover:bg-accent/20 rounded-t-md transition-colors border-b-2 -mb-px ${
+                    tab === "range"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Range
                 </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 max-h-36 overflow-y-auto p-2 bg-muted border rounded-md">
-                {dates.map((d) => (
-                  <span
-                    key={d}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-slate-100 pl-2 pr-1.5 py-1 text-[9.5px] sm:text-[11px] font-medium w-full"
-                  >
-                    <CalendarDays className="w-2 h-2 sm:h-3 sm:w-3 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{weekday(d)}</span>
-                    <span className="flex-1">{formatEuro(d)}</span>
-                    <button
+
+              {tab === "single" && (
+                <div className="pt-1">
+                  <DatePicker
+                    value={dateInput}
+                    onChange={(val) => {
+                      setDateInput(val);
+                      if (val) addDate(val);
+                    }}
+                    placeholder="Click to select days"
+                  />
+                </div>
+              )}
+
+              {tab === "range" && (
+                <div className="space-y-2 pt-1 w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-3">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs text-muted-foreground block mb-1">
+                        From
+                      </span>
+                      <DatePicker
+                        value={rangeStart}
+                        onChange={setRangeStart}
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs text-muted-foreground block mb-1">
+                        To
+                      </span>
+                      <DatePicker
+                        value={rangeEnd}
+                        onChange={setRangeEnd}
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                    <Button
                       type="button"
-                      onClick={() => removeDate(d)}
-                      className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                      variant="outline"
+                      onClick={addRange}
+                      disabled={!rangeStart || !rangeEnd}
+                      className={`shrink-0 cursor-pointer ${rangeStart && rangeEnd ? "bg-accent text-accent-foreground" : "text-foreground"} ${bouncing ? "animate-bounce-once" : ""}`}
                     >
-                      <X className="w-2 h-2 text-red-500 cursor-pointer" />
-                    </button>
-                  </span>
-                ))}
+                      <CircleFadingPlus className="w-4 h-4 cursor-pointer shrink-0" />
+                      Add Range
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {dates.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium">
+                    Selected Dates ({dates.length})
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setDates([])}
+                    className="text-xs text-muted-foreground hover:text-foreground underline cursor-pointer"
+                  >
+                    Clear all
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 max-h-36 overflow-y-auto p-2 bg-muted border rounded-md">
+                  {dates.map((d) => (
+                    <span
+                      key={d}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-slate-100 pl-2 pr-1.5 py-1 text-[9.5px] sm:text-[11px] font-medium w-full"
+                    >
+                      <CalendarDays className="w-2 h-2 sm:h-3 sm:w-3 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground">
+                        {weekday(d)}
+                      </span>
+                      <span className="flex-1">{formatEuro(d)}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeDate(d)}
+                        className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 hover:bg-muted-foreground/10"
+                      >
+                        <X className="w-2 h-2 text-red-500 cursor-pointer" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {result && (
-            <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-700 dark:text-green-400">
-              Freed {result.freedCount} booking
-              {result.freedCount !== 1 ? "s" : ""}.
-            </div>
-          )}
-        </div>
+            {result && (
+              <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-700 dark:text-green-400">
+                Freed {result.freedCount} booking
+                {result.freedCount !== 1 ? "s" : ""}.
+              </div>
+            )}
+          </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="cursor-pointer"
-          >
-            Close
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={
-              dates.length === 0 || isSubmitting || userCarParks.length === 0
-            }
-            variant="destructive"
-            className="cursor-pointer"
-          >
-            {isSubmitting
-              ? "Freeing..."
-              : `Free my space (${dates.length} day${dates.length !== 1 ? "s" : ""})`}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
+              className="cursor-pointer"
+            >
+              Close
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={
+                dates.length === 0 || isSubmitting || userCarParks.length === 0
+              }
+              variant="destructive"
+              className="cursor-pointer"
+            >
+              {isSubmitting
+                ? "Freeing..."
+                : `Free my space (${dates.length} day${dates.length !== 1 ? "s" : ""})`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
