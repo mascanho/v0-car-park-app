@@ -52,6 +52,8 @@ export function ParkingSpaceCard({
   const [users, setUsers] = useState<string[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLongPress = useRef(false);
 
   useEffect(() => {
     if (!menuPos) return;
@@ -65,17 +67,52 @@ export function ParkingSpaceCard({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [menuPos]);
 
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    };
+  }, []);
+
   const handleClick = () => {
-    if (!disabled) {
+    if (!disabled && !isLongPress.current) {
       onSelect(space);
     }
+    isLongPress.current = false;
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
     if (!isRegular) return;
     e.preventDefault();
-    setMenuPos({ x: e.clientX, y: e.clientY });
+    openMenu(e.clientX, e.clientY);
+  };
+
+  const openMenu = (x: number, y: number) => {
+    setMenuPos({ x, y });
     setShowUsers(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isRegular) return;
+    isLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
+      const touch = e.touches[0];
+      openMenu(touch.clientX, touch.clientY);
+    }, 500);
+  };
+
+  const handleTouchMove = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
   };
 
   const handleFree = () => {
@@ -127,6 +164,9 @@ export function ParkingSpaceCard({
           <button
             onClick={handleClick}
             onContextMenu={handleContextMenu}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             disabled={disabled}
             className={cn(
               "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px]",
