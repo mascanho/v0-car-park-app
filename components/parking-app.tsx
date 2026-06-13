@@ -417,8 +417,6 @@ export function ParkingApp() {
         isRegular={isRegular}
       />
 
-      <NotificationBanner />
-
       <CarParkSelector
         carParks={carParks}
         selectedCarPark={selectedCarPark}
@@ -434,13 +432,12 @@ export function ParkingApp() {
       />
 
       <main className="max-w-8xl mx-auto px-4 py-6">
-        {birthdays.length > 0 && (
-          <div className="mb-4 space-y-3 lg:hidden">
-            {birthdays.map((b) => (
-              <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
-            ))}
-          </div>
-        )}
+        <div className="mb-4 space-y-3 lg:hidden">
+          <NotificationBanner />
+          {birthdays.length > 0 && birthdays.map((b) => (
+            <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
+          ))}
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div id="calendar" className="lg:col-span-3 space-y-4 scroll-mt-20">
             <Calendar
@@ -496,13 +493,12 @@ export function ParkingApp() {
                 selectedDate={selectedDate}
               />
             </div>
-            {birthdays.length > 0 && (
-              <div className="hidden lg:block lg:space-y-3">
-                {birthdays.map((b) => (
-                  <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
-                ))}
-              </div>
-            )}
+            <div className="hidden lg:block lg:space-y-3">
+              <NotificationBanner />
+              {birthdays.length > 0 && birthdays.map((b) => (
+                <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
+              ))}
+            </div>
             <MapPanel
               address={selectedCarPark.address || selectedCarPark.location}
               name={selectedCarPark.name}

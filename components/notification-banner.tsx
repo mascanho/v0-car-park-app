@@ -1,8 +1,8 @@
 "use client";
 
 import useSWR from "swr";
-import { X, Megaphone } from "lucide-react";
-import { useState } from "react";
+import { motion } from "framer-motion";
+import { Megaphone } from "lucide-react";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -14,7 +14,6 @@ const fetcher = async (url: string) => {
 };
 
 export function NotificationBanner() {
-  const [dismissed, setDismissed] = useState(false);
   const { data, error } = useSWR<{ title: string; description: string } | null>(
     "/api/notification",
     fetcher,
@@ -25,40 +24,33 @@ export function NotificationBanner() {
     console.error("Notification banner error:", error);
   }
 
-  if (dismissed) return null;
-
-  if (error) {
-    return (
-      <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-2">
-        <div className="max-w-8xl mx-auto flex items-center gap-2">
-          <span className="text-xs text-destructive">
-            Notification error: {error.message}
-          </span>
-          <button onClick={() => setDismissed(true)} className="ml-auto">
-            <X className="w-3 h-3 text-destructive" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (!data) return null;
 
   return (
-    <div className="bg-primary/10 border-b border-primary/20 px-4 py-3">
-      <div className="max-w-8xl mx-auto flex items-start gap-3">
-        <Megaphone className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground">{data.title}</p>
-          <p className="text-sm text-muted-foreground">{data.description}</p>
-        </div>
-        <button
-          onClick={() => setDismissed(true)}
-          className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
+    <motion.div
+      initial={{ opacity: 0, y: -12, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 160, damping: 18 }}
+      className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-red-500/10 to-red-700/10 border border-primary/20 text-left w-full"
+    >
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-4 -right-4 text-4xl opacity-20">📢</div>
+        {/* <div className="absolute bottom-2 left-4 text-2xl opacity-15">💬</div> */}
       </div>
-    </div>
+      <div className="relative flex items-center gap-4 px-5 py-4">
+        {/* <div className="relative shrink-0"> */}
+        {/*   <div className="w-14 h-14 rounded-full bg-primary/15 flex items-center justify-center ring-2 ring-primary/30"> */}
+        {/*     <Megaphone className="w-6 h-6 text-primary" /> */}
+        {/*   </div> */}
+        {/* </div> */}
+        <div className="min-w-0 flex-1">
+          <span className="text-sm font-semibold text-foreground">
+            {data.title}
+          </span>
+          <p className="text-sm text-foreground mt-0.5">{data.description}</p>
+        </div>
+        <div className="shrink-0 text-3xl opacity-30 hidden sm:block">📢</div>
+      </div>
+    </motion.div>
   );
 }
