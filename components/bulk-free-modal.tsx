@@ -46,6 +46,7 @@ function DatePicker({
         value={display}
         placeholder={placeholder}
         readOnly
+        autoComplete="off"
         onClick={() => dateRef.current?.showPicker()}
         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
       />
@@ -56,6 +57,7 @@ function DatePicker({
         onChange={(e) => onChange(e.target.value)}
         className="absolute inset-0 opacity-0 pointer-events-none"
         tabIndex={-1}
+        autoComplete="off"
       />
     </div>
   );
