@@ -40,13 +40,14 @@ function DatePicker({
   const display = value ? formatEuro(value) : "";
 
   return (
-    <form autoComplete="off" className="relative">
+    <div className="relative">
       <input
         type="text"
         value={display}
         placeholder={placeholder}
         readOnly
         inputMode="none"
+        autoComplete="one-time-code"
         onClick={() => dateRef.current?.showPicker()}
         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
       />
@@ -58,7 +59,7 @@ function DatePicker({
         className="absolute inset-0 opacity-0 pointer-events-none"
         tabIndex={-1}
       />
-    </form>
+    </div>
   );
 }
 
