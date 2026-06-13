@@ -169,7 +169,7 @@ export function ParkingSpaceCard({
             onTouchEnd={handleTouchEnd}
             disabled={disabled}
             className={cn(
-              "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px]",
+              "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px] select-none touch-callout-none",
               !isBooked &&
                 !isSelected &&
                 "border-green-500/50 bg-green-500/20 hover:border-primary hover:bg-primary/5 cursor-pointer",
