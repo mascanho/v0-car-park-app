@@ -147,11 +147,12 @@ export function BulkFreeModal({
     setIsSubmitting(true);
     setResult(null);
     try {
-      const bookingUserName = userMatch?.dbUserName || currentUser;
       const params = new URLSearchParams();
       dates.forEach((d) => params.append("dates", d));
       params.set("carParkId", carParkId);
-      params.set("userName", bookingUserName);
+      if (userEmail) params.set("userEmail", userEmail);
+      if (userMatch) params.set("spaceId", userMatch.spaceId);
+      params.set("userName", currentUser);
       const res = await fetch(`/api/bookings?${params}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
