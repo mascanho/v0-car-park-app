@@ -44,18 +44,25 @@ function DatePicker({
   value,
   onChange,
   placeholder,
+  label,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
+  label?: string;
 }) {
   return (
-    <div className="relative">
+    <div className="flex h-10 w-full min-w-0 rounded-md border border-input bg-background cursor-pointer overflow-hidden">
+      {label && (
+        <span className="flex items-center px-2.5 text-xs text-muted-foreground bg-muted/50 border-r border-input shrink-0">
+          {label}
+        </span>
+      )}
       <input
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
+        className="flex-1 min-w-0 bg-transparent border-none px-2 text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-70"
       />
     </div>
   );
@@ -744,37 +751,33 @@ export function AdminFreeModal({
 
             {tab === "range" && (
               <div className="pt-1 space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-end gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs text-muted-foreground block mb-1">
-                      From
-                    </span>
                     <DatePicker
                       value={rangeStart}
                       onChange={setRangeStart}
                       placeholder="dd/mm/yyyy"
+                      label="From"
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs text-muted-foreground block mb-1">
-                      To
-                    </span>
                     <DatePicker
                       value={rangeEnd}
                       onChange={setRangeEnd}
                       placeholder="dd/mm/yyyy"
+                      label="To"
                     />
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addRange}
-                    disabled={!rangeStart || !rangeEnd}
-                    className="shrink-0 cursor-pointer"
-                  >
-                    Add Range
-                  </Button>
                 </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addRange}
+                  disabled={!rangeStart || !rangeEnd}
+                  className="cursor-pointer"
+                >
+                  Add Range
+                </Button>
                 {dates.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-32 overflow-y-auto">
                     {dates.map((d) => (
