@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -36,28 +36,13 @@ function DatePicker({
   onChange: (v: string) => void;
   placeholder: string;
 }) {
-  const dateRef = useRef<HTMLInputElement>(null);
-  const display = value ? formatEuro(value) : "";
-
   return (
     <div className="relative">
       <input
-        type="text"
-        value={display}
-        placeholder={placeholder}
-        readOnly
-        inputMode="none"
-        autoComplete="one-time-code"
-        onClick={() => dateRef.current?.showPicker()}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
-      />
-      <input
-        ref={dateRef}
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="absolute inset-0 opacity-0 pointer-events-none"
-        tabIndex={-1}
+        className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
       />
     </div>
   );
@@ -279,39 +264,42 @@ export function BulkFreeModal({
             )}
 
             {tab === "range" && (
-              <div className="flex items-end gap-2 pt-1">
-                <div className="flex-1">
-                  <span className="text-xs text-muted-foreground block mb-1">
-                    From
-                  </span>
-                  <DatePicker
-                    value={rangeStart}
-                    onChange={setRangeStart}
-                    placeholder="dd/mm/yyyy"
-                  />
-                </div>
-                <div className="flex-1">
-                  <span className="text-xs text-muted-foreground block mb-1">
-                    To
-                  </span>
-                  <DatePicker
-                    value={rangeEnd}
-                    onChange={setRangeEnd}
-                    placeholder="dd/mm/yyyy"
-                  />
+              <div className="space-y-2 pt-1">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs text-muted-foreground block mb-1">
+                      From
+                    </span>
+                    <DatePicker
+                      value={rangeStart}
+                      onChange={setRangeStart}
+                      placeholder="dd/mm/yyyy"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs text-muted-foreground block mb-1">
+                      To
+                    </span>
+                    <DatePicker
+                      value={rangeEnd}
+                      onChange={setRangeEnd}
+                      placeholder="dd/mm/yyyy"
+                    />
+                  </div>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={addRange}
                   disabled={!rangeStart || !rangeEnd}
-                  className={`shrink-0 cursor-pointer ${rangeStart && rangeEnd ? "bg-accent" : ""} ${bouncing ? "animate-bounce-once" : ""}`}
+                  className={`w-full sm:w-auto cursor-pointer ${rangeStart && rangeEnd ? "bg-accent" : ""} ${bouncing ? "animate-bounce-once" : ""}`}
                 >
                   <CircleFadingPlus
                     className={`w-4 h-4 cursor-pointer text-gray-500 ${
                       rangeStart && rangeEnd ? "text-white " : ""
                     }`}
                   />
+                  Add Range
                 </Button>
               </div>
             )}

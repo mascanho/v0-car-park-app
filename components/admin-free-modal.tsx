@@ -49,28 +49,13 @@ function DatePicker({
   onChange: (v: string) => void;
   placeholder: string;
 }) {
-  const dateRef = useRef<HTMLInputElement>(null);
-  const display = value ? formatEuro(value) : "";
-
   return (
     <div className="relative">
       <input
-        type="text"
-        value={display}
-        placeholder={placeholder}
-        readOnly
-        inputMode="none"
-        autoComplete="one-time-code"
-        onClick={() => dateRef.current?.showPicker()}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
-      />
-      <input
-        ref={dateRef}
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="absolute inset-0 opacity-0 pointer-events-none"
-        tabIndex={-1}
+        className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
       />
     </div>
   );
@@ -759,8 +744,8 @@ export function AdminFreeModal({
 
             {tab === "range" && (
               <div className="pt-1 space-y-2">
-                <div className="flex items-end gap-2">
-                  <div className="flex-1">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex-1 min-w-0">
                     <span className="text-xs text-muted-foreground block mb-1">
                       From
                     </span>
@@ -770,7 +755,7 @@ export function AdminFreeModal({
                       placeholder="dd/mm/yyyy"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <span className="text-xs text-muted-foreground block mb-1">
                       To
                     </span>
@@ -780,16 +765,16 @@ export function AdminFreeModal({
                       placeholder="dd/mm/yyyy"
                     />
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addRange}
-                    disabled={!rangeStart || !rangeEnd}
-                    className="shrink-0 cursor-pointer"
-                  >
-                    Add Range
-                  </Button>
                 </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addRange}
+                  disabled={!rangeStart || !rangeEnd}
+                  className="w-full sm:w-auto cursor-pointer"
+                >
+                  Add Range
+                </Button>
                 {dates.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-32 overflow-y-auto">
                     {dates.map((d) => (

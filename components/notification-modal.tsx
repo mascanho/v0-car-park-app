@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Megaphone, Loader2 } from "lucide-react";
 
-function formatEuro(dateStr: string) {
-  const [y, m, d] = dateStr.split("-");
-  return `${d}/${m}/${y}`;
-}
-
 function DatePicker({
   value,
   onChange,
@@ -26,28 +21,13 @@ function DatePicker({
   onChange: (v: string) => void;
   placeholder: string;
 }) {
-  const dateRef = useRef<HTMLInputElement>(null);
-  const display = value ? formatEuro(value) : "";
-
   return (
     <div className="relative">
       <input
-        type="text"
-        value={display}
-        placeholder={placeholder}
-        readOnly
-        inputMode="none"
-        autoComplete="one-time-code"
-        onClick={() => dateRef.current?.showPicker()}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
-      />
-      <input
-        ref={dateRef}
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="absolute inset-0 opacity-0 pointer-events-none"
-        tabIndex={-1}
+        className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
       />
     </div>
   );
