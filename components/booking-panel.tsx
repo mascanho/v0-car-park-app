@@ -138,7 +138,7 @@ export function BookingPanel({
           className={cn(
             "rounded-lg p-4 mb-4",
             isBorrowing
-              ? "bg-amber-500/10 border border-amber-500/30"
+              ? "bg-amber-500/10 border border-amber-500/30 cursor-pointer"
               : "bg-primary/10 border border-primary/30",
           )}
         >
@@ -146,13 +146,15 @@ export function BookingPanel({
             <MapPin
               className={cn(
                 "w-4 h-4",
-                isBorrowing ? "text-amber-500" : "text-primary",
+                isBorrowing ? "text-amber-500 cursor-pointer" : "text-primary",
               )}
             />
             <span
               className={cn(
-                "font-medium",
-                isBorrowing ? "text-amber-600" : "text-foreground",
+                "font-medium cursor-pointer",
+                isBorrowing
+                  ? "text-amber-600 cursor-pointer"
+                  : "text-foreground cursor-pointer",
               )}
             >
               {isBorrowing ? "Borrow this space" : "Selected space"}
@@ -216,10 +218,10 @@ export function BookingPanel({
           onClick={onBook}
           disabled={isLoading}
           className={cn(
-            "w-full",
+            "w-full cursor-pointer",
             isBorrowing
-              ? "bg-amber-500 text-white hover:bg-amber-600"
-              : "bg-primary text-primary-foreground hover:bg-primary/90",
+              ? "bg-amber-500 text-white hover:bg-amber-600 "
+              : "bg-primary text-primary-foreground hover:bg-primary/90 ",
           )}
         >
           {getButtonLabel()}
