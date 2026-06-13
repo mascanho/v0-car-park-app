@@ -11,6 +11,7 @@ import {
   ParkingCircle,
   Trash2,
   LayoutDashboard,
+  Megaphone,
 } from "lucide-react";
 import { BulkFreeModal } from "./bulk-free-modal";
 import { AdminFreeModal } from "./admin-free-modal";
@@ -32,6 +33,7 @@ interface AppHeaderProps {
   adminFreeOpen: boolean;
   onOpenAdminFree: () => void;
   onCloseAdminFree: () => void;
+  onOpenNotificationModal: () => void;
   carParks: CarPark[];
   selectedCarPark: CarPark;
   onSelectCarPark: (carPark: CarPark) => void;
@@ -55,6 +57,7 @@ export function AppHeader({
   adminFreeOpen,
   onOpenAdminFree,
   onCloseAdminFree,
+  onOpenNotificationModal,
   carParks,
   selectedCarPark,
   onSelectCarPark,
@@ -102,6 +105,7 @@ export function AppHeader({
                   onClose={onCloseAdminMenu}
                   onOpenBulkFree={onOpenBulkFree}
                   onOpenAdminFree={onOpenAdminFree}
+                  onOpenNotificationModal={onOpenNotificationModal}
                 />
               )}
               {isRegular && (
@@ -224,12 +228,14 @@ function AdminDropdown({
   onClose,
   onOpenBulkFree,
   onOpenAdminFree,
+  onOpenNotificationModal,
 }: {
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
   onOpenBulkFree: () => void;
   onOpenAdminFree: () => void;
+  onOpenNotificationModal: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -288,6 +294,16 @@ function AdminDropdown({
           >
             <Car className="w-4 h-4 text-destructive/70" />
             Manage spaces
+          </button>
+          <button
+            onClick={() => {
+              onOpenNotificationModal();
+              onClose();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
+          >
+            <Megaphone className="w-4 h-4 text-muted-foreground" />
+            Manage notification
           </button>
           {/* <button */}
           {/*   onClick={() => { */}

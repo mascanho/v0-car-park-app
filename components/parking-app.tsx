@@ -22,6 +22,7 @@ import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
 import { Loader2 } from "lucide-react";
 import { BirthdayBanner } from "./birthday-banner";
 import { NotificationBanner } from "./notification-banner";
+import { NotificationModal } from "./notification-modal";
 import { getPhotoUrl } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -34,6 +35,7 @@ export function ParkingApp() {
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [bulkFreeOpen, setBulkFreeOpen] = useState(false);
   const [adminFreeOpen, setAdminFreeOpen] = useState(false);
+  const [notificationModalOpen, setNotificationModalOpen] = useState(false);
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
@@ -217,6 +219,19 @@ export function ParkingApp() {
   const handleOpenAdminFree = useCallback(() => {
     setAdminFreeOpen(true);
     setSelectedSpace(null);
+  }, []);
+
+  const handleOpenNotificationModal = useCallback(() => {
+    setNotificationModalOpen(true);
+  }, []);
+
+  const handleCloseNotificationModal = useCallback(() => {
+    setNotificationModalOpen(false);
+  }, []);
+
+  const [notifVersion, setNotifVersion] = useState(0);
+  const handleRefreshNotification = useCallback(() => {
+    setNotifVersion((v) => v + 1);
   }, []);
 
   const handleSelectDate = useCallback((date: Date) => {
@@ -408,6 +423,7 @@ export function ParkingApp() {
         adminFreeOpen={adminFreeOpen}
         onOpenAdminFree={handleOpenAdminFree}
         onCloseAdminFree={() => setAdminFreeOpen(false)}
+        onOpenNotificationModal={handleOpenNotificationModal}
         carParks={carParks}
         selectedCarPark={selectedCarPark}
         onSelectCarPark={handleSelectCarPark}
@@ -440,7 +456,7 @@ export function ParkingApp() {
           </div>
         )}
         <div className="mb-4 lg:hidden empty:hidden">
-          <NotificationBanner />
+          <NotificationBanner key={notifVersion} />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div id="calendar" className="lg:col-span-3 space-y-4 scroll-mt-20">
@@ -505,7 +521,7 @@ export function ParkingApp() {
               </div>
             )}
             <div className="hidden lg:block empty:hidden">
-              <NotificationBanner />
+              <NotificationBanner key={notifVersion} />
             </div>
             <MapPanel
               address={selectedCarPark.address || selectedCarPark.location}
@@ -524,6 +540,12 @@ export function ParkingApp() {
           </div>
         </div>
       </main>
+
+      <NotificationModal
+        open={notificationModalOpen}
+        onOpenChange={handleCloseNotificationModal}
+        onRefresh={handleRefreshNotification}
+      />
 
       <AppFooter />
     </div>
