@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { CarPark, Booking } from "@/lib/parking-data";
 import { generateParkingSpaces, getUserDefaultSpace } from "@/lib/parking-data";
-import { X } from "lucide-react";
+import { X, CalendarDays } from "lucide-react";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -51,19 +51,36 @@ function DatePicker({
   placeholder: string;
   label?: string;
 }) {
+  const ref = useRef<HTMLInputElement>(null);
+
+  const openPicker = () => {
+    if (ref.current) {
+      ref.current.focus();
+      try { ref.current.showPicker(); } catch { /* noop */ }
+    }
+  };
+
   return (
-    <div className="flex h-10 w-full min-w-0 rounded-md border border-input bg-background cursor-pointer overflow-hidden">
+    <div
+      onClick={openPicker}
+      className="flex h-10 w-full min-w-0 rounded-md border border-input bg-background cursor-pointer overflow-hidden hover:bg-accent/50 transition-colors"
+    >
       {label && (
-        <span className="flex items-center px-2.5 text-xs text-muted-foreground bg-muted/50 border-r border-input shrink-0">
+        <span className="flex items-center gap-1 px-2.5 text-xs text-muted-foreground bg-muted/50 border-r border-input shrink-0 select-none">
+          <CalendarDays className="w-3.5 h-3.5" />
           {label}
         </span>
       )}
-      <input
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="flex-1 min-w-0 bg-transparent border-none px-2 text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-70"
-      />
+      <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
+        {!label && <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />}
+        <input
+          ref={ref}
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 min-w-0 bg-transparent border-none text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+        />
+      </div>
     </div>
   );
 }
