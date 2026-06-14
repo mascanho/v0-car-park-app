@@ -42,11 +42,10 @@ function DatePicker({
 
   const openPicker = () => {
     if (ref.current) {
-      ref.current.focus();
       try {
         ref.current.showPicker();
       } catch {
-        /* noop */
+        ref.current.focus();
       }
     }
   };
