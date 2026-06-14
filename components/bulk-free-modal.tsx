@@ -43,7 +43,11 @@ function DatePicker({
   const openPicker = () => {
     if (ref.current) {
       ref.current.focus();
-      try { ref.current.showPicker(); } catch { /* noop */ }
+      try {
+        ref.current.showPicker();
+      } catch {
+        /* noop */
+      }
     }
   };
 
@@ -59,7 +63,9 @@ function DatePicker({
         </span>
       )}
       <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
-        {!label && <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />}
+        {!label && (
+          <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+        )}
         <input
           ref={ref}
           type="date"
@@ -295,7 +301,7 @@ export function BulkFreeModal({
                       <DatePicker
                         value={rangeStart}
                         onChange={setRangeStart}
-                        placeholder="dd/mm/yyyy"
+                        placeholder="Click to select days"
                         label="From"
                       />
                     </div>
@@ -303,7 +309,7 @@ export function BulkFreeModal({
                       <DatePicker
                         value={rangeEnd}
                         onChange={setRangeEnd}
-                        placeholder="dd/mm/yyyy"
+                        placeholder="Click to select days"
                         label="To"
                       />
                     </div>

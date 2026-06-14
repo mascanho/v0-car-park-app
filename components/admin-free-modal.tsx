@@ -56,7 +56,11 @@ function DatePicker({
   const openPicker = () => {
     if (ref.current) {
       ref.current.focus();
-      try { ref.current.showPicker(); } catch { /* noop */ }
+      try {
+        ref.current.showPicker();
+      } catch {
+        /* noop */
+      }
     }
   };
 
@@ -72,7 +76,9 @@ function DatePicker({
         </span>
       )}
       <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
-        {!label && <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />}
+        {!label && (
+          <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+        )}
         <input
           ref={ref}
           type="date"
@@ -141,9 +147,7 @@ export function AdminFreeModal({
   );
   const allUsers = [
     "Visitor",
-    ...(Array.isArray(rawUsers)
-      ? rawUsers.filter((u) => u !== "Visitor")
-      : []),
+    ...(Array.isArray(rawUsers) ? rawUsers.filter((u) => u !== "Visitor") : []),
   ];
 
   const { data: rawBookings = [] } = useSWR<Booking[]>(
@@ -236,7 +240,9 @@ export function AdminFreeModal({
       const params = new URLSearchParams();
       dates.forEach((d) => params.append("dates", d));
       params.set("carParkId", carParkId);
-      selectedUsers.forEach((u) => params.append("userNames", normalizeUserName(u)));
+      selectedUsers.forEach((u) =>
+        params.append("userNames", normalizeUserName(u)),
+      );
       const res = await fetch(`/api/bookings?${params}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -561,7 +567,9 @@ export function AdminFreeModal({
                   >
                     <span
                       className={
-                        selectedUsers.length === 0 ? "text-muted-foreground" : ""
+                        selectedUsers.length === 0
+                          ? "text-muted-foreground"
+                          : ""
                       }
                     >
                       {selectedUsers.length === 0
@@ -773,7 +781,7 @@ export function AdminFreeModal({
                     <DatePicker
                       value={rangeStart}
                       onChange={setRangeStart}
-                      placeholder="dd/mm/yyyy"
+                      placeholder="Click to select days"
                       label="From"
                     />
                   </div>
@@ -835,8 +843,8 @@ export function AdminFreeModal({
                 ))}
               </ul>
               <p className="text-xs text-amber-600 dark:text-amber-300">
-                These existing bookings will be replaced. Click "Continue anyway"
-                to proceed, or select a different space.
+                These existing bookings will be replaced. Click "Continue
+                anyway" to proceed, or select a different space.
               </p>
             </div>
           )}
