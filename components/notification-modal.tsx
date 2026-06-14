@@ -36,13 +36,21 @@ function DatePicker({
     >
       <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
         <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
-        <input
-          ref={ref}
-          type="date"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 min-w-0 bg-transparent border-none text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-        />
+        <div className="relative flex-1 min-w-0">
+          {!value && (
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none truncate w-full">
+              {placeholder}
+            </span>
+          )}
+          <input
+            ref={ref}
+            type="date"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full bg-transparent border-none text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+            style={!value ? { color: 'transparent' } : undefined}
+          />
+        </div>
       </div>
     </div>
   );
