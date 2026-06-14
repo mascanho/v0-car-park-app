@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Megaphone, Loader2 } from "lucide-react";
+import { Megaphone, Loader2, CalendarDays } from "lucide-react";
 
 function DatePicker({
   value,
@@ -21,14 +21,29 @@ function DatePicker({
   onChange: (v: string) => void;
   placeholder: string;
 }) {
+  const ref = useRef<HTMLInputElement>(null);
+
+  const openPicker = () => {
+    if (ref.current) {
+      try { ref.current.showPicker(); } catch { ref.current.focus(); }
+    }
+  };
+
   return (
-    <div className="relative">
-      <input
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
-      />
+    <div
+      onClick={openPicker}
+      className="flex h-10 w-full min-w-0 rounded-md border border-input bg-background cursor-pointer overflow-hidden hover:bg-accent/50 transition-colors"
+    >
+      <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
+        <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+        <input
+          ref={ref}
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 min-w-0 bg-transparent border-none text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+        />
+      </div>
     </div>
   );
 }

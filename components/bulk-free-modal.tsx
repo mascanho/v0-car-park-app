@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -38,19 +38,41 @@ function DatePicker({
   placeholder: string;
   label?: string;
 }) {
+  const ref = useRef<HTMLInputElement>(null);
+
+  const openPicker = () => {
+    if (ref.current) {
+      try {
+        ref.current.showPicker();
+      } catch {
+        ref.current.focus();
+      }
+    }
+  };
+
   return (
-    <div className="flex h-10 w-full min-w-0 rounded-md border border-input bg-background cursor-pointer overflow-hidden">
+    <div
+      onClick={openPicker}
+      className="flex h-10 w-full min-w-0 rounded-md border border-input bg-background cursor-pointer overflow-hidden hover:bg-accent/50 transition-colors"
+    >
       {label && (
-        <span className="flex items-center px-2.5 text-xs text-muted-foreground bg-muted/50 border-r border-input shrink-0">
+        <span className="flex items-center gap-1 px-2.5 text-xs text-muted-foreground bg-muted/50 border-r border-input shrink-0 select-none">
+          <CalendarDays className="w-3.5 h-3.5" />
           {label}
         </span>
       )}
-      <input
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="flex-1 min-w-0 bg-transparent border-none px-2 text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-70"
-      />
+      <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
+        {!label && (
+          <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+        )}
+        <input
+          ref={ref}
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 min-w-0 bg-transparent border-none text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+        />
+      </div>
     </div>
   );
 }
@@ -147,11 +169,12 @@ export function BulkFreeModal({
     setIsSubmitting(true);
     setResult(null);
     try {
-      const bookingUserName = userMatch?.dbUserName || currentUser;
       const params = new URLSearchParams();
       dates.forEach((d) => params.append("dates", d));
       params.set("carParkId", carParkId);
-      params.set("userName", bookingUserName);
+      if (userEmail) params.set("userEmail", userEmail);
+      if (userMatch) params.set("spaceId", userMatch.spaceId);
+      params.set("userName", currentUser);
       const res = await fetch(`/api/bookings?${params}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -277,7 +300,7 @@ export function BulkFreeModal({
                       <DatePicker
                         value={rangeStart}
                         onChange={setRangeStart}
-                        placeholder="dd/mm/yyyy"
+                        placeholder="Click to select days"
                         label="From"
                       />
                     </div>
@@ -285,7 +308,7 @@ export function BulkFreeModal({
                       <DatePicker
                         value={rangeEnd}
                         onChange={setRangeEnd}
-                        placeholder="dd/mm/yyyy"
+                        placeholder="Click to select days"
                         label="To"
                       />
                     </div>

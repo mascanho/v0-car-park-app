@@ -169,24 +169,41 @@ export async function DELETE(request: Request) {
   const endDate = searchParams.get('endDate');
   const carParkId = searchParams.get('carParkId');
   const userName = searchParams.get('userName');
+  const userEmail = searchParams.get('userEmail');
   const userNames = searchParams.getAll('userNames');
   const dates = searchParams.getAll('dates');
-  const targetUsers = userNames.length > 0 ? userNames : (userName ? [userName] : []);
+  const spaceId = searchParams.get('spaceId');
+  let targetUsers = userNames.length > 0 ? userNames : (userName ? [userName] : []);
 
-  // Bulk delete by specific dates (non-sequential) for users
-  if (dates.length > 0 && carParkId && targetUsers.length > 0) {
-    const { data: bookings, error: fetchErr } = await supabase
-      .from('bookings')
-      .select('*')
-      .eq('car_park_id', carParkId)
-      .in('user_name', targetUsers)
-      .in('booking_date', dates);
+  if (userEmail && targetUsers.length > 0) {
+    const { data: userRecord } = await supabase
+      .from('users')
+      .select('name')
+      .ilike('email', userEmail)
+      .maybeSingle();
+    if (userRecord?.name && !targetUsers.includes(userRecord.name)) {
+      targetUsers.push(userRecord.name);
+    }
+  }
+
+  async function selectIdsThenDelete(
+    query: any,
+  ): Promise<Response> {
+    const { data: bookings, error: fetchErr } = await query;
 
     if (fetchErr) {
       return NextResponse.json({ error: fetchErr.message }, { status: 500 });
     }
 
-    for (const booking of bookings || []) {
+    const freedCount = bookings?.length || 0;
+
+    if (freedCount === 0) {
+      return NextResponse.json({ success: true, freedCount: 0 });
+    }
+
+    const ids: number[] = bookings.map((b: any) => b.id);
+
+    for (const booking of bookings) {
       await supabase.from('borrow_history').insert({
         space_id: booking.space_id,
         car_park_id: booking.car_park_id,
@@ -199,54 +216,50 @@ export async function DELETE(request: Request) {
     const { error: deleteErr } = await supabase
       .from('bookings')
       .delete()
-      .eq('car_park_id', carParkId)
-      .in('user_name', targetUsers)
-      .in('booking_date', dates);
+      .in('id', ids);
 
     if (deleteErr) {
       return NextResponse.json({ error: deleteErr.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, freedCount: bookings?.length || 0 });
+    return NextResponse.json({ success: true, freedCount });
+  }
+
+  function applyUserFilter(q: any): any {
+    if (spaceId && targetUsers.length > 0) {
+      const nameFilters = targetUsers.map(u => `user_name.ilike.${u}`).join(',');
+      return q.or(`space_id.eq.${spaceId},${nameFilters}`);
+    } else if (spaceId) {
+      return q.eq('space_id', spaceId);
+    } else {
+      const nameFilters = targetUsers.map(u => `user_name.ilike.${u}`).join(',');
+      return q.or(nameFilters);
+    }
+  }
+
+  // Bulk delete by specific dates (non-sequential) for users
+  if (dates.length > 0 && carParkId && (spaceId || targetUsers.length > 0)) {
+    let q = supabase
+      .from('bookings')
+      .select('*')
+      .eq('car_park_id', carParkId)
+      .in('booking_date', dates);
+
+    q = applyUserFilter(q);
+    return await selectIdsThenDelete(q);
   }
 
   // Bulk delete by date range for users
-  if (startDate && endDate && carParkId && targetUsers.length > 0) {
-    const { data: bookings, error: fetchErr } = await supabase
+  if (startDate && endDate && carParkId && (spaceId || targetUsers.length > 0)) {
+    let q = supabase
       .from('bookings')
       .select('*')
       .eq('car_park_id', carParkId)
-      .in('user_name', targetUsers)
       .gte('booking_date', startDate)
       .lte('booking_date', endDate);
 
-    if (fetchErr) {
-      return NextResponse.json({ error: fetchErr.message }, { status: 500 });
-    }
-
-    for (const booking of bookings || []) {
-      await supabase.from('borrow_history').insert({
-        space_id: booking.space_id,
-        car_park_id: booking.car_park_id,
-        booking_date: booking.booking_date,
-        original_owner: booking.user_name,
-        borrowed_by: '[BULK FREED]',
-      });
-    }
-
-    const { error: deleteErr } = await supabase
-      .from('bookings')
-      .delete()
-      .eq('car_park_id', carParkId)
-      .in('user_name', targetUsers)
-      .gte('booking_date', startDate)
-      .lte('booking_date', endDate);
-
-    if (deleteErr) {
-      return NextResponse.json({ error: deleteErr.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, freedCount: bookings?.length || 0 });
+    q = applyUserFilter(q);
+    return await selectIdsThenDelete(q);
   }
 
   // Single delete by id
