@@ -365,7 +365,7 @@ export function AdminFreeModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-h-[700px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Manage car park bookings</DialogTitle>
           <DialogDescription>
