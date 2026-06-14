@@ -11,6 +11,7 @@ import {
   ParkingCircle,
   Trash2,
   LayoutDashboard,
+  Megaphone,
 } from "lucide-react";
 import { BulkFreeModal } from "./bulk-free-modal";
 import { AdminFreeModal } from "./admin-free-modal";
@@ -22,6 +23,7 @@ interface AppHeaderProps {
   currentUser: string;
   avatarUrl: string;
   userEmail: string;
+  isAdmin: boolean;
   adminMenuOpen: boolean;
   onToggleAdminMenu: () => void;
   onCloseAdminMenu: () => void;
@@ -31,8 +33,10 @@ interface AppHeaderProps {
   adminFreeOpen: boolean;
   onOpenAdminFree: () => void;
   onCloseAdminFree: () => void;
+  onOpenNotificationModal: () => void;
   carParks: CarPark[];
   selectedCarPark: CarPark;
+  onSelectCarPark: (carPark: CarPark) => void;
   onRefreshBookings: () => void;
   onSignOut: () => void;
   currentYear: number;
@@ -43,6 +47,7 @@ export function AppHeader({
   currentUser,
   avatarUrl,
   userEmail,
+  isAdmin,
   adminMenuOpen,
   onToggleAdminMenu,
   onCloseAdminMenu,
@@ -52,8 +57,10 @@ export function AppHeader({
   adminFreeOpen,
   onOpenAdminFree,
   onCloseAdminFree,
+  onOpenNotificationModal,
   carParks,
   selectedCarPark,
+  onSelectCarPark,
   onRefreshBookings,
   onSignOut,
   currentYear,
@@ -67,15 +74,16 @@ export function AppHeader({
             <div className="flex items-center gap-3">
               <SheetTrigger asChild>
                 <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-                  <Menu className="w-6 h-6 cursor-pointer" />
+                  <Menu className="w-6 h-6 cursor-pointer sm:-ml-2 -ml-1.5" />
                 </button>
               </SheetTrigger>
               <div
                 className="hidden sm:flex items-center gap-3"
                 onClick={() => (window.location.href = "/")}
               >
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center cursor-pointer">
-                  <Car className="w-6 h-6 text-primary-foreground" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center cursor-pointer sm:-ml-2">
+                  {/* <Car className="w-6 h-6 text-primary-foreground" /> */}
+                  <img src="/apple-icon.png" />
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">
@@ -91,18 +99,14 @@ export function AppHeader({
           </Sheet>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              {[
-                "a.greensmith@slimstock.com",
-                "m.guerreiro@slimstock.com",
-                "j.cooper@slimstock.com",
-                "n.cooper@slimstock.com",
-              ].includes(userEmail.toLowerCase().trim()) && (
+              {isAdmin && (
                 <AdminDropdown
                   open={adminMenuOpen}
                   onToggle={onToggleAdminMenu}
                   onClose={onCloseAdminMenu}
                   onOpenBulkFree={onOpenBulkFree}
                   onOpenAdminFree={onOpenAdminFree}
+                  onOpenNotificationModal={onOpenNotificationModal}
                 />
               )}
               {isRegular && (
@@ -128,6 +132,8 @@ export function AppHeader({
                 open={adminFreeOpen}
                 onOpenChange={onCloseAdminFree}
                 carParks={carParks}
+                selectedCarPark={selectedCarPark}
+                onSelectCarPark={onSelectCarPark}
                 onFreed={onRefreshBookings}
               />
               <AvatarMenu
@@ -223,12 +229,14 @@ function AdminDropdown({
   onClose,
   onOpenBulkFree,
   onOpenAdminFree,
+  onOpenNotificationModal,
 }: {
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
   onOpenBulkFree: () => void;
   onOpenAdminFree: () => void;
+  onOpenNotificationModal: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -287,6 +295,16 @@ function AdminDropdown({
           >
             <Car className="w-4 h-4 text-destructive/70" />
             Manage spaces
+          </button>
+          <button
+            onClick={() => {
+              onOpenNotificationModal();
+              onClose();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
+          >
+            <Megaphone className="w-4 h-4 text-muted-foreground" />
+            Manage notification
           </button>
           {/* <button */}
           {/*   onClick={() => { */}

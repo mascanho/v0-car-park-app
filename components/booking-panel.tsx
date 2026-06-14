@@ -7,11 +7,11 @@ import {
   MapPin,
   Clock,
   User,
-  BoltIcon,
-  BellElectric,
+  ExternalLink,
+  LucideCircleParking,
 } from "lucide-react";
 import type { ParkingSpace, Booking } from "@/lib/parking-data";
-import { formatDate, isPastDate } from "@/lib/parking-data";
+import { isPastDate } from "@/lib/parking-data";
 
 interface BookingPanelProps {
   selectedDate: Date;
@@ -21,7 +21,9 @@ interface BookingPanelProps {
   onCancel: () => void;
   existingBooking: Booking | null;
   selectedSpaceBookedBy?: string | null;
+  selectedSpaceBookedByEmail?: string | null;
   isLoading?: boolean;
+  carParkName?: string;
 }
 
 export function BookingPanel({
@@ -32,7 +34,9 @@ export function BookingPanel({
   onCancel,
   existingBooking,
   selectedSpaceBookedBy,
+  selectedSpaceBookedByEmail,
   isLoading,
+  carParkName,
 }: BookingPanelProps) {
   const isPast = isPastDate(selectedDate);
 
@@ -69,10 +73,20 @@ export function BookingPanel({
           <CalendarIcon className="w-4 h-4 text-muted-foreground" />
           <span className="text-foreground">{formattedDate}</span>
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          <Clock className="w-4 h-4 text-muted-foreground" />
-          <span className="text-foreground">Full day access (24h)</span>
-        </div>
+        {carParkName && (
+          <div className="flex items-center gap-3 text-sm">
+            <MapPin className="w-4 h-4 text-muted-foreground" />
+            <span className="text-foreground">{carParkName}</span>
+          </div>
+        )}
+        {selectedSpace && (
+          <div className="flex items-center gap-3 text-sm">
+            <LucideCircleParking className="w-4 h-4 text-muted-foreground" />
+            <span className="text-foreground">
+              Space <span className="font-semibold">{selectedSpace.id}</span>
+            </span>
+          </div>
+        )}
         <div className="flex items-center gap-3 text-sm">
           <User className="w-4 h-4 text-muted-foreground" />
           <span className="text-foreground">{currentUser}</span>
@@ -100,7 +114,7 @@ export function BookingPanel({
                 size="sm"
                 onClick={onCancel}
                 disabled={isLoading}
-                className="mt-3 w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                className="mt-3 w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
               >
                 Cancel Booking
               </Button>
@@ -124,7 +138,7 @@ export function BookingPanel({
           className={cn(
             "rounded-lg p-4 mb-4",
             isBorrowing
-              ? "bg-amber-500/10 border border-amber-500/30"
+              ? "bg-amber-500/10 border border-amber-500/30 cursor-pointer"
               : "bg-primary/10 border border-primary/30",
           )}
         >
@@ -132,13 +146,15 @@ export function BookingPanel({
             <MapPin
               className={cn(
                 "w-4 h-4",
-                isBorrowing ? "text-amber-500" : "text-primary",
+                isBorrowing ? "text-amber-500 cursor-pointer" : "text-primary",
               )}
             />
             <span
               className={cn(
-                "font-medium",
-                isBorrowing ? "text-amber-600" : "text-foreground",
+                "font-medium cursor-pointer",
+                isBorrowing
+                  ? "text-amber-600 cursor-pointer"
+                  : "text-foreground cursor-pointer",
               )}
             >
               {isBorrowing ? "Borrow this space" : "Selected space"}
@@ -149,10 +165,12 @@ export function BookingPanel({
             <span className="text-muted-foreground ml-2"></span>
           </p>
           {isBorrowing && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Currently allocated to{" "}
-              <span className="font-medium">{selectedSpaceBookedBy}</span>
-            </p>
+            <div className="sm:flex items-center gap-2 mt-1">
+              <p className="text-xs text-muted-foreground">
+                Currently allocated to{" "}
+                <span className="font-medium">{selectedSpaceBookedBy}</span>
+              </p>
+            </div>
           )}
 
           {selectedSpace.id === "26" && (
@@ -189,20 +207,32 @@ export function BookingPanel({
           onClick={onBook}
           disabled={isLoading}
           className={cn(
-            "w-full",
+            "w-full cursor-pointer",
             isBorrowing
-              ? "bg-amber-500 text-white hover:bg-amber-600"
-              : "bg-primary text-primary-foreground hover:bg-primary/90",
+              ? "bg-amber-500 text-white hover:bg-amber-600 "
+              : "bg-primary text-primary-foreground hover:bg-primary/90 ",
           )}
         >
           {getButtonLabel()}
         </Button>
       )}
 
+      {selectedSpaceBookedByEmail && (
+        <a
+          href={`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(selectedSpaceBookedByEmail)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1 text-[10px] text-primary/50 hover:text-primary/80 underline w-full mx-auto text-center mt-2"
+        >
+          <ExternalLink className="w-3 h-3" />
+          Speak to {selectedSpaceBookedBy}
+        </a>
+      )}
+
       {/* Daily renewal notice */}
       <div className="mt-4 pt-4 border-t border-border">
         <p className="text-xs text-muted-foreground text-center">
-          Bookings are valid for one day only and must be renewed daily.
+          Bookings are the user's responsibility
         </p>
       </div>
     </div>

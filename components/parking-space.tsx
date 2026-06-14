@@ -25,7 +25,7 @@ interface ParkingSpaceProps {
   onReallocate?: (spaceId: string, userName: string) => void;
   carParkId?: string;
   currentUser?: string;
-  currentUserEmail?: string;
+  isAdmin?: boolean;
   isRegular?: boolean;
 }
 
@@ -44,7 +44,7 @@ export function ParkingSpaceCard({
   onReallocate,
   carParkId,
   currentUser,
-  currentUserEmail,
+  isAdmin,
   isRegular,
 }: ParkingSpaceProps) {
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
@@ -52,6 +52,8 @@ export function ParkingSpaceCard({
   const [users, setUsers] = useState<string[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLongPress = useRef(false);
 
   useEffect(() => {
     if (!menuPos) return;
@@ -65,17 +67,52 @@ export function ParkingSpaceCard({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [menuPos]);
 
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    };
+  }, []);
+
   const handleClick = () => {
-    if (!disabled && !isCurrentUserBooking) {
+    if (!disabled && !isLongPress.current) {
       onSelect(space);
     }
+    isLongPress.current = false;
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
     if (!isRegular) return;
     e.preventDefault();
-    setMenuPos({ x: e.clientX, y: e.clientY });
+    openMenu(e.clientX, e.clientY);
+  };
+
+  const openMenu = (x: number, y: number) => {
+    setMenuPos({ x, y });
     setShowUsers(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isRegular) return;
+    isLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
+      const touch = e.touches[0];
+      openMenu(touch.clientX, touch.clientY);
+    }, 500);
+  };
+
+  const handleTouchMove = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
   };
 
   const handleFree = () => {
@@ -106,13 +143,11 @@ export function ParkingSpaceCard({
     if (onReallocate) onReallocate(space.id, "VISITOR");
   };
 
-  const isAdmin =
-    currentUserEmail === "m.guerreiro@slimstock.com" ||
-    currentUser === "Marco Guerreiro";
-
   const tooltip = isBooked
     ? isCurrentUserBooking
-      ? space.electrified ? "Your booking — Electrified" : "Your booking"
+      ? space.electrified
+        ? "Your booking — Electrified"
+        : "Your booking"
       : isVisitor
         ? "Visitor"
         : originalUser
@@ -129,9 +164,12 @@ export function ParkingSpaceCard({
           <button
             onClick={handleClick}
             onContextMenu={handleContextMenu}
-            disabled={disabled || isCurrentUserBooking}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            disabled={disabled}
             className={cn(
-              "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px]",
+              "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 min-h-[60px] min-w-[50px] select-none touch-callout-none",
               !isBooked &&
                 !isSelected &&
                 "border-green-500/50 bg-green-500/20 hover:border-primary hover:bg-primary/5 cursor-pointer",
@@ -140,7 +178,8 @@ export function ParkingSpaceCard({
                 !isVisitor &&
                 "border-destructive/50 bg-destructive/10 cursor-pointer hover:border-amber-500 hover:bg-amber-500/5",
               isVisitor && "border-neutral-600 bg-black cursor-pointer",
-              isCurrentUserBooking && "border-blue-500 bg-blue-500/20 cursor-default",
+              isCurrentUserBooking &&
+                "border-blue-500 bg-blue-500/20 cursor-pointer",
               isSelected &&
                 "border-violet-500 bg-violet-500/20 ring-2 ring-violet-500 ring-offset-2",
               disabled && "opacity-50 cursor-not-allowed",
@@ -150,7 +189,9 @@ export function ParkingSpaceCard({
               className={cn(
                 "text-xs font-semibold",
                 isSelected && "text-violet-600 dark:text-violet-400",
-                !isBooked && !isSelected && "text-green-600 dark:text-green-400",
+                !isBooked &&
+                  !isSelected &&
+                  "text-green-600 dark:text-green-400",
                 isBooked &&
                   !isCurrentUserBooking &&
                   !isVisitor &&
@@ -166,7 +207,9 @@ export function ParkingSpaceCard({
               className={cn(
                 "mt-1 text-[10px] font-bold leading-none",
                 isSelected && "text-violet-600 dark:text-violet-400",
-                !isBooked && !isSelected && "text-green-600 dark:text-green-400",
+                !isBooked &&
+                  !isSelected &&
+                  "text-green-600 dark:text-green-400",
                 isBooked &&
                   !isCurrentUserBooking &&
                   !isVisitor &&
@@ -225,7 +268,7 @@ export function ParkingSpaceCard({
             {isBooked && onFreeSpace && (
               <button
                 onClick={handleFree}
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-destructive hover:bg-destructive/10 text-left"
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-destructive hover:bg-destructive/10 text-left cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Free this space
@@ -235,7 +278,7 @@ export function ParkingSpaceCard({
               <div className="relative">
                 <button
                   onClick={handleReallocateClick}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 text-left"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 text-left cursor-pointer"
                 >
                   <UserRoundPlus className="w-3.5 h-3.5" />
                   {isBooked ? "Re-allocate" : "Allocate to..."}
@@ -264,7 +307,7 @@ export function ParkingSpaceCard({
             {isAdmin && onReallocate && (
               <button
                 onClick={handleVisitorAllocate}
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm  hover:bg-neutral-800/50 text-left"
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm  hover:bg-neutral-800 hover:text-white text-left cursor-pointer"
               >
                 <UserRoundPlus className="w-3.5 h-3.5" />
                 Allocate to VISITOR

@@ -15,6 +15,7 @@ interface ParkingLotProps {
   onSelectSpace: (space: ParkingSpace) => void;
   currentUser: string;
   currentUserEmail: string;
+  isAdmin?: boolean;
   isRegular?: boolean;
   disabled?: boolean;
   carPark: CarPark;
@@ -23,6 +24,7 @@ interface ParkingLotProps {
   onCancel: () => void;
   existingBooking: Booking | null;
   selectedSpaceBookedBy?: string | null;
+  selectedSpaceBookedByEmail?: string | null;
   isLoading?: boolean;
   onFreeSpace?: (spaceId: string) => void;
   onReallocate?: (spaceId: string, userName: string) => void;
@@ -37,6 +39,7 @@ export function ParkingLot({
   onSelectSpace,
   currentUser,
   currentUserEmail,
+  isAdmin,
   isRegular,
   disabled,
   date,
@@ -44,6 +47,7 @@ export function ParkingLot({
   onCancel,
   existingBooking,
   selectedSpaceBookedBy,
+  selectedSpaceBookedByEmail,
   isLoading,
   onFreeSpace,
   onReallocate,
@@ -99,7 +103,8 @@ export function ParkingLot({
   const isVisitor = useCallback(
     (spaceId: string) => {
       const booking = getBookingForSpace(spaceId);
-      return booking?.userName === "VISITOR";
+      const name = booking?.userName ?? "";
+      return name.toLowerCase() === "visitor" || name.toLowerCase() === "v";
     },
     [getBookingForSpace],
   );
@@ -142,19 +147,6 @@ export function ParkingLot({
             <span className="text-muted-foreground">EV Charger</span>
           </div>
         </div>
-
-        {/* Quick actions */}
-        {canQuickBook && (
-          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
-            <button
-              onClick={onQuickBook}
-              disabled={isLoading}
-              className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? "Booking..." : "Book my space"}
-            </button>
-          </div>
-        )}
 
         {/* Parking lot layout */}
         <div className="relative">
@@ -201,7 +193,7 @@ export function ParkingLot({
                         onReallocate={onReallocate}
                         carParkId={carPark.id}
                         currentUser={currentUser}
-                        currentUserEmail={currentUserEmail}
+                        isAdmin={isAdmin}
                         isRegular={isRegular}
                       />
                     ))}
@@ -241,7 +233,9 @@ export function ParkingLot({
             onCancel={onCancel}
             existingBooking={existingBooking}
             selectedSpaceBookedBy={selectedSpaceBookedBy}
+            selectedSpaceBookedByEmail={selectedSpaceBookedByEmail}
             isLoading={isLoading}
+            carParkName={carPark.name}
           />
         </div>
       </div>

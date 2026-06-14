@@ -13,7 +13,7 @@ export default function AuthPage() {
     const params = new URLSearchParams(window.location.search);
     const err = params.get("error");
     if (err === "invalid_domain") {
-      setError("Access denied. Only @slimstock.com accounts are allowed.");
+      setError("Access denied. Not a slimstock email.");
     }
   }, []);
 
@@ -61,16 +61,15 @@ export default function AuthPage() {
           <div className="relative bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-8 shadow-2xl">
             <div className="text-center mb-8">
               <div className="relative w-16 h-16 mx-auto mb-6">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl blur-lg opacity-50" />
-                <div className="relative w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                  <Car className="w-9 h-9 text-white" />
+                <div className="relative w-full h-full rounded-2xl flex items-center justify-center  shadow-blue-500/25">
+                  <img src="apple-icon.png" className="w-full h-full" />
                 </div>
               </div>
               <h1 className="text-3xl font-bold tracking-tight text-white">
                 Slimspot
               </h1>
               <p className="text-sm text-blue-200/70 mt-2 font-light tracking-wide">
-                Car Park Manager. And more...
+                Car Park Manager for Slimstock.
               </p>
             </div>
 
@@ -88,7 +87,7 @@ export default function AuthPage() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2 mt-1 transition-colors"
                     >
-                      Learn how to add your SlimStock email to Gmail
+                      Link your Slimstock email to Gmail
                     </a>
                   </div>
                 </div>
@@ -114,7 +113,7 @@ export default function AuthPage() {
                     <span className="font-medium text-amber-300">
                       @slimstock.com
                     </span>{" "}
-                    account to manage your parking spots.
+                    email to manage your parking spots.
                   </p>
                 </div>
               </div>
