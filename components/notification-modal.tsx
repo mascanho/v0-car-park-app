@@ -12,6 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Megaphone, Loader2, CalendarDays } from "lucide-react";
 
+function formatEuro(dateStr: string) {
+  const [y, m, d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 function DatePicker({
   value,
   onChange,
@@ -37,18 +42,18 @@ function DatePicker({
       <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
         <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
         <div className="relative flex-1 min-w-0">
-          {!value && (
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none truncate w-full">
-              {placeholder}
-            </span>
-          )}
+          <span
+            className={`text-sm cursor-pointer ${value ? 'text-foreground' : 'text-muted-foreground'}`}
+            onClick={openPicker}
+          >
+            {value ? formatEuro(value) : placeholder}
+          </span>
           <input
             ref={ref}
             type="date"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full bg-transparent border-none text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-            style={!value ? { color: 'transparent' } : undefined}
+            className="absolute inset-0 w-full opacity-0 cursor-pointer"
           />
         </div>
       </div>
