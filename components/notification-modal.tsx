@@ -12,6 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Megaphone, Loader2, CalendarDays } from "lucide-react";
 
+function formatEuro(dateStr: string) {
+  const [y, m, d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 function DatePicker({
   value,
   onChange,
@@ -36,12 +41,12 @@ function DatePicker({
     >
       <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
         <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
-        <div className="relative flex-1 min-w-0 h-5">
+        <div className="relative flex-1 min-w-0">
           <span
             className={`text-sm cursor-pointer ${value ? 'text-foreground' : 'text-muted-foreground'}`}
             onClick={openPicker}
           >
-            {value || placeholder}
+            {value ? formatEuro(value) : placeholder}
           </span>
           <input
             ref={ref}

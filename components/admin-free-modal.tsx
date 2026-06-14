@@ -78,12 +78,12 @@ function DatePicker({
         {!label && (
           <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
         )}
-        <div className="relative flex-1 min-w-0 h-5">
+        <div className="relative flex-1 min-w-0">
           <span
             className={`text-sm cursor-pointer ${value ? 'text-foreground' : 'text-muted-foreground'}`}
             onClick={openPicker}
           >
-            {value || placeholder}
+            {value ? formatEuro(value) : placeholder}
           </span>
           <input
             ref={ref}
@@ -149,7 +149,7 @@ export function AdminFreeModal({
   }, []);
 
   const { data: rawUsers } = useSWR<string[]>(
-    `/api/users?carParkId=${carParkId}`,
+    "/api/users",
     fetcher,
   );
   const allUsers = [
