@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { CarPark, Booking } from "@/lib/parking-data";
 import { generateParkingSpaces, getUserDefaultSpace } from "@/lib/parking-data";
-import { X, CalendarDays } from "lucide-react";
+import { X, CalendarDays, Plus } from "lucide-react";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -78,13 +78,21 @@ function DatePicker({
         {!label && (
           <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
         )}
-        <input
-          ref={ref}
-          type="date"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 min-w-0 bg-transparent border-none text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-        />
+        <div className="relative flex-1 min-w-0">
+          {!value && (
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none truncate w-full">
+              {placeholder}
+            </span>
+          )}
+          <input
+            ref={ref}
+            type="date"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full bg-transparent border-none text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+            style={!value ? { color: 'transparent' } : undefined}
+          />
+        </div>
       </div>
     </div>
   );
@@ -740,14 +748,30 @@ export function AdminFreeModal({
 
             {tab === "single" && (
               <div className="pt-1 space-y-2">
-                <DatePicker
-                  value={dateInput}
-                  onChange={(val) => {
-                    setDateInput(val);
-                    if (val) addDate(val);
-                  }}
-                  placeholder="Click to select days"
-                />
+                <div className="flex gap-2">
+                  <div className="flex-1 min-w-0">
+                    <DatePicker
+                      value={dateInput}
+                      onChange={(val) => {
+                        setDateInput(val);
+                      }}
+                      placeholder="Click to select days"
+                    />
+                  </div>
+                  {dateInput && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        addDate(dateInput);
+                      }}
+                      className="shrink-0 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
                 {dates.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-32 overflow-y-auto">
                     {dates.map((d) => (
