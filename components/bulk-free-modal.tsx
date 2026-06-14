@@ -53,31 +53,31 @@ function DatePicker({
   return (
     <div
       onClick={openPicker}
-      className="flex h-10 w-full min-w-0 rounded-md border border-input bg-background cursor-pointer overflow-hidden hover:bg-accent/50 transition-colors"
+      className="flex h-9 w-full min-w-0 rounded-md border border-input bg-background cursor-pointer overflow-hidden hover:bg-accent/50 transition-colors items-center "
     >
       {label && (
-        <span className="flex items-center gap-1 px-2.5 text-xs text-muted-foreground bg-muted/50 border-r border-input shrink-0 select-none">
+        <span className="flex h-full items-center gap-1 px-2.5 text-xs text-muted-foreground bg-muted/50 border-r border-input shrink-0 select-none">
           <CalendarDays className="w-3.5 h-3.5" />
           {label}
         </span>
       )}
       <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
         {!label && (
-          <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+          <CalendarDays className="w-4 h-4 pt-0.5 text-muted-foreground shrink-0" />
         )}
-        <div className="relative flex-1 min-w-0">
-          {!value && (
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none truncate w-full">
-              {placeholder}
-            </span>
-          )}
+        <div className="relative flex-1 min-w-0 h-5">
+          <span
+            className={`text-sm cursor-pointer ${value ? "text-foreground" : "text-muted-foreground"}`}
+            onClick={openPicker}
+          >
+            {value || placeholder}
+          </span>
           <input
             ref={ref}
             type="date"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full bg-transparent border-none text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-            style={!value ? { color: "transparent" } : undefined}
+            className="absolute inset-0 w-full opacity-0 cursor-pointer"
           />
         </div>
       </div>
@@ -263,7 +263,7 @@ export function BulkFreeModal({
 
             {/* Tabbed date input */}
             <div className="space-y-1.5">
-              <div className="flex border-b border-border">
+              <div className="flex border-b border-border mb-3">
                 <button
                   type="button"
                   onClick={() => setTab("single")}
@@ -307,7 +307,7 @@ export function BulkFreeModal({
                       onClick={() => {
                         addDate(dateInput);
                       }}
-                      className="shrink-0 cursor-pointer"
+                      className="shrink-0 cursor-pointer bg-accent text-white"
                     >
                       <CircleFadingPlus className="w-4 h-4" />
                     </Button>
