@@ -271,9 +271,9 @@ function AdminDropdown({
               );
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
+            className="group w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-white transition-colors cursor-pointer text-left"
           >
-            <Database className="w-4 h-4 text-muted-foreground" />
+            <Database className="w-4 h-4 text-muted-foreground group-hover:text-white transition-colors" />
             Supabase Dashboard
           </button>
           <button
@@ -281,9 +281,9 @@ function AdminDropdown({
               window.open("/api/bookings?format=json", "_blank");
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
+            className="group w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-white transition-colors text-left cursor-pointer"
           >
-            <Shield className="w-4 h-4 text-muted-foreground" />
+            <Shield className="w-4 h-4 text-muted-foreground group-hover:text-white transition-colors" />
             Raw Bookings
           </button>
           <button
@@ -291,9 +291,9 @@ function AdminDropdown({
               onOpenAdminFree();
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
+            className="group w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-white cursor-pointer transition-colors text-left"
           >
-            <Car className="w-4 h-4 text-destructive/70" />
+            <Car className="w-4 h-4 text-muted-foreground group-hover:text-white transition-colors" />
             Manage spaces
           </button>
           <button
@@ -301,9 +301,9 @@ function AdminDropdown({
               onOpenNotificationModal();
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
+            className="group w-full cursor-pointer flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-white transition-colors text-left"
           >
-            <Megaphone className="w-4 h-4 text-muted-foreground" />
+            <Megaphone className="w-4 h-4 text-muted-foreground group-hover:text-white transition-colors" />
             Manage notification
           </button>
           {/* <button */}

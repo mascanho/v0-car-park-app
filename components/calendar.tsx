@@ -125,7 +125,7 @@ export function Calendar({
               onClick={() => !isPast && onSelectDate(date)}
               disabled={isPast}
               className={cn(
-                "relative h-10 rounded-lg text-sm font-medium transition-all duration-200",
+                "relative h-10 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
                 // Selected (overrides everything)
                 isSelected &&
                   "bg-primary text-primary-foreground hover:bg-primary",

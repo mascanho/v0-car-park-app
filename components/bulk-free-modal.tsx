@@ -53,25 +53,33 @@ function DatePicker({
   return (
     <div
       onClick={openPicker}
-      className="flex h-10 w-full min-w-0 rounded-md border border-input bg-background cursor-pointer overflow-hidden hover:bg-accent/50 transition-colors"
+      className="flex h-9 w-full min-w-0 rounded-md border border-input bg-background cursor-pointer overflow-hidden hover:bg-accent/50 transition-colors items-center "
     >
       {label && (
-        <span className="flex items-center gap-1 px-2.5 text-xs text-muted-foreground bg-muted/50 border-r border-input shrink-0 select-none">
+        <span className="flex h-full items-center gap-1 px-2.5 text-xs text-muted-foreground bg-muted/50 border-r border-input shrink-0 select-none">
           <CalendarDays className="w-3.5 h-3.5" />
           {label}
         </span>
       )}
       <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
         {!label && (
-          <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+          <CalendarDays className="w-4 h-4 pt-0.5 text-muted-foreground shrink-0" />
         )}
-        <input
-          ref={ref}
-          type="date"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 min-w-0 bg-transparent border-none text-sm cursor-pointer focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-        />
+        <div className="relative flex-1 min-w-0">
+          <span
+            className={`text-sm cursor-pointer ${value ? 'text-foreground' : 'text-muted-foreground'}`}
+            onClick={openPicker}
+          >
+            {value ? formatEuro(value) : placeholder}
+          </span>
+          <input
+            ref={ref}
+            type="date"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 w-full opacity-0 cursor-pointer"
+          />
+        </div>
       </div>
     </div>
   );
@@ -255,7 +263,7 @@ export function BulkFreeModal({
 
             {/* Tabbed date input */}
             <div className="space-y-1.5">
-              <div className="flex border-b border-border">
+              <div className="flex border-b border-border mb-3">
                 <button
                   type="button"
                   onClick={() => setTab("single")}
@@ -281,15 +289,29 @@ export function BulkFreeModal({
               </div>
 
               {tab === "single" && (
-                <div className="pt-1">
-                  <DatePicker
-                    value={dateInput}
-                    onChange={(val) => {
-                      setDateInput(val);
-                      if (val) addDate(val);
-                    }}
-                    placeholder="Click to select days"
-                  />
+                <div className="pt-1 flex gap-2">
+                  <div className="flex-1 min-w-0">
+                    <DatePicker
+                      value={dateInput}
+                      onChange={(val) => {
+                        setDateInput(val);
+                      }}
+                      placeholder="Click to select days"
+                    />
+                  </div>
+                  {dateInput && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        addDate(dateInput);
+                      }}
+                      className="shrink-0 cursor-pointer bg-accent text-white"
+                    >
+                      <CircleFadingPlus className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               )}
 
@@ -300,7 +322,7 @@ export function BulkFreeModal({
                       <DatePicker
                         value={rangeStart}
                         onChange={setRangeStart}
-                        placeholder="Click to select days"
+                        placeholder="dd/mm/yyyy"
                         label="From"
                       />
                     </div>
@@ -308,7 +330,7 @@ export function BulkFreeModal({
                       <DatePicker
                         value={rangeEnd}
                         onChange={setRangeEnd}
-                        placeholder="Click to select days"
+                        placeholder="dd/mm/yyyy"
                         label="To"
                       />
                     </div>
