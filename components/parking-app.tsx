@@ -180,6 +180,15 @@ export function ParkingApp() {
     return map;
   }, [usersWithEmail]);
 
+  const emailToName = useMemo(() => {
+    const map: Record<string, string> = {};
+    usersWithEmail.forEach((u) => {
+      const prefix = u.email.split('@')[0].toLowerCase();
+      map[prefix] = u.name;
+    });
+    return map;
+  }, [usersWithEmail]);
+
   const parkingSpaces = useMemo(() => {
     if (!selectedCarPark) return [];
     return generateParkingSpaces(selectedCarPark);
@@ -254,7 +263,7 @@ export function ParkingApp() {
 
   const handleOpenBulkFree = useCallback(() => {
     const userCp = carParks.find(
-      (cp) => findUserSpace(currentUser, userEmail, cp.id) !== null,
+      (cp) => findUserSpace(currentUser, userEmail, cp.id, emailToName) !== null,
     );
     if (userCp) {
       setSelectedCarPark(userCp);
@@ -417,6 +426,7 @@ export function ParkingApp() {
       currentUser,
       userEmail,
       selectedCarPark.id,
+      emailToName,
     )?.spaceId;
     if (!spaceId) return;
     if (isPastDate(selectedDate)) return;
@@ -491,6 +501,7 @@ export function ParkingApp() {
         onSignOut={handleSignOut}
         currentYear={currentYear}
         isRegular={isRegular}
+        emailToName={emailToName}
       />
 
       <CarParkSelector
@@ -558,6 +569,7 @@ export function ParkingApp() {
               onFreeSpace={handleFreeSpace}
               onReallocate={handleReallocate}
               onQuickBook={handleQuickBook}
+              emailToName={emailToName}
             />
           </div>
 

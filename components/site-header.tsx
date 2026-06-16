@@ -59,6 +59,7 @@ export function SiteHeader() {
       adminFreeOpen={false}
       onOpenAdminFree={() => {}}
       onCloseAdminFree={() => {}}
+      onOpenNotificationModal={() => {}}
       carParks={[]}
       selectedCarPark={{} as CarPark}
       onSelectCarPark={() => {}}
@@ -66,6 +67,7 @@ export function SiteHeader() {
       onSignOut={handleSignOut}
       currentYear={new Date().getFullYear()}
       isRegular={isRegular}
+      emailToName={{}}
     />
   );
 }

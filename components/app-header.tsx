@@ -41,6 +41,7 @@ interface AppHeaderProps {
   onSignOut: () => void;
   currentYear: number;
   isRegular: boolean;
+  emailToName: Record<string, string>;
 }
 
 export function AppHeader({
@@ -65,6 +66,7 @@ export function AppHeader({
   onSignOut,
   currentYear,
   isRegular,
+  emailToName,
 }: AppHeaderProps) {
   return (
     <header className="bg-card border-b border-border shadow-xs sticky top-0 z-10">
@@ -127,6 +129,7 @@ export function AppHeader({
                 currentUser={currentUser}
                 userEmail={userEmail}
                 onFreed={onRefreshBookings}
+                emailToName={emailToName}
               />
               <AdminFreeModal
                 open={adminFreeOpen}

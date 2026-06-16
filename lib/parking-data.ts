@@ -179,48 +179,21 @@ export function getUserDefaultSpace(userName: string, carParkId: string): string
   return USER_DEFAULT_SPACES[carParkId]?.[userName] ?? null;
 }
 
-export function findUserSpace(userName: string, email: string | undefined, carParkId: string): { spaceId: string; dbUserName: string } | null {
+export function findUserSpace(userName: string, email: string | undefined, carParkId: string, emailToName: Record<string, string> = {}): { spaceId: string; dbUserName: string } | null {
   const spaces = USER_DEFAULT_SPACES[carParkId];
   if (!spaces) return null;
 
-  // Exact match by name
-  if (spaces[userName]) return { spaceId: spaces[userName], dbUserName: userName };
-
-  if (!email) return null;
-
-  const emailPrefix = email.split('@')[0].toLowerCase();
-
-  // Direct email-to-name override (handles typos in seed data)
-  const EMAIL_TO_NAME: Record<string, string> = {
-    'm.guerreiro': 'Marco Guerreiro',
-  };
-  const overrideName = EMAIL_TO_NAME[emailPrefix];
-  if (overrideName && spaces[overrideName]) {
-    return { spaceId: spaces[overrideName], dbUserName: overrideName };
+  if (email) {
+    const emailPrefix = email.split('@')[0].toLowerCase();
+    const dbUserName = emailToName[emailPrefix];
+    if (dbUserName && spaces[dbUserName]) {
+      return { spaceId: spaces[dbUserName], dbUserName };
+    }
   }
 
-  // Try fuzzy match against each key
-  for (const [key, spaceId] of Object.entries(spaces)) {
-    const keyNorm = key.toLowerCase().replace(/\s+/g, '');
-    const emailNorm = emailPrefix.replace(/[.\-_]/g, '');
-
-    if (keyNorm.includes(emailNorm) || emailNorm.includes(keyNorm)) {
-      return { spaceId, dbUserName: key };
-    }
-
-    const emailAsName = emailPrefix.replace(/\./g, ' ');
-    if (key.toLowerCase().startsWith(emailAsName)) {
-      return { spaceId, dbUserName: key };
-    }
-
-    // Match by last name (part after the dot in email)
-    const dotIndex = emailPrefix.lastIndexOf('.');
-    if (dotIndex !== -1) {
-      const lastName = emailPrefix.slice(dotIndex + 1);
-      if (lastName.length > 2 && keyNorm.includes(lastName)) {
-        return { spaceId, dbUserName: key };
-      }
-    }
+  // Fallback: exact match by name (when email is not available)
+  if (spaces[userName]) {
+    return { spaceId: spaces[userName], dbUserName: userName };
   }
 
   return null;

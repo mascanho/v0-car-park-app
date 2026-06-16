@@ -93,6 +93,7 @@ interface BulkFreeModalProps {
   currentUser: string;
   userEmail?: string;
   onFreed: () => void;
+  emailToName: Record<string, string>;
 }
 
 export function BulkFreeModal({
@@ -103,6 +104,7 @@ export function BulkFreeModal({
   currentUser,
   userEmail,
   onFreed,
+  emailToName,
 }: BulkFreeModalProps) {
   const [carParkId, setCarParkId] = useState(selectedCarPark.id);
   const [dates, setDates] = useState<string[]>([]);
@@ -113,16 +115,16 @@ export function BulkFreeModal({
   const [bouncing, setBouncing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{ freedCount: number } | null>(null);
-  const userMatch = findUserSpace(currentUser, userEmail, carParkId);
+  const userMatch = findUserSpace(currentUser, userEmail, carParkId, emailToName);
 
   const userCarParks = carParks.filter(
-    (cp) => findUserSpace(currentUser, userEmail, cp.id) !== null,
+    (cp) => findUserSpace(currentUser, userEmail, cp.id, emailToName) !== null,
   );
 
   useEffect(() => {
     if (open) {
       const firstMatch = userCarParks.find(
-        (cp) => findUserSpace(currentUser, userEmail, cp.id) !== null,
+        (cp) => findUserSpace(currentUser, userEmail, cp.id, emailToName) !== null,
       );
       setCarParkId(firstMatch?.id || selectedCarPark.id);
       setDates([]);

@@ -15,6 +15,7 @@ interface ParkingLotProps {
   onSelectSpace: (space: ParkingSpace) => void;
   currentUser: string;
   currentUserEmail: string;
+  emailToName: Record<string, string>;
   isAdmin?: boolean;
   isRegular?: boolean;
   disabled?: boolean;
@@ -39,6 +40,7 @@ export function ParkingLot({
   onSelectSpace,
   currentUser,
   currentUserEmail,
+  emailToName,
   isAdmin,
   isRegular,
   disabled,
@@ -74,7 +76,7 @@ export function ParkingLot({
   );
 
   const defaultSpaceId =
-    findUserSpace(currentUser, currentUserEmail, carPark.id)?.spaceId || null;
+    findUserSpace(currentUser, currentUserEmail, carPark.id, emailToName)?.spaceId || null;
   const defaultSpaceBooked = defaultSpaceId
     ? bookings.some((b) => b.spaceId === defaultSpaceId)
     : false;
