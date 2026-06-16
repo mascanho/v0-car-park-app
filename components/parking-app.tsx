@@ -19,6 +19,7 @@ import {
   findUserSpace,
 } from "@/lib/parking-data";
 import type { ParkingSpace, Booking, CarPark } from "@/lib/parking-data";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { BirthdayBanner } from "./birthday-banner";
 import { NotificationBanner } from "./notification-banner";
@@ -26,6 +27,52 @@ import { NotificationModal } from "./notification-modal";
 import { getPhotoUrl } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+const BOOKING_MSGS = [
+  { msg: "Vroom vroom! You're in!", emoji: "🚗" },
+  { msg: "Parking rockstar!", emoji: "🎸" },
+  { msg: "Parked like a boss!", emoji: "💪" },
+  { msg: "Unicorn parking achieved!", emoji: "🦄" },
+  { msg: "Nailed the spot!", emoji: "🎯" },
+  { msg: "Smooth parking, my friend!", emoji: "😎" },
+  { msg: "This spot is yours now!", emoji: "🐕" },
+  { msg: "Bam! Parked!", emoji: "💥" },
+  { msg: "Parking champion!", emoji: "🏆" },
+  { msg: "That was too easy!", emoji: "😏" },
+  { msg: "You park like a pro!", emoji: "🏎️" },
+  { msg: "Spot secured!", emoji: "🔒" },
+  { msg: "Consider it done!", emoji: "✅" },
+  { msg: "Boom! All yours!", emoji: "💣" },
+  { msg: "Parking ninja!", emoji: "🥷" },
+  { msg: "Smooth operator!", emoji: "🎵" },
+  { msg: "You own this lot!", emoji: "👑" },
+  { msg: "Crushed it!", emoji: "💪" },
+  { msg: "EZ park, EZ life!", emoji: "🧘" },
+  { msg: "Another happy parker!", emoji: "😊" },
+];
+
+const CANCEL_MSGS = [
+  { msg: "Spot freed!", emoji: "🕊️" },
+  { msg: "Cancelled like a boss!", emoji: "😎" },
+  { msg: "You're off the hook!", emoji: "🪝" },
+  { msg: "Spot's available again!", emoji: "🔄" },
+  { msg: "Poof! Booking gone!", emoji: "💨" },
+  { msg: "No longer tied down!", emoji: "🆓" },
+  { msg: "Booking? What booking?", emoji: "🤷" },
+  { msg: "Cya later, parking spot!", emoji: "👋" },
+  { msg: "Successfully yeeted!", emoji: "🚀" },
+  { msg: "That spot is single again!", emoji: "💔" },
+  { msg: "Ghosted that booking!", emoji: "👻" },
+  { msg: "Deleted, destroyed, deceased!", emoji: "⚰️" },
+  { msg: "Spot's back on the market!", emoji: "🏠" },
+  { msg: "Booking went bye-bye!", emoji: "🥹" },
+  { msg: "Cancel cult member!", emoji: "🧛" },
+  { msg: "Spot got a divorce!", emoji: "⚖️" },
+  { msg: "Vacated! Move along!", emoji: "🚶" },
+  { msg: "You're so canceled!", emoji: "📺" },
+  { msg: "The spot is FREE!", emoji: "🗽" },
+  { msg: "Booking terminated!", emoji: "🤖" },
+];
 
 export function ParkingApp() {
   const [currentUser, setCurrentUser] = useState("");
@@ -287,6 +334,11 @@ export function ParkingApp() {
       }
 
       await refreshBookings(responseData.allBookings, { revalidate: false });
+
+      const pick = BOOKING_MSGS[Math.floor(Math.random() * BOOKING_MSGS.length)];
+      toast(`${pick.emoji} ${pick.msg}`, {
+        description: `Space ${selectedSpace?.id} is all yours on ${selectedDate.getDate()}/${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`,
+      });
     } catch (error) {
       console.error("Booking failed:", error);
       alert(error instanceof Error ? error.message : "Failed to book space");
@@ -310,9 +362,12 @@ export function ParkingApp() {
       }
 
       await refreshBookings();
+
+      const pick = CANCEL_MSGS[Math.floor(Math.random() * CANCEL_MSGS.length)];
+      toast(`${pick.emoji} ${pick.msg}`, {
+        description: `${existingBooking.spaceId} freed up on ${selectedDate.getDate()}/${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`,
+      });
     } catch (error) {
-      console.error("Cancel failed:", error);
-      alert("Failed to cancel booking");
     } finally {
       setIsLoading(false);
     }
@@ -382,6 +437,11 @@ export function ParkingApp() {
       if (!response.ok) throw new Error("Failed to book");
       const data = await response.json();
       await refreshBookings(data.allBookings, { revalidate: false });
+
+      const pick = BOOKING_MSGS[Math.floor(Math.random() * BOOKING_MSGS.length)];
+      toast(`${pick.emoji} ${pick.msg}`, {
+        description: `Space ${selectedSpace?.id} is all yours on ${selectedDate.getDate()}/${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`,
+      });
     } catch (error) {
       console.error("Quick book failed:", error);
       alert(
