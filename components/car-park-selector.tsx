@@ -5,12 +5,14 @@ interface CarParkSelectorProps {
   carParks: CarPark[];
   selectedCarPark: CarPark;
   onSelectCarPark: (carPark: CarPark) => void;
+  availabilityMap?: Record<string, boolean>;
 }
 
 export function CarParkSelector({
   carParks,
   selectedCarPark,
   onSelectCarPark,
+  availabilityMap = {},
 }: CarParkSelectorProps) {
   return (
     <div className="bg-card border-b border-border">
@@ -25,12 +27,19 @@ export function CarParkSelector({
               <button
                 key={carPark.id}
                 onClick={() => onSelectCarPark(carPark)}
-                className={`flex-1 sm:flex-none px-4 py-3 rounded-lg border-2 transition-all text-left cursor-pointer ${
+                className={`relative flex-1 sm:flex-none px-4 py-3 rounded-lg border-2 transition-all text-left cursor-pointer ${
                   selectedCarPark.id === carPark.id
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-muted-foreground/30 bg-background"
                 }`}
               >
+                {carPark.id in availabilityMap && (
+                  <span
+                    className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full ${
+                      availabilityMap[carPark.id] ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  />
+                )}
                 <div className="font-medium text-foreground">
                   {carPark.name}
                 </div>

@@ -239,6 +239,19 @@ export function ParkingApp() {
     return counts;
   }, [allBookings, selectedCarPark]);
 
+  const carParkAvailability = useMemo(() => {
+    const dateStr = formatDate(selectedDate);
+    const map: Record<string, boolean> = {};
+    carParks.forEach((cp) => {
+      const total = generateParkingSpaces(cp).length;
+      const booked = allBookings.filter(
+        (b) => b.date === dateStr && b.carParkId === cp.id,
+      ).length;
+      map[cp.id] = booked < total;
+    });
+    return map;
+  }, [carParks, allBookings, selectedDate]);
+
   const fullyBookedDates = useMemo(() => {
     const full: Record<string, boolean> = {};
     if (!selectedCarPark) return full;
@@ -508,6 +521,7 @@ export function ParkingApp() {
         carParks={carParks}
         selectedCarPark={selectedCarPark}
         onSelectCarPark={handleSelectCarPark}
+        availabilityMap={carParkAvailability}
       />
 
       <StatsBar
