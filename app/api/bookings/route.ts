@@ -90,6 +90,22 @@ export async function POST(request: Request) {
   const previousOwner = existing?.user_name;
   const isBorrow = previousOwner && previousOwner !== resolvedUserName;
 
+  // Non-regular users cannot borrow occupied spaces (admins allocating on behalf of others are exempt)
+  if (isBorrow && !isAllocation) {
+    const { data: userRecord } = await supabase
+      .from('users')
+      .select('is_regular')
+      .ilike('email', user.email || '')
+      .maybeSingle();
+
+    if (!userRecord?.is_regular) {
+      return NextResponse.json(
+        { error: 'You can only book free spaces. Borrowing is not available for your account.' },
+        { status: 403 },
+      );
+    }
+  }
+
   // Delete any existing booking for this exact space/date
   const { error: deleteErr } = await supabase
     .from('bookings')

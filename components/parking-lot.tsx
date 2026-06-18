@@ -238,6 +238,7 @@ export function ParkingLot({
             selectedSpaceBookedByEmail={selectedSpaceBookedByEmail}
             isLoading={isLoading}
             carParkName={carPark.name}
+            isRegular={isRegular}
           />
         </div>
       </div>

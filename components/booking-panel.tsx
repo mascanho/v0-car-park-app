@@ -24,6 +24,7 @@ interface BookingPanelProps {
   selectedSpaceBookedByEmail?: string | null;
   isLoading?: boolean;
   carParkName?: string;
+  isRegular?: boolean;
 }
 
 export function BookingPanel({
@@ -37,6 +38,7 @@ export function BookingPanel({
   selectedSpaceBookedByEmail,
   isLoading,
   carParkName,
+  isRegular,
 }: BookingPanelProps) {
   const isPast = isPastDate(selectedDate);
 
@@ -203,18 +205,26 @@ export function BookingPanel({
 
       {/* Book / Borrow / Switch button */}
       {selectedSpace && !isPast && (existingBooking ? isSwitching : true) && (
-        <Button
-          onClick={onBook}
-          disabled={isLoading}
-          className={cn(
-            "w-full cursor-pointer",
-            isBorrowing
-              ? "bg-amber-500 text-white hover:bg-amber-600 "
-              : "bg-primary text-primary-foreground hover:bg-primary/90 ",
-          )}
-        >
-          {getButtonLabel()}
-        </Button>
+        isBorrowing && !isRegular ? (
+          <div className="bg-muted/50 border border-border rounded-lg p-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              This space is occupied. Only regular users can borrow spaces.
+            </p>
+          </div>
+        ) : (
+          <Button
+            onClick={onBook}
+            disabled={isLoading}
+            className={cn(
+              "w-full cursor-pointer",
+              isBorrowing
+                ? "bg-amber-500 text-white hover:bg-amber-600 "
+                : "bg-primary text-primary-foreground hover:bg-primary/90 ",
+            )}
+          >
+            {getButtonLabel()}
+          </Button>
+        )
       )}
 
       {selectedSpaceBookedByEmail && (
