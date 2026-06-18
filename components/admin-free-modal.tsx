@@ -13,7 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import type { CarPark, Booking } from "@/lib/parking-data";
 import { generateParkingSpaces, getUserDefaultSpace } from "@/lib/parking-data";
-import { X, CalendarDays, Plus } from "lucide-react";
+import { X, CalendarDays, Plus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -128,7 +129,6 @@ export function AdminFreeModal({
   const [rangeStart, setRangeStart] = useState("");
   const [rangeEnd, setRangeEnd] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [resultMessage, setResultMessage] = useState<string | null>(null);
   const [usersOpen, setUsersOpen] = useState(false);
   const usersRef = useRef<HTMLDivElement>(null);
 
@@ -177,7 +177,6 @@ export function AdminFreeModal({
       setDateInput("");
       setRangeStart("");
       setRangeEnd("");
-      setResultMessage(null);
       setSelectedSpace("");
       setShowConflictWarning(false);
       setPendingConflicts([]);
@@ -242,7 +241,6 @@ export function AdminFreeModal({
   const handleFreeSubmit = async () => {
     if (dates.length === 0 || selectedUsers.length === 0 || !carParkId) return;
     setIsSubmitting(true);
-    setResultMessage(null);
     try {
       const params = new URLSearchParams();
       dates.forEach((d) => params.append("dates", d));
@@ -253,10 +251,12 @@ export function AdminFreeModal({
       const res = await fetch(`/api/bookings?${params}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setResultMessage(
-        `Freed ${data.freedCount} booking${data.freedCount !== 1 ? "s" : ""}.`,
-      );
+      const count = data.freedCount;
+      toast(`🕊️ Freed ${count} booking${count !== 1 ? "s" : ""}`, {
+        description: `${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""} across ${dates.length} date${dates.length !== 1 ? "s" : ""}.`,
+      });
       onFreed();
+      handleClose();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to free bookings");
     } finally {
@@ -273,7 +273,7 @@ export function AdminFreeModal({
     )
       return;
     setIsSubmitting(true);
-    setResultMessage(null);
+    ;
     try {
       let bookedCount = 0;
       const errors: string[] = [];
@@ -297,14 +297,13 @@ export function AdminFreeModal({
         }
       }
 
-      const parts = [
-        `Booked ${bookedCount} booking${bookedCount !== 1 ? "s" : ""}.`,
-      ];
-      if (errors.length > 0) {
-        parts.push(`Skipped ${errors.length}: ${errors.join(", ")}`);
-      }
-      setResultMessage(parts.join(" "));
+      toast(`✅ Booked ${bookedCount} booking${bookedCount !== 1 ? "s" : ""}`, {
+        description: errors.length > 0
+          ? `Skipped ${errors.length}: ${errors.join(", ")}`
+          : `Space ${selectedSpace} across ${dates.length} date${dates.length !== 1 ? "s" : ""}.`,
+      });
       onFreed();
+      handleClose();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to book");
     } finally {
@@ -353,7 +352,6 @@ export function AdminFreeModal({
       setDateInput("");
       setRangeStart("");
       setRangeEnd("");
-      setResultMessage(null);
       setSelectedSpace("");
       setShowConflictWarning(false);
       setPendingConflicts([]);
@@ -380,7 +378,7 @@ export function AdminFreeModal({
             type="button"
             onClick={() => {
               setMode("free");
-              setResultMessage(null);
+              ;
             }}
             className={`flex-1 px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer rounded-t-md ${
               mode === "free"
@@ -394,7 +392,7 @@ export function AdminFreeModal({
             type="button"
             onClick={() => {
               setMode("book");
-              setResultMessage(null);
+              ;
               setShowConflictWarning(false);
               setPendingConflicts([]);
             }}
@@ -872,11 +870,6 @@ export function AdminFreeModal({
             </div>
           )}
 
-          {resultMessage && (
-            <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-700 dark:text-green-400">
-              {resultMessage}
-            </div>
-          )}
         </div>
 
         <DialogFooter>
@@ -905,13 +898,16 @@ export function AdminFreeModal({
             }
             className="cursor-pointer"
           >
-            {isSubmitting
-              ? mode === "free"
-                ? "Freeing..."
-                : "Booking..."
-              : showConflictWarning
-                ? `Continue anyway (${conflictCount} conflict${conflictCount !== 1 ? "s" : ""})`
-                : `${mode === "free" ? "Free" : "Book"} (${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""}, ${dates.length} date${dates.length !== 1 ? "s" : ""}${mode === "book" && selectedSpace ? `, Space ${selectedSpace}` : ""})`}
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {mode === "free" ? "Freeing..." : "Booking..."}
+              </span>
+            ) : showConflictWarning ? (
+              `Continue anyway (${conflictCount} conflict${conflictCount !== 1 ? "s" : ""})`
+            ) : (
+              `${mode === "free" ? "Free" : "Book"} (${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""}, ${dates.length} date${dates.length !== 1 ? "s" : ""}${mode === "book" && selectedSpace ? `, Space ${selectedSpace}` : ""})`
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

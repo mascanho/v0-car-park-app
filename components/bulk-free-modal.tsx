@@ -12,7 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import type { CarPark } from "@/lib/parking-data";
 import { findUserSpace } from "@/lib/parking-data";
-import { X, CalendarDays, FilePlus, CircleFadingPlus } from "lucide-react";
+import { X, CalendarDays, FilePlus, CircleFadingPlus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -114,7 +115,6 @@ export function BulkFreeModal({
   const [rangeEnd, setRangeEnd] = useState("");
   const [bouncing, setBouncing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<{ freedCount: number } | null>(null);
   const userMatch = findUserSpace(currentUser, userEmail, carParkId, emailToName);
 
   const userCarParks = carParks.filter(
@@ -131,7 +131,6 @@ export function BulkFreeModal({
       setDateInput("");
       setRangeStart("");
       setRangeEnd("");
-      setResult(null);
     }
   }, [open, selectedCarPark.id, currentUser, userEmail]);
 
@@ -177,7 +176,6 @@ export function BulkFreeModal({
   const handleSubmit = async () => {
     if (dates.length === 0) return;
     setIsSubmitting(true);
-    setResult(null);
     try {
       const params = new URLSearchParams();
       dates.forEach((d) => params.append("dates", d));
@@ -188,8 +186,12 @@ export function BulkFreeModal({
       const res = await fetch(`/api/bookings?${params}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setResult(data);
+      const count = data.freedCount;
+      toast(`🕊️ Space freed!`, {
+        description: `Freed ${count} booking${count !== 1 ? "s" : ""} across ${dates.length} date${dates.length !== 1 ? "s" : ""}.`,
+      });
       onFreed();
+      onOpenChange(false);
     } catch (error) {
       alert(error instanceof Error ? error.message : "Bulk free failed");
     } finally {
@@ -203,7 +205,6 @@ export function BulkFreeModal({
       setDateInput("");
       setRangeStart("");
       setRangeEnd("");
-      setResult(null);
       onOpenChange(false);
     }
   };
@@ -389,12 +390,6 @@ export function BulkFreeModal({
               </div>
             )}
 
-            {result && (
-              <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-700 dark:text-green-400">
-                Freed {result.freedCount} booking
-                {result.freedCount !== 1 ? "s" : ""}.
-              </div>
-            )}
           </div>
 
           <DialogFooter>
@@ -414,9 +409,14 @@ export function BulkFreeModal({
               variant="destructive"
               className="cursor-pointer"
             >
-              {isSubmitting
-                ? "Freeing..."
-                : `Free my space (${dates.length} day${dates.length !== 1 ? "s" : ""})`}
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Freeing...
+                </span>
+              ) : (
+                `Free my space (${dates.length} day${dates.length !== 1 ? "s" : ""})`
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

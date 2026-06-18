@@ -40,17 +40,17 @@ export function AppInfoSheet() {
     >
       <SheetHeader>
         <SheetTitle>Navigation</SheetTitle>
-        <SheetDescription>Quick access to app sections</SheetDescription>
+        <SheetDescription>Some resources for you</SheetDescription>
         <hr className="border-t border-border mt-2 -mb-4" />
       </SheetHeader>
       <div className="flex-1 overflow-y-auto px-2 space-y-4 py-4 flex flex-col">
         <NavSection label="Main">
-          <SheetMenuItem
-            icon={Users}
-            label="Home"
-            description="Go to the homepage"
-            href="/"
-          />
+          {/* <SheetMenuItem */}
+          {/*   icon={Users} */}
+          {/*   label="Home" */}
+          {/*   description="Go to the homepage" */}
+          {/*   href="/" */}
+          {/* /> */}
           {/* <SheetMenuItem */}
           {/*   icon={Users} */}
           {/*   label="Meet The Team" */}
@@ -67,7 +67,7 @@ export function AppInfoSheet() {
           <SheetMenuItem
             icon={MapPin}
             label="SCP Club"
-            description="Go to the SCP Club"
+            description="Go to the SCP Club website"
             // onClick={() => scrollTo("map-view")}
             href="https://www.scpclub.com/"
           />
