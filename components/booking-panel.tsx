@@ -9,6 +9,7 @@ import {
   User,
   ExternalLink,
   LucideCircleParking,
+  Loader2,
 } from "lucide-react";
 import type { ParkingSpace, Booking } from "@/lib/parking-data";
 import { isPastDate } from "@/lib/parking-data";
@@ -56,7 +57,6 @@ export function BookingPanel({
     selectedSpace.id !== existingBooking.spaceId;
 
   const getButtonLabel = () => {
-    if (isLoading) return "Booking...";
     if (isSwitching)
       return isBorrowing ? "Borrow & Switch" : "Move to this Space";
     if (isBorrowing) return "Borrow this Space";
@@ -66,7 +66,7 @@ export function BookingPanel({
   return (
     <div className="bg-card rounded-xl md:border md:border-border md:p-6 md:shadow-sm mt-4">
       <h3 className="font-semibold text-lg text-foreground mb-4">
-        Booking Details
+        Your booking Details
       </h3>
 
       {/* Date info */}
@@ -118,7 +118,14 @@ export function BookingPanel({
                 disabled={isLoading}
                 className="mt-3 w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
               >
-                Cancel Booking
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Cancelling...
+                  </span>
+                ) : (
+                  "Cancel Booking"
+                )}
               </Button>
             )}
           </div>
@@ -204,8 +211,10 @@ export function BookingPanel({
       )}
 
       {/* Book / Borrow / Switch button */}
-      {selectedSpace && !isPast && (existingBooking ? isSwitching : true) && (
-        isBorrowing && !isRegular ? (
+      {selectedSpace &&
+        !isPast &&
+        (existingBooking ? isSwitching : true) &&
+        (isBorrowing && !isRegular ? (
           <div className="bg-muted/50 border border-border rounded-lg p-4 text-center">
             <p className="text-sm text-muted-foreground">
               This space is occupied. Only regular users can borrow spaces.
@@ -222,10 +231,16 @@ export function BookingPanel({
                 : "bg-primary text-primary-foreground hover:bg-primary/90 ",
             )}
           >
-            {getButtonLabel()}
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Booking...
+              </span>
+            ) : (
+              getButtonLabel()
+            )}
           </Button>
-        )
-      )}
+        ))}
 
       {selectedSpaceBookedByEmail && (
         <a
