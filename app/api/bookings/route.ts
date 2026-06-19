@@ -202,6 +202,8 @@ export async function DELETE(request: Request) {
     }
   }
 
+  const actorName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+
   async function selectIdsThenDelete(
     query: any,
   ): Promise<Response> {
@@ -226,6 +228,7 @@ export async function DELETE(request: Request) {
         booking_date: booking.booking_date,
         original_owner: booking.user_name,
         borrowed_by: '[BULK FREED]',
+        allocated_by: actorName,
       });
     }
 

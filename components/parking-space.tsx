@@ -81,7 +81,7 @@ export function ParkingSpaceCard({
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
-    if (!isRegular) return;
+    if (!isAdmin) return;
     e.preventDefault();
     openMenu(e.clientX, e.clientY);
   };
@@ -92,7 +92,7 @@ export function ParkingSpaceCard({
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isRegular) return;
+    if (!isAdmin) return;
     isLongPress.current = false;
     longPressTimer.current = setTimeout(() => {
       isLongPress.current = true;

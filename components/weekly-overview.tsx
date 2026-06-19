@@ -137,7 +137,7 @@ function SpaceChip({
       disabled={disabled}
       title={`Space ${space.id}${space.electrified ? " — EV charger" : ""}`}
       className={cn(
-        "rounded border font-mono font-medium transition-all duration-150 leading-none disabled:opacity-40 active:scale-95",
+        "rounded border font-mono font-medium transition-all duration-150 leading-none disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95",
         size === "md" ? "text-sm px-3 py-2" : "text-[11px] px-1.5 py-0.5",
         isSelected
           ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105"
@@ -771,7 +771,7 @@ export function WeeklyOverview({
                   size="sm"
                   onClick={() => setPending(null)}
                   disabled={isBooking}
-                  className="h-9 sm:h-8 text-sm sm:text-xs px-3"
+                  className="h-9 sm:h-8 text-sm sm:text-xs px-3 cursor-pointer hover:bg-zinc-500 hover:text-white"
                 >
                   Dismiss
                 </Button>
@@ -779,7 +779,7 @@ export function WeeklyOverview({
                   size="sm"
                   onClick={handleBookConfirm}
                   disabled={isBooking}
-                  className="h-9 sm:h-8 text-sm sm:text-xs min-w-[80px] sm:min-w-[90px]"
+                  className="h-9 sm:h-8 text-sm sm:text-xs min-w-[80px] sm:min-w-[90px] cursor-pointer"
                 >
                   {isBooking ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

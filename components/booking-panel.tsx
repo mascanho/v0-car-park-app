@@ -78,7 +78,9 @@ export function BookingPanel({
         {carParkName && (
           <div className="flex items-center gap-3 text-sm">
             <MapPin className="w-4 h-4 text-muted-foreground" />
-            <span className="text-foreground">{carParkName}</span>
+            <span className="text-foreground font-semibold animate-pulse">
+              {carParkName}
+            </span>
           </div>
         )}
         {selectedSpace && (
