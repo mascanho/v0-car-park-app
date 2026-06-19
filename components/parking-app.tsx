@@ -24,6 +24,7 @@ import { Loader2 } from "lucide-react";
 import { BirthdayBanner } from "./birthday-banner";
 import { NotificationBanner } from "./notification-banner";
 import { NotificationModal } from "./notification-modal";
+import { WeeklyOverview } from "./weekly-overview";
 import { getPhotoUrl } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -83,6 +84,7 @@ export function ParkingApp() {
   const [bulkFreeOpen, setBulkFreeOpen] = useState(false);
   const [adminFreeOpen, setAdminFreeOpen] = useState(false);
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
+  const [weeklyOverviewOpen, setWeeklyOverviewOpen] = useState(false);
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null);
@@ -515,6 +517,7 @@ export function ParkingApp() {
         currentYear={currentYear}
         isRegular={isRegular}
         emailToName={emailToName}
+        onOpenWeeklyOverview={() => setWeeklyOverviewOpen(true)}
       />
 
       <CarParkSelector
@@ -623,6 +626,19 @@ export function ParkingApp() {
         open={notificationModalOpen}
         onOpenChange={handleCloseNotificationModal}
         onRefresh={handleRefreshNotification}
+      />
+
+      <WeeklyOverview
+        open={weeklyOverviewOpen}
+        onOpenChange={setWeeklyOverviewOpen}
+        allBookings={allBookings}
+        carParks={carParks}
+        currentUser={currentUser}
+        isRegular={isRegular}
+        onBookingComplete={(updated) =>
+          refreshBookings(updated, { revalidate: false })
+        }
+        onRefreshBookings={() => refreshBookings()}
       />
 
       <AppFooter />

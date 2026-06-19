@@ -68,6 +68,7 @@ export function SiteHeader() {
       currentYear={new Date().getFullYear()}
       isRegular={isRegular}
       emailToName={{}}
+      onOpenWeeklyOverview={() => window.location.href = "/"}
     />
   );
 }

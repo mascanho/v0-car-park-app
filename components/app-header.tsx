@@ -12,6 +12,7 @@ import {
   Trash2,
   LayoutDashboard,
   Megaphone,
+  LayoutGrid,
 } from "lucide-react";
 import { BulkFreeModal } from "./bulk-free-modal";
 import { AdminFreeModal } from "./admin-free-modal";
@@ -42,6 +43,7 @@ interface AppHeaderProps {
   currentYear: number;
   isRegular: boolean;
   emailToName: Record<string, string>;
+  onOpenWeeklyOverview: () => void;
 }
 
 export function AppHeader({
@@ -67,6 +69,7 @@ export function AppHeader({
   currentYear,
   isRegular,
   emailToName,
+  onOpenWeeklyOverview,
 }: AppHeaderProps) {
   return (
     <header className="bg-card border-b border-border shadow-xs sticky top-0 z-10">
@@ -121,6 +124,13 @@ export function AppHeader({
                   My Parking
                 </button>
               )}
+              <button
+                onClick={onOpenWeeklyOverview}
+                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                title="Weekly overview"
+              >
+                <LayoutGrid className="w-4 h-4 cursor-pointer" />
+              </button>
               <BulkFreeModal
                 open={bulkFreeOpen}
                 onOpenChange={onCloseBulkFree}
