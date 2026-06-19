@@ -95,10 +95,15 @@ export function Calendar({
 
       {/* Day names */}
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {DAY_NAMES.map((day) => (
+        {DAY_NAMES.map((day, i) => (
           <div
             key={day}
-            className="text-center text-xs font-medium text-muted-foreground py-1"
+            className={cn(
+              "text-center text-xs font-medium py-1",
+              i === 0 || i === 6
+                ? "text-muted-foreground/40"
+                : "text-muted-foreground",
+            )}
           >
             {day}
           </div>
@@ -118,6 +123,7 @@ export function Calendar({
           const isToday = formatDate(today) === dateStr;
           const isPast = isPastDate(date);
           const isFullyBooked = fullyBookedDates[dateStr] === true;
+          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
           return (
             <button
@@ -126,22 +132,23 @@ export function Calendar({
               disabled={isPast}
               className={cn(
                 "relative h-10 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
-                // Selected (overrides everything)
+                // Selected — always wins
                 isSelected &&
                   "bg-primary text-primary-foreground hover:bg-primary",
-                // Today (not selected)
+                // Today border (not selected)
                 isToday && !isSelected && "border-2 border-primary",
-                // Past dates (disabled)
+                // Past — disabled, faded
                 isPast &&
                   "text-muted-foreground/40 cursor-not-allowed hover:bg-transparent",
-                // Fully booked (no spaces available) - red
-                !isPast &&
-                  !isSelected &&
+                // Weekend (not past, not selected) — neutral grey, no availability colour
+                isWeekend && !isSelected && !isPast &&
+                  "text-muted-foreground/50 bg-muted/30 hover:bg-muted/50",
+                // Fully booked — red
+                !isPast && !isSelected && !isWeekend &&
                   isFullyBooked &&
                   "bg-red-500/20 text-red-700 dark:bg-red-500/20 dark:text-red-400 hover:bg-red-500/30",
-                // Available (spaces available) - green
-                !isPast &&
-                  !isSelected &&
+                // Available — green
+                !isPast && !isSelected && !isWeekend &&
                   !isFullyBooked &&
                   "bg-green-500/20 text-green-700 dark:bg-green-500/20 dark:text-green-400 hover:bg-green-500/30",
               )}

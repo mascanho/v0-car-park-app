@@ -12,7 +12,7 @@ import {
   Trash2,
   LayoutDashboard,
   Megaphone,
-  LayoutGrid,
+  CarFront,
 } from "lucide-react";
 import { BulkFreeModal } from "./bulk-free-modal";
 import { AdminFreeModal } from "./admin-free-modal";
@@ -126,10 +126,10 @@ export function AppHeader({
               )}
               <button
                 onClick={onOpenWeeklyOverview}
-                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                className="group p-1.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-sm transition-colors cursor-pointer"
                 title="Weekly overview"
               >
-                <LayoutGrid className="w-4 h-4 cursor-pointer" />
+                <CarFront className="w-4 h-4 group-hover:animate-[car-rev_0.5s_ease-in-out]" />
               </button>
               <BulkFreeModal
                 open={bulkFreeOpen}

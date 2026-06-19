@@ -8,7 +8,7 @@ import {
   ChevronRight,
   CheckCircle2,
   Loader2,
-  CalendarDays,
+  ParkingCircle,
   X,
   Zap,
   MapPin,
@@ -380,20 +380,20 @@ export function WeeklyOverview({
         className="w-full sm:max-w-5xl lg:max-w-6xl p-0 gap-0 overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[95vh]"
       >
         {/* ══ Shared top bar ══════════════════════════════════════════════════ */}
-        <div className="shrink-0 flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-border">
-          {/* Title */}
-          <div className="flex items-center gap-2 shrink-0">
-            <CalendarDays className="w-4 h-4 text-primary shrink-0" />
+        <div className="shrink-0 grid grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-5 py-3.5 border-b border-border">
+          {/* Title — left */}
+          <div className="flex items-center gap-2">
+            <ParkingCircle className="w-4 h-4 text-primary shrink-0" />
             <span className="text-sm font-semibold text-foreground">
               Weekly Overview
             </span>
           </div>
 
-          {/* Week nav — centred in remaining space */}
-          <div className="flex items-center justify-center gap-0.5 flex-1">
+          {/* Week nav — true centre */}
+          <div className="flex items-center gap-0.5">
             <button
               onClick={prevWeek}
-              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              className="p-2 rounded-md text-muted-foreground hover:text-white hover:bg-accent transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -402,17 +402,19 @@ export function WeeklyOverview({
             </span>
             <button
               onClick={nextWeek}
-              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              className="p-2 rounded-md text-muted-foreground hover:text-white hover:bg-accent transition-colors cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Close */}
-          <DialogClose className="shrink-0 p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
-            <X className="w-4 h-4" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
+          {/* Close — right */}
+          <div className="flex justify-end">
+            <DialogClose className="p-2 rounded-md text-muted-foreground hover:text-white hover:bg-accent transition-colors cursor-pointer cursor-pointer">
+              <X className="w-4 h-4" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
         </div>
 
         {/* ══ MOBILE layout (hidden md+) ══════════════════════════════════════ */}

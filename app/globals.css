@@ -136,3 +136,12 @@
 @utility touch-callout-none {
   -webkit-touch-callout: none;
 }
+
+@keyframes car-rev {
+  0%   { transform: translateX(0)   rotate(0deg)   scale(1);    }
+  15%  { transform: translateX(-3px) rotate(-12deg) scale(0.9);  }
+  40%  { transform: translateX(5px)  rotate(6deg)   scale(1.15); }
+  60%  { transform: translateX(-2px) rotate(-4deg)  scale(1.05); }
+  80%  { transform: translateX(2px)  rotate(2deg)   scale(1.02); }
+  100% { transform: translateX(0)   rotate(0deg)   scale(1);    }
+}
