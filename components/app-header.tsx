@@ -225,9 +225,9 @@ function AvatarMenu({
               setOpen(false);
               onSignOut();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors text-left"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:text-white hover:bg-accent transition-colors text-left cursor-pointer group"
           >
-            <LogOut className="w-4 h-4 text-muted-foreground" />
+            <LogOut className="w-4 h-4 text-muted-foreground group-hover:text-white transition-colors" />
             Sign out
           </button>
         </div>

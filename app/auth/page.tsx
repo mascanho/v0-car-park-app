@@ -1,21 +1,15 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { Info, XCircle, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { Info, XCircle, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 
-type Mode = "signin" | "signup";
-
 export default function AuthPage() {
-  const [mode, setMode] = useState<Mode>("signin");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const supabase = createClient();
 
@@ -29,27 +23,39 @@ export default function AuthPage() {
     }
   }, []);
 
-  const switchMode = (next: Mode) => {
-    setMode(next);
-    setError(null);
-    setSuccess(null);
-    setPassword("");
-    setFirstName("");
-    setLastName("");
+  const checkEmailInUsers = async (emailAddress: string): Promise<boolean> => {
+    const res = await fetch("/api/auth/validate-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailAddress }),
+    });
+    if (!res.ok) return false;
+    const { valid } = await res.json();
+    return valid;
   };
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!email.endsWith("@slimstock.com")) {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    if (!normalizedEmail.endsWith("@slimstock.com")) {
       setError("Only @slimstock.com email addresses are allowed.");
       return;
     }
 
     setIsLoading(true);
+
+    const isKnown = await checkEmailInUsers(normalizedEmail);
+    if (!isKnown) {
+      setError("This email is not registered in our system. Contact an admin.");
+      setIsLoading(false);
+      return;
+    }
+
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
+      email: normalizedEmail,
       password,
     });
 
@@ -66,7 +72,7 @@ export default function AuthPage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user?.email?.endsWith("@slimstock.com")) {
+    if (!user?.email?.toLowerCase().endsWith("@slimstock.com")) {
       await supabase.auth.signOut();
       setError("Access denied. Only @slimstock.com accounts are allowed.");
       setIsLoading(false);
@@ -74,59 +80,6 @@ export default function AuthPage() {
     }
 
     window.location.href = "/";
-  };
-
-  const passwordValid =
-    password.length >= 8 &&
-    /[a-z]/.test(password) &&
-    /[A-Z]/.test(password) &&
-    /[0-9]/.test(password) &&
-    /[^a-zA-Z0-9]/.test(password);
-
-  const handleEmailSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!firstName.trim() || !lastName.trim()) {
-      setError("Please enter your first and last name.");
-      return;
-    }
-
-    if (!email.endsWith("@slimstock.com")) {
-      setError("Only @slimstock.com email addresses are allowed.");
-      return;
-    }
-
-    if (!passwordValid) {
-      setError(
-        "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character.",
-      );
-      return;
-    }
-
-    setIsLoading(true);
-    const { error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-        data: {
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          full_name: `${firstName.trim()} ${lastName.trim()}`,
-        },
-      },
-    });
-
-    if (signUpError) {
-      setError(signUpError.message);
-      setIsLoading(false);
-      return;
-    }
-
-    setSuccess("Your account has been created with" + email + ".");
-    setIsLoading(false);
-    setPassword("");
   };
 
   const handleGoogleSignIn = async () => {
@@ -139,8 +92,6 @@ export default function AuthPage() {
       },
     });
   };
-
-  const isSignUp = mode === "signup";
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-black">
@@ -184,16 +135,14 @@ export default function AuthPage() {
                 Slimspot
               </h1>
               <p className="text-sm text-blue-200/70 mt-2 font-light tracking-wide">
-                {isSignUp
-                  ? "Create your account."
-                  : "Car Park Manager for Slimstock."}
+                Car Park Manager for Slimstock.
               </p>
             </div>
 
             {error && (
               <div className="bg-red-950 border border-red-500/30 rounded-xl p-4 mb-5 animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="flex gap-3">
-                  <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                <div className="flex items-center gap-3">
+                  <XCircle className="w-5 h-5 text-red-400 shrink-0" />
                   <p className="text-xs text-red-400/90 leading-relaxed">
                     {error}
                   </p>
@@ -201,42 +150,7 @@ export default function AuthPage() {
               </div>
             )}
 
-            {success && (
-              <div className="bg-green-950 border border-green-500/30 rounded-xl p-4 mb-5 animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="flex gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-green-400/90 leading-relaxed">
-                    {success}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Email/password form */}
-            <form
-              onSubmit={isSignUp ? handleEmailSignUp : handleEmailSignIn}
-              className="space-y-3 mb-4"
-            >
-              {isSignUp && (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="First name"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 bg-white/8 border border-white/10 rounded-xl text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Last name"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 bg-white/8 border border-white/10 rounded-xl text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                  />
-                </div>
-              )}
+            <form onSubmit={handleEmailSignIn} className="space-y-3 mb-4">
               <div>
                 <input
                   type="email"
@@ -268,75 +182,21 @@ export default function AuthPage() {
                   )}
                 </button>
               </div>
-              {isSignUp && password.length > 0 && (
-                <ul className="text-[11px] space-y-0.5 px-1">
-                  {[
-                    [/[a-z]/.test(password), "Lowercase letter"],
-                    [/[A-Z]/.test(password), "Uppercase letter"],
-                    [/[0-9]/.test(password), "Number"],
-                    [
-                      /[^a-zA-Z0-9]/.test(password),
-                      "Special character (!@#$...)",
-                    ],
-                    [password.length >= 8, "At least 8 characters"],
-                  ].map(([met, label]) => (
-                    <li
-                      key={label as string}
-                      className={`flex items-center gap-1.5 ${met ? "text-green-400/80" : "text-white/30"}`}
-                    >
-                      <span>{met ? "✓" : "·"}</span>
-                      {label as string}
-                    </li>
-                  ))}
-                </ul>
-              )}
               <button
                 type="submit"
-                disabled={
-                  isLoading ||
-                  isGoogleLoading ||
-                  (isSignUp &&
-                    (!passwordValid || !firstName.trim() || !lastName.trim()))
-                }
+                disabled={isLoading || isGoogleLoading}
                 className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] rounded-xl text-white font-medium text-sm transition-all duration-200 disabled:opacity-50 shadow-lg shadow-blue-600/20 cursor-pointer"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    {isSignUp ? "Creating account..." : "Signing in..."}
+                    Signing in...
                   </span>
-                ) : isSignUp ? (
-                  "Create account"
                 ) : (
                   "Sign in with Email"
                 )}
               </button>
             </form>
-
-            {/* Mode toggle */}
-            <p className="text-center text-xs text-white/40 mb-4">
-              {isSignUp ? (
-                <>
-                  Already have an account?{" "}
-                  <button
-                    onClick={() => switchMode("signin")}
-                    className="text-blue-400 hover:text-blue-300 transition-colors underline underline-offset-2"
-                  >
-                    Sign in
-                  </button>
-                </>
-              ) : (
-                <>
-                  No account yet?{" "}
-                  <button
-                    onClick={() => switchMode("signup")}
-                    className="text-blue-400 hover:text-blue-300 transition-colors underline underline-offset-2"
-                  >
-                    Create one
-                  </button>
-                </>
-              )}
-            </p>
 
             {/* Divider */}
             <div className="relative my-5 flex items-center gap-3">

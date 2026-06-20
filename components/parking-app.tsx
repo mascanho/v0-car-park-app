@@ -101,18 +101,18 @@ export function ParkingApp() {
       if (user) {
         const email = user.email || user.user_metadata?.email || "";
         console.log("Logged in email:", email);
-        const name =
-          user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
-        setCurrentUser(name);
         setUserEmail(email);
         setAvatarUrl(user.user_metadata?.avatar_url || "");
 
         const { data: userRecord } = await supabase
           .from("users")
-          .select("is_regular")
+          .select("is_regular, name")
           .ilike("email", email)
           .maybeSingle();
         setIsRegular(userRecord?.is_regular ?? false);
+        setCurrentUser(
+          userRecord?.name || user.email?.split("@")[0] || "User",
+        );
 
         const adminRes = await fetch("/api/admin/check");
         const adminData = await adminRes.json();
@@ -493,7 +493,7 @@ export function ParkingApp() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <AppHeader
         currentUser={currentUser}
         avatarUrl={avatarUrl}
