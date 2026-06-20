@@ -1,24 +1,137 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { Car, AlertTriangle, Info, XCircle, ExternalLink } from "lucide-react";
+import { Info, XCircle, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 
+type Mode = "signin" | "signup";
+
 export default function AuthPage() {
+  const [mode, setMode] = useState<Mode>("signin");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const err = params.get("error");
     if (err === "invalid_domain") {
-      setError("Access denied. Not a slimstock email.");
+      setError("Access denied. Only @slimstock.com accounts are allowed.");
+    } else if (err === "auth_failed") {
+      setError("Authentication failed. Please try again.");
     }
   }, []);
 
-  const handleGoogleSignIn = async () => {
+  const switchMode = (next: Mode) => {
+    setMode(next);
+    setError(null);
+    setSuccess(null);
+    setPassword("");
+    setFirstName("");
+    setLastName("");
+  };
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!email.endsWith("@slimstock.com")) {
+      setError("Only @slimstock.com email addresses are allowed.");
+      return;
+    }
+
     setIsLoading(true);
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      setError(
+        signInError.message === "Invalid login credentials"
+          ? "Incorrect email or password."
+          : signInError.message,
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user?.email?.endsWith("@slimstock.com")) {
+      await supabase.auth.signOut();
+      setError("Access denied. Only @slimstock.com accounts are allowed.");
+      setIsLoading(false);
+      return;
+    }
+
+    window.location.href = "/";
+  };
+
+  const passwordValid =
+    password.length >= 8 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[^a-zA-Z0-9]/.test(password);
+
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("Please enter your first and last name.");
+      return;
+    }
+
+    if (!email.endsWith("@slimstock.com")) {
+      setError("Only @slimstock.com email addresses are allowed.");
+      return;
+    }
+
+    if (!passwordValid) {
+      setError(
+        "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character.",
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          full_name: `${firstName.trim()} ${lastName.trim()}`,
+        },
+      },
+    });
+
+    if (signUpError) {
+      setError(signUpError.message);
+      setIsLoading(false);
+      return;
+    }
+
+    setSuccess("Your account has been created with" + email + ".");
+    setIsLoading(false);
+    setPassword("");
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setIsGoogleLoading(true);
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -26,6 +139,8 @@ export default function AuthPage() {
       },
     });
   };
+
+  const isSignUp = mode === "signup";
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-black">
@@ -61,7 +176,7 @@ export default function AuthPage() {
           <div className="relative bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-8 shadow-2xl">
             <div className="text-center mb-8">
               <div className="relative w-16 h-16 mx-auto mb-6">
-                <div className="relative w-full h-full rounded-2xl flex items-center justify-center  shadow-blue-500/25">
+                <div className="relative w-full h-full rounded-2xl flex items-center justify-center shadow-blue-500/25">
                   <img src="apple-icon.png" className="w-full h-full" />
                 </div>
               </div>
@@ -69,63 +184,177 @@ export default function AuthPage() {
                 Slimspot
               </h1>
               <p className="text-sm text-blue-200/70 mt-2 font-light tracking-wide">
-                Car Park Manager for Slimstock.
+                {isSignUp
+                  ? "Create your account."
+                  : "Car Park Manager for Slimstock."}
               </p>
             </div>
 
             {error && (
-              <div className="bg-red-950 border border-red-500/30 rounded-xl p-4 mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="bg-red-950 border border-red-500/30 rounded-xl p-4 mb-5 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="flex gap-3">
                   <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-xs text-red-400/80 leading-relaxed">
-                      {error}
-                    </p>
-                    <a
-                      href="https://support.google.com/mail/answer/6304825?hl=en-GB&co=GENIE.Platform%3DDesktop"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2 mt-1 transition-colors"
-                    >
-                      Link your Slimstock email to Gmail
-                    </a>
-                  </div>
+                  <p className="text-xs text-red-400/90 leading-relaxed">
+                    {error}
+                  </p>
                 </div>
               </div>
             )}
 
-            <div className="bg-amber-950 border border-amber-500/30 rounded-xl p-4 mb-6">
-              <div className="flex gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <a
-                    href="https://support.google.com/mail/answer/6304825?hl=en-GB&co=GENIE.Platform%3DDesktop"
-                    target="_blank"
-                    className="flex"
-                  >
-                    <p className="text-sm font-semibold text-amber-300 underline">
-                      Gmail account required
-                    </p>
-                    <ExternalLink className="w-3.5 h-3.5 ml-1 text-amber-400 shrink-0 mt-0.5" />
-                  </a>
-                  <p className="text-[10px] text-amber-400/70 leading-relaxed">
-                    You must have Gmail linked with your{" "}
-                    <span className="font-medium text-amber-300">
-                      @slimstock.com
-                    </span>{" "}
-                    email to manage your parking spots.
+            {success && (
+              <div className="bg-green-950 border border-green-500/30 rounded-xl p-4 mb-5 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-green-400/90 leading-relaxed">
+                    {success}
                   </p>
                 </div>
               </div>
+            )}
+
+            {/* Email/password form */}
+            <form
+              onSubmit={isSignUp ? handleEmailSignUp : handleEmailSignIn}
+              className="space-y-3 mb-4"
+            >
+              {isSignUp && (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="First name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 bg-white/8 border border-white/10 rounded-xl text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 bg-white/8 border border-white/10 rounded-xl text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  />
+                </div>
+              )}
+              <div>
+                <input
+                  type="email"
+                  placeholder="name@slimstock.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-white/8 border border-white/10 rounded-xl text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                />
+              </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-white/8 border border-white/10 rounded-xl text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all pr-11"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              {isSignUp && password.length > 0 && (
+                <ul className="text-[11px] space-y-0.5 px-1">
+                  {[
+                    [/[a-z]/.test(password), "Lowercase letter"],
+                    [/[A-Z]/.test(password), "Uppercase letter"],
+                    [/[0-9]/.test(password), "Number"],
+                    [
+                      /[^a-zA-Z0-9]/.test(password),
+                      "Special character (!@#$...)",
+                    ],
+                    [password.length >= 8, "At least 8 characters"],
+                  ].map(([met, label]) => (
+                    <li
+                      key={label as string}
+                      className={`flex items-center gap-1.5 ${met ? "text-green-400/80" : "text-white/30"}`}
+                    >
+                      <span>{met ? "✓" : "·"}</span>
+                      {label as string}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <button
+                type="submit"
+                disabled={
+                  isLoading ||
+                  isGoogleLoading ||
+                  (isSignUp &&
+                    (!passwordValid || !firstName.trim() || !lastName.trim()))
+                }
+                className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] rounded-xl text-white font-medium text-sm transition-all duration-200 disabled:opacity-50 shadow-lg shadow-blue-600/20 cursor-pointer"
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    {isSignUp ? "Creating account..." : "Signing in..."}
+                  </span>
+                ) : isSignUp ? (
+                  "Create account"
+                ) : (
+                  "Sign in with Email"
+                )}
+              </button>
+            </form>
+
+            {/* Mode toggle */}
+            <p className="text-center text-xs text-white/40 mb-4">
+              {isSignUp ? (
+                <>
+                  Already have an account?{" "}
+                  <button
+                    onClick={() => switchMode("signin")}
+                    className="text-blue-400 hover:text-blue-300 transition-colors underline underline-offset-2"
+                  >
+                    Sign in
+                  </button>
+                </>
+              ) : (
+                <>
+                  No account yet?{" "}
+                  <button
+                    onClick={() => switchMode("signup")}
+                    className="text-blue-400 hover:text-blue-300 transition-colors underline underline-offset-2"
+                  >
+                    Create one
+                  </button>
+                </>
+              )}
+            </p>
+
+            {/* Divider */}
+            <div className="relative my-5 flex items-center gap-3">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-xs text-white/30 tracking-wider uppercase">
+                or
+              </span>
+              <div className="flex-1 h-px bg-white/10" />
             </div>
 
+            {/* Google sign-in */}
             <button
               onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className="group relative w-full flex items-center justify-center gap-3 px-4 py-3 bg-white rounded-xl transition-all duration-300 text-gray-800 font-medium disabled:opacity-50 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 active:scale-[0.98] cursor-pointer overflow-hidden"
+              disabled={isLoading || isGoogleLoading}
+              className="group relative w-full flex items-center justify-center gap-3 px-4 py-3 bg-white rounded-xl transition-all duration-300 text-gray-800 font-medium text-sm disabled:opacity-50 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 active:scale-[0.98] cursor-pointer overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              {isLoading ? (
+              {isGoogleLoading ? (
                 <span className="relative w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
               ) : (
                 <svg className="relative w-5 h-5" viewBox="0 0 24 24">
@@ -148,20 +377,11 @@ export default function AuthPage() {
                 </svg>
               )}
               <span className="relative">
-                {isLoading ? "Signing in..." : "Continue with Google"}
+                {isGoogleLoading ? "Signing in..." : "Continue with Google"}
               </span>
             </button>
 
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center"></div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-transparent text-white/30 tracking-wider uppercase">
-                  Authorised Access Only
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center gap-2 text-xs text-white/30">
+            <div className="flex items-center justify-center gap-2 text-xs text-white/30 mt-6">
               <Info className="w-3.5 h-3.5" />
               <span>Only @slimstock.com accounts are allowed</span>
             </div>

@@ -124,7 +124,7 @@ export function ParkingSpaceCard({
     setShowUsers(true);
     setLoadingUsers(true);
     try {
-      const res = await fetch(`/api/users?carParkId=${carParkId}`);
+      const res = await fetch("/api/users");
       if (res.ok) setUsers(await res.json());
     } catch {
       /* ignore */
