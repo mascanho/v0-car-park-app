@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"[a-zA-Z0-9._%+-]\\\\+@[a-zA-Z0-9.-]\\\\+\\\\.[a-zA-Z]\\\\{2,\\\\}\" /home/mascanho/Coding/v0-car-park-app --include=\"*.ts\" --include=\"*.tsx\" --include=\"*.sql\" --include=\"*.env*\" --include=\"*.json\" --exclude-dir=node_modules --exclude-dir=.next -h)",
+      "Bash(grep -n \"or\\(\\\\`\\\\|ilike\\\\|\\\\.in\\(\" /home/mascanho/Coding/v0-car-park-app/app/api/admin/check/route.ts /home/mascanho/Coding/v0-car-park-app/app/api/bookings/route.ts)"
+    ]
+  }
+}

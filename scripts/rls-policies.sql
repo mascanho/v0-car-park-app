@@ -1,3 +1,17 @@
+-- Users table
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Authenticated users can read users" ON users;
+CREATE POLICY "Authenticated users can read users"
+  ON users FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can update users" ON users;
+CREATE POLICY "Authenticated users can update users"
+  ON users FOR UPDATE
+  USING (true)
+  WITH CHECK (true);
+
 -- Enable RLS (already enabled, but idempotent)
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 

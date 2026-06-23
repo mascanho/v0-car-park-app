@@ -219,7 +219,7 @@ export function BookingPanel({
         (isBorrowing && !isRegular ? (
           <div className="bg-muted/50 border border-border rounded-lg p-4 text-center">
             <p className="text-sm text-muted-foreground">
-              This space is occupied. Only regular users can borrow spaces.
+              This space is occupied. Only Admins can allocate spaces.
             </p>
           </div>
         ) : (

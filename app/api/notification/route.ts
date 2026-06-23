@@ -24,12 +24,25 @@ export async function GET() {
   return NextResponse.json(data);
 }
 
+async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>, user: { email?: string }) {
+  const { data } = await supabase
+    .from("users")
+    .select("admin")
+    .ilike("email", user.email || "")
+    .maybeSingle();
+  return data?.admin === true;
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!(await requireAdmin(supabase, user))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { title, description, end } = await request.json();
@@ -117,6 +130,10 @@ export async function DELETE() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!(await requireAdmin(supabase, user))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Try update first (visible = false)

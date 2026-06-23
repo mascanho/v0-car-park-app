@@ -12,12 +12,11 @@ export async function GET() {
   }
 
   const email = user.email || "";
-  const name = user.user_metadata?.full_name || "";
 
   const { data } = await supabase
     .from("users")
     .select("admin")
-    .or(`email.ilike.${email},name.ilike.${name}`)
+    .ilike("email", email)
     .maybeSingle();
 
   return NextResponse.json({ isAdmin: data?.admin === true });

@@ -13,7 +13,12 @@ function extractInitials(name: string): string {
 
 export async function GET() {
   const supabase = await createClient();
-  
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   let allData: any[] = [];
   let start = 0;
   const pageSize = 1000;
@@ -245,14 +250,32 @@ export async function DELETE(request: Request) {
   }
 
   function applyUserFilter(q: any): any {
-    if (spaceId && targetUsers.length > 0) {
-      const nameFilters = targetUsers.map(u => `user_name.ilike.${u}`).join(',');
-      return q.or(`space_id.eq.${spaceId},${nameFilters}`);
-    } else if (spaceId) {
-      return q.eq('space_id', spaceId);
+    // Sanitize spaceId — parking space IDs are alphanumeric with dashes/underscores
+    const safeSpaceId = spaceId ? String(spaceId).replace(/[^a-zA-Z0-9_-]/g, '') : '';
+    if (safeSpaceId && targetUsers.length > 0) {
+      // Quote each name to handle spaces; strip quotes from names to prevent escape
+      const quotedNames = targetUsers.map(u => `"${u.replace(/"/g, '')}"`).join(',');
+      return q.or(`space_id.eq.${safeSpaceId},user_name.in.(${quotedNames})`);
+    } else if (safeSpaceId) {
+      return q.eq('space_id', safeSpaceId);
     } else {
-      const nameFilters = targetUsers.map(u => `user_name.ilike.${u}`).join(',');
-      return q.or(nameFilters);
+      return q.in('user_name', targetUsers);
+    }
+  }
+
+  // Bulk delete paths require admin
+  const isBulkDelete = (dates.length > 0 && carParkId && (spaceId || targetUsers.length > 0))
+    || (startDate && endDate && carParkId && (spaceId || targetUsers.length > 0));
+
+  if (isBulkDelete) {
+    const { data: userRecord } = await supabase
+      .from('users')
+      .select('admin')
+      .ilike('email', user.email || '')
+      .maybeSingle();
+
+    if (!userRecord?.admin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
   }
 
@@ -286,7 +309,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Missing booking id' }, { status: 400 });
   }
 
-  // Fetch the booking to log the free event
+  // Fetch the booking to verify ownership and log the free event
   const { data: booking } = await supabase
     .from('bookings')
     .select('*')
@@ -294,13 +317,27 @@ export async function DELETE(request: Request) {
     .single();
 
   if (booking) {
-    const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+    const actorName2 = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+
+    // Non-owners must be admin to delete another user's booking
+    if (booking.user_name !== actorName2) {
+      const { data: userRecord } = await supabase
+        .from('users')
+        .select('admin')
+        .ilike('email', user.email || '')
+        .maybeSingle();
+
+      if (!userRecord?.admin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
     await supabase.from('borrow_history').insert({
       space_id: booking.space_id,
       car_park_id: booking.car_park_id,
       booking_date: booking.booking_date,
       original_owner: booking.user_name,
-      borrowed_by: `${userName} [FREED]`,
+      borrowed_by: `${actorName2} [FREED]`,
     });
   }
 
