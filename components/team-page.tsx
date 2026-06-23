@@ -84,7 +84,6 @@ function MemberCard({ m }: { m: TeamMember }) {
   const [bioExpanded, setBioExpanded] = useState(false);
   const isLongBio = (m.bio?.length ?? 0) > 120;
   const photoUrl = getPhotoUrl(m.email, m.photo);
-  console.log("TeamMember photo URL:", photoUrl, "email:", m.email, "raw photo:", m.photo);
 
   return (
     <div className="relative rounded-2xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group flex flex-col">

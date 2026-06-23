@@ -110,9 +110,7 @@ export function ParkingApp() {
           .ilike("email", email)
           .maybeSingle();
         setIsRegular(userRecord?.is_regular ?? false);
-        setCurrentUser(
-          userRecord?.name || user.email?.split("@")[0] || "User",
-        );
+        setCurrentUser(userRecord?.name || user.email?.split("@")[0] || "User");
 
         const adminRes = await fetch("/api/admin/check");
         const adminData = await adminRes.json();
@@ -134,7 +132,6 @@ export function ParkingApp() {
           setBirthdays(
             matched.map((u) => {
               const url = getPhotoUrl(u.email) || "";
-              console.log("Birthday photo URL:", url, "email:", u.email);
               return { name: u.name, email: u.email, imageUrl: url };
             }),
           );
@@ -169,10 +166,9 @@ export function ParkingApp() {
     mutate: refreshBookings,
   } = useSWR<Booking[]>("/api/bookings", fetcher);
 
-  const { data: usersWithEmail = [] } = useSWR<{ name: string; email: string }[]>(
-    "/api/users?includeEmail=true",
-    fetcher,
-  );
+  const { data: usersWithEmail = [] } = useSWR<
+    { name: string; email: string }[]
+  >("/api/users?includeEmail=true", fetcher);
 
   const userEmailMap = useMemo(() => {
     const map: Record<string, string> = {};
@@ -185,7 +181,7 @@ export function ParkingApp() {
   const emailToName = useMemo(() => {
     const map: Record<string, string> = {};
     usersWithEmail.forEach((u) => {
-      const prefix = u.email.split('@')[0].toLowerCase();
+      const prefix = u.email.split("@")[0].toLowerCase();
       map[prefix] = u.name;
     });
     return map;
@@ -278,7 +274,8 @@ export function ParkingApp() {
 
   const handleOpenBulkFree = useCallback(() => {
     const userCp = carParks.find(
-      (cp) => findUserSpace(currentUser, userEmail, cp.id, emailToName) !== null,
+      (cp) =>
+        findUserSpace(currentUser, userEmail, cp.id, emailToName) !== null,
     );
     if (userCp) {
       setSelectedCarPark(userCp);
@@ -359,7 +356,8 @@ export function ParkingApp() {
 
       await refreshBookings(responseData.allBookings, { revalidate: false });
 
-      const pick = BOOKING_MSGS[Math.floor(Math.random() * BOOKING_MSGS.length)];
+      const pick =
+        BOOKING_MSGS[Math.floor(Math.random() * BOOKING_MSGS.length)];
       toast(`${pick.emoji} ${pick.msg}`, {
         description: `Space ${selectedSpace?.id} is all yours on ${selectedDate.getDate()}/${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`,
       });
@@ -463,7 +461,8 @@ export function ParkingApp() {
       const data = await response.json();
       await refreshBookings(data.allBookings, { revalidate: false });
 
-      const pick = BOOKING_MSGS[Math.floor(Math.random() * BOOKING_MSGS.length)];
+      const pick =
+        BOOKING_MSGS[Math.floor(Math.random() * BOOKING_MSGS.length)];
       toast(`${pick.emoji} ${pick.msg}`, {
         description: `Space ${selectedSpace?.id} is all yours on ${selectedDate.getDate()}/${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`,
       });
@@ -538,9 +537,15 @@ export function ParkingApp() {
       <main className="max-w-8xl mx-auto px-4 py-6">
         <div className="mb-4 space-y-3 lg:hidden empty:hidden">
           <NotificationBanner key={notifVersion} />
-          {birthdays.length > 0 && birthdays.map((b) => (
-            <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
-          ))}
+          {birthdays.length > 0 &&
+            birthdays.map((b) => (
+              <BirthdayBanner
+                key={b.name}
+                name={b.name}
+                email={b.email}
+                imageUrl={b.imageUrl}
+              />
+            ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div id="calendar" className="lg:col-span-3 space-y-4 scroll-mt-20">
@@ -600,9 +605,15 @@ export function ParkingApp() {
             </div>
             <div className="hidden lg:block lg:space-y-3 empty:hidden">
               <NotificationBanner key={notifVersion} />
-              {birthdays.length > 0 && birthdays.map((b) => (
-                <BirthdayBanner key={b.name} name={b.name} email={b.email} imageUrl={b.imageUrl} />
-              ))}
+              {birthdays.length > 0 &&
+                birthdays.map((b) => (
+                  <BirthdayBanner
+                    key={b.name}
+                    name={b.name}
+                    email={b.email}
+                    imageUrl={b.imageUrl}
+                  />
+                ))}
             </div>
             <MapPanel
               address={selectedCarPark.address || selectedCarPark.location}
